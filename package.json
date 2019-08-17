@@ -1,0 +1,42 @@
+{
+  "name": "unleash-proxy-client",
+  "version": "1.0.0",
+  "description": "A browser client that can be used together with the unleash-proxy.",
+  "main": "./build/index.js",
+  "browser": "./build/index.min.js",
+  "typings": "./lib/index.d.ts",
+  "files": [
+    "build",
+    "examples"
+  ],
+  "scripts": {
+    "build": "npm run build:ts && npm run build:web",
+    "build:ts": "tsc",
+    "build:web": "rollup -c rollup.config.js",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unleash-hosted/unleash-proxy-client-js.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unleash-hosted/unleash-proxy-client-js/issues"
+  },
+  "homepage": "https://github.com/unleash-hosted/unleash-proxy-client-js#readme",
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "jest": "^24.9.0",
+    "jest-fetch-mock": "^2.1.2",
+    "rollup": "^1.20.3",
+    "rollup-plugin-babel-minify": "^9.0.0",
+    "rollup-plugin-typescript2": "^0.24.0",
+    "rollup-plugin-uglify": "^6.0.2",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3",
+    "uglify-js": "^3.6.0"
+  },
+  "dependencies": {}
+}

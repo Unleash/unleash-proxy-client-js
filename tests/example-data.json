@@ -1,0 +1,26 @@
+{
+	"toggles": [
+        {
+            "name": "variantToggle",
+            "enabled": true,
+            "variant": {
+                "name": "green",
+                "payload": {
+                    "type": "string",
+                    "value": "some-text"
+                },
+                "enabled": true
+            }
+        }, {
+            "name": "featureToggle",
+            "enabled": true,
+            "variant": {
+                "name": "disabled",
+                "enabled": false
+            }
+        }, {
+            "name": "simpleToggle",
+            "enabled": true
+        }
+    ]
+}

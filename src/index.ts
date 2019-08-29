@@ -32,7 +32,7 @@ export class UnleashClient {
     private ref?: any;
     private storage: IStorageProvider;
     private refreshInterval: number;
-    private url: string;
+    private url: URL;
     private clientKey: string;
 
     constructor(config: IConfig, context?: IContext) {
@@ -47,7 +47,7 @@ export class UnleashClient {
             throw new Error('You have to specify the clientKey!');
         }
 
-        this.url = `${config.url}/proxy`;
+        this.url = new URL(`${config.url}/proxy`);
         this.clientKey = config.clientKey;
 
         this.context = context || {};
@@ -94,9 +94,9 @@ export class UnleashClient {
     private async fetchToggles() {
         if (fetch) {
             const context = this.context;
-            const u = new URL(this.url);
-            Object.keys(context).forEach((key) => u.searchParams.append(key, context[key]));
-            const response = await fetch(u.toString(), {
+            const urlWithQuery = this.url;
+            Object.keys(context).forEach((key) => urlWithQuery.searchParams.append(key, context[key]));
+            const response = await fetch(urlWithQuery.toString(), {
                 cache: 'no-cache',
                 headers: {
                     'Authorization': this.clientKey,

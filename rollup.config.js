@@ -11,7 +11,7 @@ export default {
     }
    ],
   plugins: [
-    typescript({lib: ["es5", "es6", "dom"], target: "es5"}),
+    typescript({tsconfigOverride:{compilerOptions: {module: "ES2015",}}}),
     minify( {comments: false} )
   ]
 }

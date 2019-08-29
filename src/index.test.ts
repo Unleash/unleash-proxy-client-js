@@ -23,6 +23,7 @@ test('Will perform an inital fetch', async () => {
     const client = new UnleashClient(config, {});
     await client.start();
     const isEnabled = client.isEnabled('simpleToggle');
+    client.stop();
     expect(isEnabled).toBe(true);
 });
 
@@ -32,6 +33,7 @@ test('Will have correct variant', async () => {
     const client = new UnleashClient(config, {});
     await client.start();
     const variant = client.getVariant('variantToggle');
+    client.stop();
     expect(variant.name).toBe('green');
 });
 

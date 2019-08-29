@@ -5,7 +5,7 @@ export default {
   input: './src/index.ts',
   output: [
     {
-     file: './build/main.iife.js',
+     file: './build/main.min.js',
      format: 'iife',
      name: 'unleash' // the global which can be used in a browser
     }

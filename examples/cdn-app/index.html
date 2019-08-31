@@ -1,0 +1,19 @@
+<html>
+
+<head>
+
+<script src="https://unpkg.com/unleash-proxy-client" type="text/javascript"></script>
+
+<script type="text/javascript">
+    var config = {url: 'https://eu.unleash-hosted.com/hosted/api', clientKey: 'some-proxy-key'};
+    var context = {userId: '1233'};
+    var client = new unleash.UnleashClient(config, context);
+    client.start();
+
+    setTimeout(() => {
+        console.log(client.isEnabled('demo.toggle'));
+    }, 1000);
+</script>
+</head>
+
+</html>

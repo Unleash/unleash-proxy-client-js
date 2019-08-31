@@ -1,7 +1,8 @@
 # Unleash Proxy Client for the browser (js)
 
-This is a client that your can use in the browser together with the 
-unleash-proxy, available for unleash-hosted customers. 
+This is a super tiny (80Byte gzipped) Unleash Client SDK you can use together with the 
+[Unleash Hosted Proxy](https://www.unleash-hosted.com/articles/the-unleash-proxy). 
+This makes it super simple to use Unleash-hosted from any single page app. 
 
 This client expect `fetch` to be available. If you have to support older
 browsers you should probably use the [fetch polyfill](https://github.com/github/fetch). 
@@ -16,6 +17,7 @@ npm install unleash-proxy-client --save
 ```
 
 **Step 2: Initialize**
+You need to have a Unleash-hosted instance, and the proxy need to be enabled. In addition you will need a proxy-specific `clientKey` in order to connect  to the Unleash-hosted Proxy.
 ```js
 import { UnleashClient } from 'unleash-proxy-client';
 

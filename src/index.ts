@@ -26,7 +26,7 @@ export interface IToggle {
 const defaultVariant: IVariant = {name: 'disabled'};
 const storeKey = 'repo';
 
-export class UnleashClient {
+export default class UnleashClient {
     private toggles: IToggle[] = [];
     private context: IContext;
     private ref?: any;

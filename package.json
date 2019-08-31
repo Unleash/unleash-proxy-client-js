@@ -3,7 +3,7 @@
   "version": "0.0.3",
   "description": "A browser client that can be used together with the unleash-proxy.",
   "main": "./build/index.js",
-  "browser": "./build/main.min.js",
+  "typings": "./build/index.d.ts",
   "files": [
     "build",
     "examples"

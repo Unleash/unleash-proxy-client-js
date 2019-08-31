@@ -2,11 +2,12 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-function App() {
+function App({unleash}) {
+  const showToggle = unleash.isEnabled('proxy.demo');
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        {showToggle ? <img src={logo} className="App-logo" alt="logo" /> : null}
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>

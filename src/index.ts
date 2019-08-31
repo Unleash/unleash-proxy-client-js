@@ -51,7 +51,7 @@ export class UnleashClient {
         this.clientKey = config.clientKey;
 
         this.context = context || {};
-        this.toggles = this.storage.get(storeKey);
+        this.toggles = this.storage.get(storeKey) || [];
     }
 
     public isEnabled(toggleName: string): boolean {

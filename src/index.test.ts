@@ -37,6 +37,16 @@ test('Will have correct variant', async () => {
     expect(variant.name).toBe('green');
 });
 
+test('Will handle error and return false for isEnabled', async () => {
+    fetchMock.mockReject();
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 10 };
+    const client = new UnleashClient(config, {});
+    await client.start();
+    const isEnabled = client.isEnabled('simpleToggle');
+    client.stop();
+    expect(isEnabled).toBe(true);
+});
+
 /*
 
 Test cases:

@@ -93,19 +93,24 @@ export class UnleashClient {
 
     private async fetchToggles() {
         if (fetch) {
-            const context = this.context;
-            const urlWithQuery = this.url;
-            Object.keys(context).forEach((key) => urlWithQuery.searchParams.append(key, context[key]));
-            const response = await fetch(urlWithQuery.toString(), {
-                cache: 'no-cache',
-                headers: {
-                    'Authorization': this.clientKey,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            });
-            const data = await response.json();
-            this.storeToggles(data.toggles);
+            try {
+                const context = this.context;
+                const urlWithQuery = this.url;
+                Object.keys(context).forEach((key) => urlWithQuery.searchParams.append(key, context[key]));
+                const response = await fetch(urlWithQuery.toString(), {
+                    cache: 'no-cache',
+                    headers: {
+                        'Authorization': this.clientKey,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                });
+                const data = await response.json();
+                this.storeToggles(data.toggles);
+            } catch(e) {
+                // tslint:disable-next-line
+                console.error('Unleash: unable to fetch feature toggles', e);
+            }
         }
     }
 }

@@ -9358,10 +9358,10 @@ universalify@^0.1.0:
   resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.2.tgz#b646f69be3942dabcecc9d6639c80dc105efaa66"
   integrity sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==
 
-unleash-proxy-client@^0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/unleash-proxy-client/-/unleash-proxy-client-0.0.3.tgz#a1b356797eb2cbbb4edf838bdaf063367aa046f8"
-  integrity sha512-IUcMmuFTA5R/EnujYGKMfp9sgI6B2fl+ImHiWPFO4RAu7KMR/arA2heNyuXZmoSor7scDxQ9AVbxrGljb3ZXjQ==
+unleash-proxy-client@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/unleash-proxy-client/-/unleash-proxy-client-0.0.4.tgz#b38870929aa485c96b1e8401737182e9b9448d74"
+  integrity sha512-4WULF9gvzNdqIMC0eF3mLxoAZzS8HZxVxHu67UJ9eK+rqfu4PJbJBnN6By4gn079iQSMaJktdIUYjLc8WZplVg==
 
 unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"

@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
-import UnleashClient from 'unleash-proxy-client';
+import { UnleashClient } from 'unleash-proxy-client';
 
 const config = {url: 'https://eu.unleash-hosted.com/hosted/api', clientKey: 'some-key'};
 const context = {userId: '1233'};

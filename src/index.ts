@@ -96,7 +96,7 @@ export class UnleashClient {
         if (fetch) {
             try {
                 const context = this.context;
-                const urlWithQuery = Object.assign('', this.url);
+                const urlWithQuery = new URL(this.url.toString());
                 Object.keys(context).forEach((key) => urlWithQuery.searchParams.append(key, context[key]));
                 const response = await fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',

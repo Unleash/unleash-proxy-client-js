@@ -29,11 +29,12 @@ const storeKey = 'repo';
 export class UnleashClient {
     private toggles: IToggle[] = [];
     private context: IContext;
-    private ref?: any;
+    private timerRef?: any;
     private storage: IStorageProvider;
     private refreshInterval: number;
     private url: URL;
     private clientKey: string;
+    private etag: string = '';
 
     constructor(config: IConfig, context?: IContext) {
         this.storage = config.storageProvider || new LocalStorageProvider();
@@ -73,7 +74,7 @@ export class UnleashClient {
             this.stop();
             const interval = this.refreshInterval;
             await this.fetchToggles();
-            this.ref = setInterval(() => this.fetchToggles(), interval);
+            this.timerRef = setInterval(() => this.fetchToggles(), interval);
         } else {
             // tslint:disable-next-line
             console.error('Unleash: Client does not support fetch.');
@@ -81,8 +82,8 @@ export class UnleashClient {
     }
 
     public stop(): void {
-        if (this.ref) {
-            clearInterval(this.ref);
+        if (this.timerRef) {
+            clearInterval(this.timerRef);
         }
     }
 
@@ -95,7 +96,7 @@ export class UnleashClient {
         if (fetch) {
             try {
                 const context = this.context;
-                const urlWithQuery = this.url;
+                const urlWithQuery = Object.assign('', this.url);
                 Object.keys(context).forEach((key) => urlWithQuery.searchParams.append(key, context[key]));
                 const response = await fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
@@ -103,11 +104,15 @@ export class UnleashClient {
                         'Authorization': this.clientKey,
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
+                        'If-None-Match': this.etag,
                     },
                 });
-                const data = await response.json();
-                this.storeToggles(data.toggles);
-            } catch(e) {
+                if (response.ok && response.status !== 304) {
+                    this.etag = response.headers.get('ETag') || '';
+                    const data = await response.json();
+                    this.storeToggles(data.toggles);
+                }
+            } catch (e) {
                 // tslint:disable-next-line
                 console.error('Unleash: unable to fetch feature toggles', e);
             }

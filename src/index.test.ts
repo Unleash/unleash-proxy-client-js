@@ -1,7 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import * as data from '../tests/example-data.json'; 
-import { IConfig, UnleashClient } from './index';
-
+import { EVENTS, IConfig, UnleashClient } from './index';
 
 jest.useFakeTimers();
 
@@ -9,6 +8,7 @@ const fetchMock = fetch as FetchMock;
 
 afterEach(() => {
     fetchMock.resetMocks();
+    jest.clearAllTimers();
 });
 
 test('Can inititalize unleash-client', () => {
@@ -45,6 +45,59 @@ test('Will handle error and return false for isEnabled', async () => {
     const isEnabled = client.isEnabled('simpleToggle');
     client.stop();
     expect(isEnabled).toBe(true);
+});
+
+test('Will publish ready when inital fetch completed', (done) => {
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 10 };
+    const client = new UnleashClient(config, {});
+    client.start();
+    client.on(EVENTS.READY, () => {
+        const isEnabled = client.isEnabled('simpleToggle');
+        client.stop();
+        expect(isEnabled).toBe(true);
+        done();
+    });
+});
+
+test('Will publish update when state changes after refreshInterval', async (done) => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 200 }],
+    );
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1 };
+    const client = new UnleashClient(config);
+
+    let counts = 0;
+    client.on(EVENTS.UPDATE, () => {
+        counts++;
+        if (counts === 2) {
+            expect(fetchMock.mock.calls.length).toEqual(2);
+            client.stop();
+            done();
+        }
+    });
+
+    await client.start();
+
+    jest.advanceTimersByTime(1001);
+});
+
+test('Will include etag in second request', async () => {
+    const etag = '123a';
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200, headers: { ETag: etag} }],
+        [JSON.stringify(data), { status: 304, headers: { ETag: etag} }],
+    );
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1 };
+    const client = new UnleashClient(config);
+
+    await client.start();
+
+    jest.advanceTimersByTime(1001);
+
+    expect(fetchMock.mock.calls[0][1].headers['If-None-Match']).toEqual('');
+    expect(fetchMock.mock.calls[1][1].headers['If-None-Match']).toEqual(etag);
 });
 
 /*

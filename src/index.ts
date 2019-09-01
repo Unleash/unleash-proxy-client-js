@@ -1,3 +1,4 @@
+import { EventEmitter } from 'eventemitter3';
 import IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 
@@ -23,10 +24,15 @@ export interface IToggle {
     variant: IVariant;
 }
 
+export const EVENTS = {
+    READY: 'ready',
+    UPDATE: 'update',
+};
+
 const defaultVariant: IVariant = {name: 'disabled'};
 const storeKey = 'repo';
 
-export class UnleashClient {
+export class UnleashClient extends EventEmitter {
     private toggles: IToggle[] = [];
     private context: IContext;
     private timerRef?: any;
@@ -37,6 +43,7 @@ export class UnleashClient {
     private etag: string = '';
 
     constructor(config: IConfig, context?: IContext) {
+        super();
         this.storage = config.storageProvider || new LocalStorageProvider();
         this.refreshInterval = (config.refreshInterval || 30) * 1000;
 
@@ -67,6 +74,7 @@ export class UnleashClient {
 
     public updateContext(context: IContext) {
         this.context = context;
+        this.fetchToggles();
     }
 
     public async start(): Promise<void> {
@@ -74,6 +82,7 @@ export class UnleashClient {
             this.stop();
             const interval = this.refreshInterval;
             await this.fetchToggles();
+            this.emit(EVENTS.READY);
             this.timerRef = setInterval(() => this.fetchToggles(), interval);
         } else {
             // tslint:disable-next-line
@@ -89,6 +98,7 @@ export class UnleashClient {
 
     private storeToggles(toggles: IToggle[]): void {
         this.toggles = toggles;
+        this.emit(EVENTS.UPDATE);
         this.storage.save(storeKey, toggles);
     }
 

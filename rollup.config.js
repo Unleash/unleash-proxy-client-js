@@ -1,5 +1,7 @@
 import typescript from 'rollup-plugin-typescript2';
 import minify from 'rollup-plugin-babel-minify';
+import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
 
 export default {
   input: './src/index.ts',
@@ -11,7 +13,12 @@ export default {
     }
    ],
   plugins: [
-    typescript({tsconfigOverride:{compilerOptions: {module: "ES2015",}}}),
+    resolve({
+    }),
+    commonjs({ // rollup-plugin-commonjs
+        include: 'node_modules/**'
+    }),
+    typescript({tsconfigOverride:{compilerOptions: {module: "ES2015" }}}),
     minify( {comments: false} )
   ]
 }

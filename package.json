@@ -31,6 +31,8 @@
     "jest-fetch-mock": "^2.1.2",
     "rollup": "^1.20.3",
     "rollup-plugin-babel-minify": "^9.0.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-typescript2": "^0.24.0",
     "rollup-plugin-uglify": "^6.0.2",
     "ts-jest": "^24.0.2",
@@ -39,6 +41,6 @@
     "uglify-js": "^3.6.0"
   },
   "dependencies": {
-    "eventemitter3": "^4.0.0"
+    "tiny-emitter": "^2.1.0"
   }
 }

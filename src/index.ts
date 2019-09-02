@@ -1,4 +1,4 @@
-import { EventEmitter } from 'eventemitter3';
+import { TinyEmitter } from 'tiny-emitter';
 import IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 
@@ -32,7 +32,7 @@ export const EVENTS = {
 const defaultVariant: IVariant = {name: 'disabled'};
 const storeKey = 'repo';
 
-export class UnleashClient extends EventEmitter {
+export class UnleashClient extends TinyEmitter {
     private toggles: IToggle[] = [];
     private context: IContext;
     private timerRef?: any;

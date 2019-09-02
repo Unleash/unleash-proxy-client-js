@@ -53,9 +53,6 @@ export class UnleashClient extends TinyEmitter {
             appName}
         : IConfig) {
         super();
-        this.storage = storageProvider || new LocalStorageProvider();
-        this.refreshInterval = refreshInterval * 1000;
-
         // Validations
         if (!url) {
             throw new Error('url is required');
@@ -69,7 +66,8 @@ export class UnleashClient extends TinyEmitter {
 
         this.url = new URL(`${url}/proxy`);
         this.clientKey = clientKey;
-
+        this.storage = storageProvider || new LocalStorageProvider();
+        this.refreshInterval = refreshInterval * 1000;
         this.context = {environment, appName};
         this.toggles = this.storage.get(storeKey) || [];
     }
@@ -87,7 +85,9 @@ export class UnleashClient extends TinyEmitter {
     public updateContext(context: IContext) {
         const staticContext = {environment: this.context.environment, appName: this.context.appName};
         this.context = {...staticContext, ...context};
-        this.fetchToggles();
+        if (this.timerRef) {
+            this.fetchToggles();
+        }
     }
 
     public async start(): Promise<void> {
@@ -106,6 +106,7 @@ export class UnleashClient extends TinyEmitter {
     public stop(): void {
         if (this.timerRef) {
             clearInterval(this.timerRef);
+            this.timerRef = undefined;
         }
     }
 

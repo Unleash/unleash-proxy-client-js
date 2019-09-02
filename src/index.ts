@@ -17,7 +17,10 @@ export interface IContext {
 
 export interface IVariant {
     name: string;
-    payload?: string;
+    payload?: {
+        type: string,
+        value: string,
+    };
 }
 
 export interface IToggle {

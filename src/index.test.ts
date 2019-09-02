@@ -33,8 +33,11 @@ test('Should have correct variant', async () => {
     const client = new UnleashClient(config);
     await client.start();
     const variant = client.getVariant('variantToggle');
+    const payload = variant.payload || {type: 'undef', value: ''};
     client.stop();
     expect(variant.name).toBe('green');
+    expect(payload.type).toBe('string');
+    expect(payload.value).toBe('some-text');
 });
 
 test('Should handle error and return false for isEnabled', async () => {

@@ -5,6 +5,8 @@ import LocalStorageProvider from './storage-provider-local';
 export interface IConfig {
     url: string;
     clientKey: string;
+    appName: string;
+    environment?: string;
     refreshInterval?: number;
     storageProvider?: IStorageProvider;
 }
@@ -42,23 +44,33 @@ export class UnleashClient extends TinyEmitter {
     private clientKey: string;
     private etag: string = '';
 
-    constructor(config: IConfig, context?: IContext) {
+    constructor({
+            storageProvider,
+            url,
+            clientKey,
+            refreshInterval = 30,
+            environment = 'default',
+            appName}
+        : IConfig) {
         super();
-        this.storage = config.storageProvider || new LocalStorageProvider();
-        this.refreshInterval = (config.refreshInterval || 30) * 1000;
+        this.storage = storageProvider || new LocalStorageProvider();
+        this.refreshInterval = refreshInterval * 1000;
 
         // Validations
-        if (!config.url) {
-            throw new Error('You have to specify the url!');
+        if (!url) {
+            throw new Error('url is required');
         }
-        if (!config.clientKey) {
-            throw new Error('You have to specify the clientKey!');
+        if (!clientKey) {
+            throw new Error('clientKey is required');
+        }
+        if (!appName) {
+            throw new Error('appName is required.');
         }
 
-        this.url = new URL(`${config.url}/proxy`);
-        this.clientKey = config.clientKey;
+        this.url = new URL(`${url}/proxy`);
+        this.clientKey = clientKey;
 
-        this.context = context || {};
+        this.context = {environment, appName};
         this.toggles = this.storage.get(storeKey) || [];
     }
 
@@ -73,7 +85,8 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public updateContext(context: IContext) {
-        this.context = context;
+        const staticContext = {environment: this.context.environment, appName: this.context.appName};
+        this.context = {...staticContext, ...context};
         this.fetchToggles();
     }
 

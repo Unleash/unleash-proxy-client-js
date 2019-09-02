@@ -12,15 +12,15 @@ afterEach(() => {
 });
 
 test('Can inititalize unleash-client', () => {
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 10 };
-    const client = new UnleashClient(config, {});
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
     expect(config.url).toBe('http://localhost/test');
 });
 
 test('Will perform an inital fetch', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 10 };
-    const client = new UnleashClient(config, {});
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
     await client.start();
     const isEnabled = client.isEnabled('simpleToggle');
     client.stop();
@@ -29,8 +29,8 @@ test('Will perform an inital fetch', async () => {
 
 test('Will have correct variant', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 10 };
-    const client = new UnleashClient(config, {});
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
     await client.start();
     const variant = client.getVariant('variantToggle');
     client.stop();
@@ -39,8 +39,8 @@ test('Will have correct variant', async () => {
 
 test('Will handle error and return false for isEnabled', async () => {
     fetchMock.mockReject();
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 10 };
-    const client = new UnleashClient(config, {});
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'wen' };
+    const client = new UnleashClient(config);
     await client.start();
     const isEnabled = client.isEnabled('simpleToggle');
     client.stop();
@@ -49,8 +49,8 @@ test('Will handle error and return false for isEnabled', async () => {
 
 test('Will publish ready when inital fetch completed', (done) => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 10 };
-    const client = new UnleashClient(config, {});
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
     client.start();
     client.on(EVENTS.READY, () => {
         const isEnabled = client.isEnabled('simpleToggle');
@@ -65,7 +65,7 @@ test('Will publish update when state changes after refreshInterval', async (done
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1 };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
     const client = new UnleashClient(config);
 
     let counts = 0;
@@ -89,7 +89,7 @@ test('Will include etag in second request', async () => {
         [JSON.stringify(data), { status: 200, headers: { ETag: etag} }],
         [JSON.stringify(data), { status: 304, headers: { ETag: etag} }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1 };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
     const client = new UnleashClient(config);
 
     await client.start();
@@ -100,16 +100,9 @@ test('Will include etag in second request', async () => {
     expect(fetchMock.mock.calls[1][1].headers['If-None-Match']).toEqual(etag);
 });
 
-/*
-
-Test cases:
-1. 
- - calles correct url
- - correct headers set
-2. Does fetch at given intervels
-3. stops fetching on "stop" (fetch, inteval, stop => boost time => no new calls)
-4. invalid data does not brak stuff. (validate response)
-5. sends context data and they are correct
-6. updates context data and they are sent 
-
-*/
+test('Should require appName', () => {
+    expect(() => {
+        // tslint:disable-next-line
+        new UnleashClient({ url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: '' })
+      }).toThrow();
+});

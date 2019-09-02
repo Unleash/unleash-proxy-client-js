@@ -1,6 +1,6 @@
 # Unleash Proxy Client for the browser (js)
 
-This is a super tiny (80Byte gzipped) Unleash Client SDK you can use together with the 
+This is a tiny Unleash Client SDK you can use together with the 
 [Unleash Hosted Proxy](https://www.unleash-hosted.com/articles/the-unleash-proxy). 
 This makes it super simple to use Unleash-hosted from any single page app. 
 
@@ -46,6 +46,17 @@ if(variant.name === 'blue') {
  // somehting with variant blue...
 }
 ```
+
+**Listen for updates via the EventEmitter**
+The client is also an event emitter. This means that your code can subscribe to updates from the client. This is a neat way to update a single page app when toggle state updates. 
+
+```js
+unleash.subscribe('update', () => {
+    const myToggle = unleash.isEnabled('proxy.demo');
+    //do something useful
+});
+```
+
 
 ## How to use the client via CDN.
 

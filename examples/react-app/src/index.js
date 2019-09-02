@@ -5,7 +5,11 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { UnleashClient } from 'unleash-proxy-client';
 
-const unleash = new UnleashClient({url: 'https://eu.unleash-hosted.com/hosted/api', clientKey: 'lkasjda'});
+const unleash = new UnleashClient({
+    url: 'https://eu.unleash-hosted.com/hosted/api',
+    clientKey: 'lkasjda',
+    refreshInterval: 10,
+});
 unleash.updateContext({userId: '1233'});
 unleash.start();
 

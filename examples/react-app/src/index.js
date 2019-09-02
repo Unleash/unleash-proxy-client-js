@@ -9,6 +9,7 @@ const unleash = new UnleashClient({
     url: 'https://eu.unleash-hosted.com/hosted/api',
     clientKey: 'lkasjda',
     refreshInterval: 10,
+    appName: 'react-app'
 });
 unleash.updateContext({userId: '1233'});
 unleash.start();

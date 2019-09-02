@@ -9387,10 +9387,10 @@ universalify@^0.1.0:
   resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.2.tgz#b646f69be3942dabcecc9d6639c80dc105efaa66"
   integrity sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==
 
-unleash-proxy-client@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/unleash-proxy-client/-/unleash-proxy-client-0.1.0.tgz#c9e51be205e72651ffcc1ca96c87d4df38707696"
-  integrity sha512-hxhBzpumxCKmpxOm7vVas6yFK7G9O8d3z1LW/NsCJpM76jPYdGAgtigMsFhG9jaOWJodNa5vPbRaCEV1QtExYQ==
+unleash-proxy-client@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/unleash-proxy-client/-/unleash-proxy-client-0.2.0.tgz#665ae42d702771a19328cd54065d69aee2cc60a9"
+  integrity sha512-i50QlofH5zYUAKP1pZqcom3vzV0UEQA6OLc75ykWvwR/3uVv6XXlR4aS7AZHuBVmfGC4hNjb7s5iJsmJEP88ig==
   dependencies:
     tiny-emitter "^2.1.0"
 

@@ -6,8 +6,8 @@ import * as serviceWorker from './serviceWorker';
 import { UnleashClient } from 'unleash-proxy-client';
 
 const unleash = new UnleashClient({
-    url: 'https://eu.unleash-hosted.com/hosted/api',
-    clientKey: 'lkasjda',
+    url: 'http://localhost:3000/proxy',
+    clientKey: 'another-proxy-secret',
     refreshInterval: 10,
     appName: 'react-app'
 });

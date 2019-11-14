@@ -4,7 +4,7 @@ import './App.css';
 
 function App({unleash}) {
 
-  const [toggles, setData] = useState({ demoToggle: unleash.isEnabled('proxy.demo') });
+  const [toggles, setData] = useState({ demoToggle: unleash.isEnabled('eu') });
   useEffect(() => {
     unleash.on('update', () => {
       setData({ demoToggle: unleash.isEnabled('proxy.demo') });

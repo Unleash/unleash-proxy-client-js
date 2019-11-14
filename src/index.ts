@@ -1,4 +1,5 @@
 import { TinyEmitter } from 'tiny-emitter';
+import Metrics from './metrics';
 import IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 
@@ -8,6 +9,8 @@ export interface IConfig {
     appName: string;
     environment?: string;
     refreshInterval?: number;
+    metricsInterval?: number;
+    disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
 }
 
@@ -46,12 +49,15 @@ export class UnleashClient extends TinyEmitter {
     private url: URL;
     private clientKey: string;
     private etag: string = '';
+    private metrics: Metrics;
 
     constructor({
             storageProvider,
             url,
             clientKey,
             refreshInterval = 30,
+            metricsInterval = 30,
+            disableMetrics = false,
             environment = 'default',
             appName}
         : IConfig) {
@@ -67,22 +73,37 @@ export class UnleashClient extends TinyEmitter {
             throw new Error('appName is required.');
         }
 
-        this.url = new URL(`${url}/proxy`);
+        this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
         this.context = {environment, appName};
         this.toggles = this.storage.get(storeKey) || [];
+        this.metrics = new Metrics({
+            appName,
+            metricsInterval,
+            disableMetrics,
+            url,
+            clientKey,
+        });
     }
 
     public isEnabled(toggleName: string): boolean {
         const toggle = this.toggles.find((t) => t.name === toggleName);
-        return toggle ? toggle.enabled : false;
+        const enabled = toggle ? toggle.enabled : false;
+        this.metrics.count(toggleName, enabled);
+        return enabled;
     }
 
     public getVariant(toggleName: string): IVariant {
         const toggle = this.toggles.find((t) => t.name === toggleName);
-        return toggle ? toggle.variant : defaultVariant;
+        if (toggle) {
+            this.metrics.count(toggleName, true);
+            return toggle.variant;
+        } else {
+            this.metrics.count(toggleName, false);
+            return defaultVariant;
+        }
     }
 
     public updateContext(context: IContext) {

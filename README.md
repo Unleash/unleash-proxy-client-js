@@ -22,7 +22,7 @@ You need to have a Unleash-hosted instance, and the proxy need to be enabled. In
 import { UnleashClient } from 'unleash-proxy-client';
 
 const unleash = new UnleashClient({
-    url: 'https://eu.unleash-hosted.com/hosted/api',
+    url: 'https://eu.unleash-hosted.com/hosted/proxy',
     clientKey: 'your-proxy-key',
     appName: 'my-webapp'
 });

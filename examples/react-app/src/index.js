@@ -6,9 +6,9 @@ import * as serviceWorker from './serviceWorker';
 import { UnleashClient } from 'unleash-proxy-client';
 
 const unleash = new UnleashClient({
-    url: 'https://eu.unleash-hosted.com/hosted/api',
-    clientKey: 'lkasjda',
-    refreshInterval: 10,
+    url: 'https://app.unleash-hosted.com/demo/proxy',
+    clientKey: 'proxy-123',
+    refreshInterval: 2,
     appName: 'react-app'
 });
 unleash.updateContext({userId: '1233'});

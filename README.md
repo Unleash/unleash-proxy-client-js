@@ -67,12 +67,12 @@ unleash.on('update', () => {
 <head>
     <script src="https://unpkg.com/unleash-proxy-client@latest/build/main.min.js" type="text/javascript"></script>
     <script type="text/javascript">
-        var config = {url: 'https://eu.unleash-hosted.com/hosted/api', clientKey: 'some-proxy-key', appName: 'web'};
+        var config = {url: 'https://app.unleash-hosted.com/demo/proxy', clientKey: 'proxy-123', appName: 'web'};
         var client = new unleash.UnleashClient(config);
         clinet.updateContext({userId: '1233'})
 
         client.on('update', () => {
-            console.log(client.isEnabled('demo.toggle'));
+            console.log(client.isEnabled('proxy.demo'));
         });
         client.start();
     </script>

@@ -9,7 +9,7 @@
     "examples"
   ],
   "scripts": {
-    "preversion": "npm run build",
+    "preversion": "rm -rf build && npm run build",
     "build": "npm run build:ts && npm run build:web",
     "build:ts": "tsc",
     "build:web": "rollup -c rollup.config.js",

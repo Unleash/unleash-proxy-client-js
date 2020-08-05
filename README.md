@@ -69,7 +69,7 @@ unleash.on('update', () => {
     <script type="text/javascript">
         var config = {url: 'https://app.unleash-hosted.com/demo/proxy', clientKey: 'proxy-123', appName: 'web'};
         var client = new unleash.UnleashClient(config);
-        clinet.updateContext({userId: '1233'})
+        client.updateContext({userId: '1233'})
 
         client.on('update', () => {
             console.log(client.isEnabled('proxy.demo'));

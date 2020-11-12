@@ -42,7 +42,7 @@ test('Should have correct variant', async () => {
 
 test('Should handle error and return false for isEnabled', async () => {
     fetchMock.mockReject();
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'wen' };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
     await client.start();
     const isEnabled = client.isEnabled('simpleToggle');

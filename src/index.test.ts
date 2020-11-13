@@ -204,6 +204,33 @@ test('Should include context fields on request', async () => {
     expect(url.searchParams.get('environment')).toEqual('prod');
 });
 
+test('Should not add property fields when properties is an empty object', async () => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 304 }],
+    );
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        environment: 'prod'
+    };
+    const client = new UnleashClient(config);
+    client.updateContext({
+        properties: {}
+    });
+
+    await client.start();
+
+    jest.advanceTimersByTime(1001);
+
+    const url = new URL(fetchMock.mock.calls[0][0]);
+
+    expect(url.searchParams.get('appName')).toEqual('web');
+    expect(url.searchParams.get('environment')).toEqual('prod');
+    expect(url.searchParams.get('properties')).toBeNull();
+});
+
 test('Should use default environment', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],

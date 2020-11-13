@@ -3,33 +3,32 @@ import Metrics from './metrics';
 import IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 
-export interface IConfig {
-    url: string;
-    clientKey: string;
+export interface IStaticContext {
     appName: string;
     environment?: string;
+}
+
+export interface IMutableContext {
     userId?: string;
     sessionId?: string;
     remoteAddress?: string;
     properties?: {
         [key:string]: string,
     };
+}
+
+export type IContext = IStaticContext & IMutableContext;
+
+export interface IConfig {
+    context: IContext;
+    url: string;
+    clientKey: string;
     refreshInterval?: number;
     metricsInterval?: number;
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
 }
 
-export interface IContext {
-    appName?: string;
-    environment?: string;
-    userId?: string;
-    sessionId?: string;
-    remoteAddress?: string;
-    properties?: {
-        [key:string]: string,
-    };
-}
 
 export interface IVariant {
     name: string;
@@ -71,12 +70,7 @@ export class UnleashClient extends TinyEmitter {
             refreshInterval = 30,
             metricsInterval = 30,
             disableMetrics = false,
-            environment = 'default',
-            appName,
-            userId,
-            sessionId,
-            remoteAddress,
-            properties}
+            context}
         : IConfig) {
         super();
         // Validations
@@ -86,18 +80,21 @@ export class UnleashClient extends TinyEmitter {
         if (!clientKey) {
             throw new Error('clientKey is required');
         }
-        if (!appName) {
+        if (!context.appName) {
             throw new Error('appName is required.');
+        }
+        if (!context.environment) {
+            context.environment = 'default';
         }
 
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
-        this.context = {environment, appName, userId, sessionId, remoteAddress, properties};
+        this.context = {...context};
         this.toggles = this.storage.get(storeKey) || [];
         this.metrics = new Metrics({
-            appName,
+            appName: context.appName,
             metricsInterval,
             disableMetrics,
             url,
@@ -123,7 +120,7 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
-    public updateContext(context: IContext) {
+    public updateContext(context: IMutableContext) {
         const staticContext = {environment: this.context.environment, appName: this.context.appName};
         this.context = {...staticContext, ...context};
         if (this.timerRef) {

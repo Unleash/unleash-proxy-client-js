@@ -172,9 +172,22 @@ test('Should include context fields on request', async () => {
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 304 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', environment: 'prod' };
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        environment: 'prod'
+    };
     const client = new UnleashClient(config);
-    client.updateContext({userId: '123', randomField: 'random'});
+    client.updateContext({
+        userId: '123',
+        sessionId: '456',
+        remoteAddress: 'address',
+        properties: {
+            property1: 'property1',
+            property2: 'property2'
+        }
+    });
 
     await client.start();
 
@@ -183,7 +196,10 @@ test('Should include context fields on request', async () => {
     const url = new URL(fetchMock.mock.calls[0][0]);
 
     expect(url.searchParams.get('userId')).toEqual('123');
-    expect(url.searchParams.get('randomField')).toEqual('random');
+    expect(url.searchParams.get('sessionId')).toEqual('456');
+    expect(url.searchParams.get('remoteAddress')).toEqual('address');
+    expect(url.searchParams.get('properties.property1')).toEqual('property1');
+    expect(url.searchParams.get('properties.property2')).toEqual('property2');
     expect(url.searchParams.get('appName')).toEqual('web');
     expect(url.searchParams.get('environment')).toEqual('prod');
 });

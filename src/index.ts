@@ -72,7 +72,11 @@ export class UnleashClient extends TinyEmitter {
             metricsInterval = 30,
             disableMetrics = false,
             environment = 'default',
-            appName}
+            appName,
+            userId,
+            sessionId,
+            remoteAddress,
+            properties}
         : IConfig) {
         super();
         // Validations
@@ -90,7 +94,7 @@ export class UnleashClient extends TinyEmitter {
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
-        this.context = {environment, appName};
+        this.context = {environment, appName, userId, sessionId, remoteAddress, properties};
         this.toggles = this.storage.get(storeKey) || [];
         this.metrics = new Metrics({
             appName,

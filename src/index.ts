@@ -162,7 +162,18 @@ export class UnleashClient extends TinyEmitter {
             try {
                 const context = this.context;
                 const urlWithQuery = new URL(this.url.toString());
-                Object.keys(context).forEach((key) => urlWithQuery.searchParams.append(key, context[key]));
+                // Add context information to url search params. If the properties
+                // object is included in the context, flatten it into the search params
+                // e.g. /?...&property.param1=param1Value&property.param2=param2Value
+                Object.entries(context).forEach((contextEntry) => {
+                    if (contextEntry[0] === 'properties' && contextEntry[1]) {
+                        Object.entries<string>(contextEntry[1]).forEach((propertyEntry) =>
+                            urlWithQuery.searchParams.append(`properties.${propertyEntry[0]}`, propertyEntry[1])
+                        );
+                    } else {
+                        urlWithQuery.searchParams.append(contextEntry[0], contextEntry[1]);
+                    }
+                });
                 const response = await fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
                     headers: {

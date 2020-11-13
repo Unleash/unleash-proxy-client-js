@@ -8,6 +8,12 @@ export interface IConfig {
     clientKey: string;
     appName: string;
     environment?: string;
+    userId?: string;
+    sessionId?: string;
+    remoteAddress?: string;
+    properties?: {
+        [key:string]: string,
+    };
     refreshInterval?: number;
     metricsInterval?: number;
     disableMetrics?: boolean;
@@ -15,7 +21,14 @@ export interface IConfig {
 }
 
 export interface IContext {
-    [key: string]: string;
+    appName?: string;
+    environment?: string;
+    userId?: string;
+    sessionId?: string;
+    remoteAddress?: string;
+    properties?: {
+        [key:string]: string,
+    };
 }
 
 export interface IVariant {

@@ -26,6 +26,7 @@ export interface IConfig extends IStaticContext {
     metricsInterval?: number;
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
+    context?: IMutableContext;
 }
 
 
@@ -70,7 +71,8 @@ export class UnleashClient extends TinyEmitter {
             metricsInterval = 30,
             disableMetrics = false,
             appName,
-            environment = 'default'}
+            environment = 'default',
+            context}
         : IConfig) {
         super();
         // Validations
@@ -88,7 +90,7 @@ export class UnleashClient extends TinyEmitter {
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
-        this.context = { appName, environment };
+        this.context = { appName, environment, ...context };
         this.toggles = this.storage.get(storeKey) || [];
         this.metrics = new Metrics({
             appName,

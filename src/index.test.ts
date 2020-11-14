@@ -12,14 +12,14 @@ afterEach(() => {
 });
 
 test('Should inititalize unleash-client', () => {
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
     expect(config.url).toBe('http://localhost/test');
 });
 
 test('Should perform an inital fetch', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
     await client.start();
     const isEnabled = client.isEnabled('simpleToggle');
@@ -29,7 +29,7 @@ test('Should perform an inital fetch', async () => {
 
 test('Should have correct variant', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
     await client.start();
     const variant = client.getVariant('variantToggle');
@@ -42,7 +42,7 @@ test('Should have correct variant', async () => {
 
 test('Should handle error and return false for isEnabled', async () => {
     fetchMock.mockReject();
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
     await client.start();
     const isEnabled = client.isEnabled('simpleToggle');
@@ -52,7 +52,7 @@ test('Should handle error and return false for isEnabled', async () => {
 
 test('Should publish ready when inital fetch completed', (done) => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
     client.start();
     client.on(EVENTS.READY, () => {
@@ -68,7 +68,7 @@ test('Should publish update when state changes after refreshInterval', async (do
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
     const client = new UnleashClient(config);
 
     let counts = 0;
@@ -92,7 +92,7 @@ test('Should include etag in second request', async () => {
         [JSON.stringify(data), { status: 200, headers: { ETag: etag} }],
         [JSON.stringify(data), { status: 304, headers: { ETag: etag} }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
     const client = new UnleashClient(config);
 
     await client.start();
@@ -108,7 +108,7 @@ test('Should add clientKey as Authorization header', async () => {
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: 'some123key', context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: 'some123key', appName: 'web' };
     const client = new UnleashClient(config);
     await client.start();
 
@@ -120,28 +120,28 @@ test('Should add clientKey as Authorization header', async () => {
 test('Should require appName', () => {
     expect(() => {
         // tslint:disable-next-line
-        new UnleashClient({ url: 'http://localhost/test', clientKey: '12', context: { appName: '' } })
+        new UnleashClient({ url: 'http://localhost/test', clientKey: '12', appName: '' })
       }).toThrow();
 });
 
 test('Should require url', () => {
     expect(() => {
         // tslint:disable-next-line
-        new UnleashClient({ url: '', clientKey: '12', context: { appName: 'web' } })
+        new UnleashClient({ url: '', clientKey: '12', appName: 'web' })
       }).toThrow();
 });
 
 test('Should require valid url', () => {
     expect(() => {
         // tslint:disable-next-line
-        new UnleashClient({ url: 'not-a-url', clientKey: '12', context: { appName: 'web' } })
+        new UnleashClient({ url: 'not-a-url', clientKey: '12', appName: 'web' })
       }).toThrow();
 });
 
 test('Should require valid clientKey', () => {
     expect(() => {
         // tslint:disable-next-line
-        new UnleashClient({ url: 'http://localhost/test', clientKey: '', context: { appName: 'web' } })
+        new UnleashClient({ url: 'http://localhost/test', clientKey: '', appName: 'web' })
       }).toThrow();
 });
 
@@ -151,7 +151,7 @@ test('Should stop fetching when stop is called', async () => {
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
     const client = new UnleashClient(config);
 
     await client.start();
@@ -175,7 +175,8 @@ test('Should include context fields on request', async () => {
     const config: IConfig = {
         url: 'http://localhost/test',
         clientKey: '12',
-        context: { appName: 'web', environment: 'prod' }
+        appName: 'web',
+        environment: 'prod'
     };
     const client = new UnleashClient(config);
     client.updateContext({
@@ -211,7 +212,8 @@ test('Should not add property fields when properties is an empty object', async 
     const config: IConfig = {
         url: 'http://localhost/test',
         clientKey: '12',
-        context: { appName: 'web', environment: 'prod' },
+        appName: 'web',
+        environment: 'prod'
     };
     const client = new UnleashClient(config);
     client.updateContext({
@@ -234,7 +236,7 @@ test('Should use default environment', async () => {
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', context: { appName: 'web' } };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
     await client.start();
 

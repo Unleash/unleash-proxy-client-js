@@ -19,8 +19,7 @@ export interface IMutableContext {
 
 export type IContext = IStaticContext & IMutableContext;
 
-export interface IConfig {
-    context: IContext;
+export interface IConfig extends IStaticContext {
     url: string;
     clientKey: string;
     refreshInterval?: number;
@@ -70,7 +69,8 @@ export class UnleashClient extends TinyEmitter {
             refreshInterval = 30,
             metricsInterval = 30,
             disableMetrics = false,
-            context}
+            appName,
+            environment = 'default'}
         : IConfig) {
         super();
         // Validations
@@ -80,21 +80,18 @@ export class UnleashClient extends TinyEmitter {
         if (!clientKey) {
             throw new Error('clientKey is required');
         }
-        if (!context.appName) {
+        if (!appName) {
             throw new Error('appName is required.');
-        }
-        if (!context.environment) {
-            context.environment = 'default';
         }
 
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
-        this.context = {...context};
+        this.context = { appName, environment };
         this.toggles = this.storage.get(storeKey) || [];
         this.metrics = new Metrics({
-            appName: context.appName,
+            appName,
             metricsInterval,
             disableMetrics,
             url,

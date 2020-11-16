@@ -170,7 +170,7 @@ export class UnleashClient extends TinyEmitter {
                 Object.entries(context).forEach(([contextKey, contextValue]) => {
                     if (contextKey === 'properties' && contextValue) {
                         Object.entries<string>(contextValue).forEach(([propertyKey, propertyValue]) =>
-                            urlWithQuery.searchParams.append(`properties.${propertyKey}`, propertyValue)
+                            urlWithQuery.searchParams.append(`properties[${propertyKey}]`, propertyValue)
                         );
                     } else {
                         urlWithQuery.searchParams.append(contextKey, contextValue);

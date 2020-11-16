@@ -120,6 +120,12 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public updateContext(context: IMutableContext) {
+        // Give the user a nicer error message when including
+        // static fields in the mutable context object
+        // @ts-ignore
+        if (context.appName || context.environment) {
+            console.warn("appName and environment are static. They can't be updated with updateContext.");
+        }
         const staticContext = {environment: this.context.environment, appName: this.context.appName};
         this.context = {...staticContext, ...context};
         if (this.timerRef) {

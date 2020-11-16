@@ -178,7 +178,7 @@ test('Should include context fields on request', async () => {
         remoteAddress: 'address',
         properties: {
             property1: 'property1',
-            property2: 'property2'
+            property2: 'property2',
         }
     }
     const config: IConfig = {
@@ -199,8 +199,8 @@ test('Should include context fields on request', async () => {
     expect(url.searchParams.get('userId')).toEqual('123');
     expect(url.searchParams.get('sessionId')).toEqual('456');
     expect(url.searchParams.get('remoteAddress')).toEqual('address');
-    expect(url.searchParams.get('properties.property1')).toEqual('property1');
-    expect(url.searchParams.get('properties.property2')).toEqual('property2');
+    expect(url.searchParams.get('properties[property1]')).toEqual('property1');
+    expect(url.searchParams.get('properties[property2]')).toEqual('property2');
     expect(url.searchParams.get('appName')).toEqual('web');
     expect(url.searchParams.get('environment')).toEqual('prod');
 });
@@ -236,8 +236,8 @@ test('Should update context fields on request', async () => {
     expect(url.searchParams.get('userId')).toEqual('123');
     expect(url.searchParams.get('sessionId')).toEqual('456');
     expect(url.searchParams.get('remoteAddress')).toEqual('address');
-    expect(url.searchParams.get('properties.property1')).toEqual('property1');
-    expect(url.searchParams.get('properties.property2')).toEqual('property2');
+    expect(url.searchParams.get('properties[property1]')).toEqual('property1');
+    expect(url.searchParams.get('properties[property2]')).toEqual('property2');
     expect(url.searchParams.get('appName')).toEqual('web');
     expect(url.searchParams.get('environment')).toEqual('prod');
 });

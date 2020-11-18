@@ -3,20 +3,32 @@ import Metrics from './metrics';
 import IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 
-export interface IConfig {
-    url: string;
-    clientKey: string;
+export interface IStaticContext {
     appName: string;
     environment?: string;
+}
+
+export interface IMutableContext {
+    userId?: string;
+    sessionId?: string;
+    remoteAddress?: string;
+    properties?: {
+        [key:string]: string,
+    };
+}
+
+export type IContext = IStaticContext & IMutableContext;
+
+export interface IConfig extends IStaticContext {
+    url: string;
+    clientKey: string;
     refreshInterval?: number;
     metricsInterval?: number;
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
+    context?: IMutableContext;
 }
 
-export interface IContext {
-    [key: string]: string;
-}
 
 export interface IVariant {
     name: string;
@@ -58,8 +70,9 @@ export class UnleashClient extends TinyEmitter {
             refreshInterval = 30,
             metricsInterval = 30,
             disableMetrics = false,
+            appName,
             environment = 'default',
-            appName}
+            context}
         : IConfig) {
         super();
         // Validations
@@ -77,7 +90,7 @@ export class UnleashClient extends TinyEmitter {
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
-        this.context = {environment, appName};
+        this.context = { appName, environment, ...context };
         this.toggles = this.storage.get(storeKey) || [];
         this.metrics = new Metrics({
             appName,
@@ -106,7 +119,13 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
-    public updateContext(context: IContext) {
+    public updateContext(context: IMutableContext) {
+        // Give the user a nicer error message when including
+        // static fields in the mutable context object
+        // @ts-ignore
+        if (context.appName || context.environment) {
+            console.warn("appName and environment are static. They can't be updated with updateContext.");
+        }
         const staticContext = {environment: this.context.environment, appName: this.context.appName};
         this.context = {...staticContext, ...context};
         if (this.timerRef) {
@@ -145,7 +164,18 @@ export class UnleashClient extends TinyEmitter {
             try {
                 const context = this.context;
                 const urlWithQuery = new URL(this.url.toString());
-                Object.keys(context).forEach((key) => urlWithQuery.searchParams.append(key, context[key]));
+                // Add context information to url search params. If the properties
+                // object is included in the context, flatten it into the search params
+                // e.g. /?...&property.param1=param1Value&property.param2=param2Value
+                Object.entries(context).forEach(([contextKey, contextValue]) => {
+                    if (contextKey === 'properties' && contextValue) {
+                        Object.entries<string>(contextValue).forEach(([propertyKey, propertyValue]) =>
+                            urlWithQuery.searchParams.append(`properties[${propertyKey}]`, propertyValue)
+                        );
+                    } else {
+                        urlWithQuery.searchParams.append(contextKey, contextValue);
+                    }
+                });
                 const response = await fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
                     headers: {

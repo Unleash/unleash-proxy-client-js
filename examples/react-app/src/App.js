@@ -9,7 +9,7 @@ function App({unleash}) {
     unleash.on('update', () => {
       setData({ demoToggle: unleash.isEnabled('proxy.demo') });
     })
-  });
+  }, []);
 
 
   return (

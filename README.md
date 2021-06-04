@@ -1,8 +1,8 @@
 # Unleash Proxy Client for the browser (js)
 
 This is a tiny Unleash Client SDK you can use together with the 
-[Unleash Hosted Proxy](https://www.unleash-hosted.com/articles/the-unleash-proxy). 
-This makes it super simple to use Unleash-hosted from any single page app. 
+[Unleash Proxy](https://docs.getunleash.io/sdks/unleash-proxy). 
+This makes it super simple to use Unleash from any single page app. 
 
 This client expect `fetch` to be available. If you need to support older
 browsers you should probably use the [fetch polyfill](https://github.com/github/fetch). 
@@ -44,7 +44,7 @@ unleash.isEnabled('proxy.demo');
 ```js
 const variant = unleash.getVariant('proxy.demo');
 if(variant.name === 'blue') {
- // somehting with variant blue...
+ // something with variant blue...
 }
 ```
 

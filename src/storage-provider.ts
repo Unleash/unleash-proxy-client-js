@@ -1,4 +1,4 @@
 export default interface IStorageProvider {
-    save: (name: string, data: any) => void;
-    get: (name: string) => any;
+    save: (name: string, data: any) => Promise<void>;
+    get: (name: string) => Promise<any>;
 }

@@ -47,10 +47,10 @@ test('Should handle error and return false for isEnabled', async () => {
     await client.start();
     const isEnabled = client.isEnabled('simpleToggle');
     client.stop();
-    expect(isEnabled).toBe(true);
+    expect(isEnabled).toBe(false);
 });
 
-test('Should publish ready when inital fetch completed', (done) => {
+test('Should publish ready when initial fetch completed', (done) => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
     const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);

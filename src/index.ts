@@ -91,7 +91,12 @@ export class UnleashClient extends TinyEmitter {
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
         this.context = { appName, environment, ...context };
-        this.toggles = this.storage.get(storeKey) || [];
+        async () => {
+            const togglesLocal = await this.storage.get(storeKey) || [];
+            if(this.toggles.length === 0) {
+                this.toggles = togglesLocal;
+            }
+        };
         this.metrics = new Metrics({
             appName,
             metricsInterval,
@@ -134,7 +139,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public async start(): Promise<void> {
-        if (fetch) {
+        if ('fetch' in window) {
             this.stop();
             const interval = this.refreshInterval;
             await this.fetchToggles();
@@ -153,7 +158,7 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
-    private storeToggles(toggles: IToggle[]): void {
+    private async storeToggles(toggles: IToggle[]): Promise<void> {
         this.toggles = toggles;
         this.emit(EVENTS.UPDATE);
         this.storage.save(storeKey, toggles);
@@ -188,7 +193,7 @@ export class UnleashClient extends TinyEmitter {
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
-                    this.storeToggles(data.toggles);
+                    await this.storeToggles(data.toggles);
                 }
             } catch (e) {
                 // tslint:disable-next-line

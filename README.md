@@ -7,7 +7,7 @@ This makes it super simple to use Unleash from any single page app.
 This client expect `fetch` to be available. If you need to support older
 browsers you should probably use the [fetch polyfill](https://github.com/github/fetch). 
 
-## Framworks supported
+## Frameworks supported
 
 This package is not tied to any framework, but can be used together most popular frameworks, examples:
 

@@ -71,9 +71,9 @@ unleash.on('update', () => {
 
 ### Custom store
 
-This SDK will use [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) to store 
+This SDK will use [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) to backup feature toggles locally. This is useful for bootstrapping the SDK the next time the user comes back to your application. 
 
-You can provide your own storage implementation, where the SDK will backup feature toggles locally (useful when the user gets back to avoid waiting for a response from a network call). 
+You can provide your own storage implementation. 
 
 Example: 
 

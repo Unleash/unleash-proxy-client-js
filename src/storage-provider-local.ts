@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-community/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import IStorageProvider from './storage-provider';
 
 export default class LocalStorageProvider implements IStorageProvider {

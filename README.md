@@ -7,6 +7,16 @@ This makes it super simple to use Unleash from any single page app.
 This client expect `fetch` to be available. If you need to support older
 browsers you should probably use the [fetch polyfill](https://github.com/github/fetch). 
 
+## Framworks supported
+
+This package is not tied to any framework, but can be used together most popular frameworks, examples:
+
+- No framework
+- [React](https://reactjs.org/) - [example](https://github.com/unleash-hosted/unleash-proxy-client-js/tree/master/examples/react-app)
+- [React Native](https://reactnative.dev/) 
+- [Angular JS](https://angularjs.org/)
+- [Vue.js])(https://vuejs.org/)
+- ...and probably your favorite! 
 
 ## How to use the client as a module.
 
@@ -56,6 +66,30 @@ This is a neat way to update a single page app when toggle state updates.
 unleash.on('update', () => {
     const myToggle = unleash.isEnabled('proxy.demo');
     //do something useful
+});
+```
+
+### Custom store
+
+This SDK will use [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) to store 
+
+You can provide your own storage implementation, where the SDK will backup feature toggles locally (useful when the user gets back to avoid waiting for a response from a network call). 
+
+Example: 
+
+```js
+
+import SharedPreferences from 'react-native-shared-preferences';
+import { UnleashClient } from 'unleash-proxy-client';
+
+const unleash = new UnleashClient({
+    url: 'https://eu.unleash-hosted.com/hosted/proxy',
+    clientKey: 'your-proxy-key',
+    appName: 'my-webapp',
+	storage: {
+		save: (name: string, data: any) => SharedPreferences.setItem(name, data),
+		get: (name: string) => SharedPreferences.getItem(name, (val) => val)
+	},
 });
 ```
 

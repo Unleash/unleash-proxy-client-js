@@ -15,7 +15,7 @@ This package is not tied to any framework, but can be used together most popular
 - [React](https://reactjs.org/) - [example](https://github.com/unleash-hosted/unleash-proxy-client-js/tree/master/examples/react-app)
 - [React Native](https://reactnative.dev/) 
 - [Angular JS](https://angularjs.org/)
-- [Vue.js])(https://vuejs.org/)
+- [Vue.js](https://vuejs.org/)
 - ...and probably your favorite! 
 
 ## How to use the client as a module.

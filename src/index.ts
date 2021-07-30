@@ -106,9 +106,9 @@ export class UnleashClient extends TinyEmitter {
         });
     }
 
-    public isEnabled(toggleName: string): boolean {
+    public isEnabled(toggleName: string, fallback?: Function): boolean {
         const toggle = this.toggles.find((t) => t.name === toggleName);
-        const enabled = toggle ? toggle.enabled : false;
+        let enabled = toggle ? toggle.enabled : this.getFallbackOrDefault(fallback)();
         this.metrics.count(toggleName, enabled);
         return enabled;
     }
@@ -200,5 +200,10 @@ export class UnleashClient extends TinyEmitter {
                 console.error('Unleash: unable to fetch feature toggles', e);
             }
         }
+    }
+
+    private getFallbackOrDefault(customFallback?: Function) {
+        const defaultFallback = () => false;
+        return customFallback ? customFallback : defaultFallback;
     }
 }

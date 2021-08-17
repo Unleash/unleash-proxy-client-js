@@ -62,6 +62,7 @@ export class UnleashClient extends TinyEmitter {
     private clientKey: string;
     private etag: string = '';
     private metrics: Metrics;
+    private ready: Promise<void>;
 
     constructor({
             storageProvider,
@@ -91,12 +92,16 @@ export class UnleashClient extends TinyEmitter {
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
         this.context = { appName, environment, ...context };
-        async () => {
-            const togglesLocal = await this.storage.get(storeKey) || [];
-            if(this.toggles.length === 0) {
-                this.toggles = togglesLocal;
-            }
-        };
+        this.ready = new Promise(async (resolve) => {
+            try {
+                await this.init();
+            } catch (error) {
+                console.error(error);
+            } 
+            resolve();    
+        });
+        
+
         this.metrics = new Metrics({
             appName,
             metricsInterval,
@@ -131,14 +136,29 @@ export class UnleashClient extends TinyEmitter {
         if (context.appName || context.environment) {
             console.warn("appName and environment are static. They can't be updated with updateContext.");
         }
-        const staticContext = {environment: this.context.environment, appName: this.context.appName};
+        const staticContext = {environment: this.context.environment, appName: this.context.appName };
         this.context = {...staticContext, ...context};
         if (this.timerRef) {
             this.fetchToggles();
         }
     }
 
+    public getContext() {
+        return {...this.context};
+    }
+
+    private async init(): Promise<void> {
+        const sessionId = await this.resolveSessionId();
+        this.context = { sessionId, ...this.context };
+
+        const togglesLocal = await this.storage.get(storeKey) || [];
+        if(this.toggles.length === 0) {
+            this.toggles = togglesLocal;
+        }
+    }
+
     public async start(): Promise<void> {
+        await this.ready;
         if ('fetch' in window) {
             this.stop();
             const interval = this.refreshInterval;
@@ -155,6 +175,19 @@ export class UnleashClient extends TinyEmitter {
         if (this.timerRef) {
             clearInterval(this.timerRef);
             this.timerRef = undefined;
+        }
+    }
+
+    private async resolveSessionId(): Promise<string> {
+        if(this.context.sessionId) {
+            return this.context.sessionId;
+        } else {
+            let sessionId = await this.storage.get('sessionId');
+            if(!sessionId) {
+                sessionId = Math.floor(Math.random() * 1_000_000_000); 
+                await this.storage.save('sessionId', sessionId);
+            }
+            return sessionId;
         }
     }
 

@@ -129,7 +129,8 @@ test('Should publish ready when initial fetch completed', (done) => {
     });
 });
 
-test('Should publish update when state changes after refreshInterval', async (done) => {
+test('Should publish update when state changes after refreshInterval', async () => {
+    expect.assertions(1);
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
@@ -143,7 +144,6 @@ test('Should publish update when state changes after refreshInterval', async (do
         if (counts === 2) {
             expect(fetchMock.mock.calls.length).toEqual(2);
             client.stop();
-            done();
         }
     });
 

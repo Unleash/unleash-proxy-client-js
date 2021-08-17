@@ -9,4 +9,5 @@ module.exports = {
     "setupFiles": [
       "./setupJest.js"
     ],
+    "testEnvironment": "jsdom"
   }

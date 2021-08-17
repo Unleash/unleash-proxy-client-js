@@ -20,7 +20,7 @@ export default class Metrics {
     private disabled: boolean;
     private url: string;
     private clientKey: string;
-    private timer: NodeJS.Timer | undefined;
+    private timer: any;
     private started: Date;
 
     constructor({

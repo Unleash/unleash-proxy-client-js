@@ -136,7 +136,7 @@ export class UnleashClient extends TinyEmitter {
         if (context.appName || context.environment) {
             console.warn("appName and environment are static. They can't be updated with updateContext.");
         }
-        const staticContext = {environment: this.context.environment, appName: this.context.appName};
+        const staticContext = {environment: this.context.environment, appName: this.context.appName };
         this.context = {...staticContext, ...context};
         if (this.timerRef) {
             this.fetchToggles();
@@ -148,9 +148,9 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private async init(): Promise<void> {
-        if(!this.context.sessionId) {
-            this.context.sessionId = await this.resolveSessionId();
-        }
+        const sessionId = await this.resolveSessionId();
+        this.context = { sessionId, ...this.context };
+
         const togglesLocal = await this.storage.get(storeKey) || [];
         if(this.toggles.length === 0) {
             this.toggles = togglesLocal;
@@ -179,12 +179,16 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private async resolveSessionId(): Promise<string> {
-        let sessionId = await this.storage.get('sessionId');
-        if(!sessionId) {
-            sessionId = Math.floor(Math.random() * 1_000_000_000); 
-            await this.storage.save('sessionId', sessionId);
+        if(this.context.sessionId) {
+            return this.context.sessionId;
+        } else {
+            let sessionId = await this.storage.get('sessionId');
+            if(!sessionId) {
+                sessionId = Math.floor(Math.random() * 1_000_000_000); 
+                await this.storage.save('sessionId', sessionId);
+            }
+            return sessionId;
         }
-        return sessionId;
     }
 
     private async storeToggles(toggles: IToggle[]): Promise<void> {

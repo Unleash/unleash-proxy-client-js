@@ -143,6 +143,10 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
+    public getContext() {
+        return {...this.context};
+    }
+
     private async init(): Promise<void> {
         if(!this.context.sessionId) {
             this.context.sessionId = await this.resolveSessionId();

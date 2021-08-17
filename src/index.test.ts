@@ -61,6 +61,61 @@ test('Should handle error and return false for isEnabled', async () => {
     expect(isEnabled).toBe(false);
 });
 
+test('Should read session id form localStorage', async () => {
+    const sessionId = '123';
+    fetchMock.mockReject();
+    class Store implements IStorageProvider {
+        public async save(name: string, data: any) {
+            return Promise.resolve();
+        }
+    
+        public async get(name: string) {
+            if(name === 'sessionId') {
+                return sessionId;
+            } else {
+                return Promise.resolve([]);
+            }
+        }
+    }
+    const storageProvider = new Store 
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', storageProvider };
+    const client = new UnleashClient(config);
+    await client.start();
+    const context = client.getContext();
+    expect(context.sessionId).toBe(sessionId);
+});
+
+test('Should read toggles form localStorage', async () => {
+    const toggles = [{
+        "name": "featureToggleBackup",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+        }
+    }];
+    fetchMock.mockReject();
+    class Store implements IStorageProvider {
+        public async save(name: string, data: any) {
+            return Promise.resolve();
+        }
+    
+        public async get(name: string) {
+            if(name === 'repo') {
+                return toggles;
+            } else {
+                return Promise.resolve(undefined);
+            }
+        }
+    }
+    const storageProvider = new Store 
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', storageProvider };
+    const client = new UnleashClient(config);
+    await client.start();
+    expect(client.isEnabled('featureToggleBackup')).toBe(true);
+    expect(client.isEnabled('featureUnknown')).toBe(false);
+});
+
 test('Should publish ready when initial fetch completed', (done) => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
     const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };

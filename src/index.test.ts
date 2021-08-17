@@ -108,7 +108,7 @@ test('Should read toggles form localStorage', async () => {
             }
         }
     }
-    const storageProvider = new Store 
+    const storageProvider = new Store();
     const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', storageProvider };
     const client = new UnleashClient(config);
     await client.start();

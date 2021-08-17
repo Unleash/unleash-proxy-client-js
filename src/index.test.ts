@@ -1,5 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import * as data from '../tests/example-data.json'; 
+import IStorageProvider from './storage-provider';
 import { EVENTS, IConfig, IMutableContext, UnleashClient } from './index';
 
 jest.useFakeTimers();
@@ -42,7 +43,17 @@ test('Should have correct variant', async () => {
 
 test('Should handle error and return false for isEnabled', async () => {
     fetchMock.mockReject();
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    class Store implements IStorageProvider {
+        public async save(name: string, data: any) {
+            return Promise.resolve();
+        }
+    
+        public async get(name: string) {
+            return Promise.resolve([]);
+        }
+    }
+    const storageProvider = new Store 
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', storageProvider };
     const client = new UnleashClient(config);
     await client.start();
     const isEnabled = client.isEnabled('simpleToggle');

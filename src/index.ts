@@ -159,7 +159,7 @@ export class UnleashClient extends TinyEmitter {
 
     public async start(): Promise<void> {
         await this.ready;
-        if ('fetch' in window) {
+        if ('fetch' in global) {
             this.stop();
             const interval = this.refreshInterval;
             await this.fetchToggles();

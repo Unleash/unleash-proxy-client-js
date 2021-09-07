@@ -1,3 +1,5 @@
+import { IFetch } from ".";
+
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/master/src/metrics.ts
 export interface MetricsOptions {
     appName: string;
@@ -5,6 +7,7 @@ export interface MetricsOptions {
     disableMetrics?: boolean;
     url: string;
     clientKey: string;
+    fetch?: IFetch;
 }
 
 interface Bucket {
@@ -22,6 +25,7 @@ export default class Metrics {
     private clientKey: string;
     private timer: any;
     private started: Date;
+    private fetch: IFetch;
 
     constructor({
         appName,
@@ -29,6 +33,7 @@ export default class Metrics {
         disableMetrics = false,
         url,
         clientKey,
+        fetch
     }: MetricsOptions) {
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
@@ -37,6 +42,7 @@ export default class Metrics {
         this.started = new Date();
         this.clientKey = clientKey;
         this.resetBucket();
+        this.fetch = fetch ?? global.fetch
 
         if (typeof this.metricsInterval === 'number' && this.metricsInterval > 0) {
             // send first metrics after two seconds.
@@ -65,7 +71,7 @@ export default class Metrics {
         const url = `${this.url}/client/metrics`;
         const payload = this.getPayload();
 
-        await fetch(url, {
+        await this.fetch(url, {
             cache: 'no-cache',
             method: 'POST',
             headers: {

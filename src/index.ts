@@ -18,6 +18,8 @@ export interface IMutableContext {
 }
 
 export type IContext = IStaticContext & IMutableContext;
+export type IFetch = typeof global.fetch
+export { IStorageProvider }
 
 export interface IConfig extends IStaticContext {
     url: string;
@@ -27,8 +29,8 @@ export interface IConfig extends IStaticContext {
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
+    fetch?: IFetch;
 }
-
 
 export interface IVariant {
     name: string;
@@ -63,6 +65,7 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = '';
     private metrics: Metrics;
     private ready: Promise<void>;
+    private fetch?: IFetch;
 
     constructor({
             storageProvider,
@@ -73,7 +76,8 @@ export class UnleashClient extends TinyEmitter {
             disableMetrics = false,
             appName,
             environment = 'default',
-            context}
+            context,
+            fetch}
         : IConfig) {
         super();
         // Validations
@@ -100,6 +104,7 @@ export class UnleashClient extends TinyEmitter {
             } 
             resolve();    
         });
+        this.fetch = fetch ?? global.fetch
         
 
         this.metrics = new Metrics({
@@ -108,6 +113,7 @@ export class UnleashClient extends TinyEmitter {
             disableMetrics,
             url,
             clientKey,
+            fetch: this.fetch
         });
     }
 
@@ -159,7 +165,7 @@ export class UnleashClient extends TinyEmitter {
 
     public async start(): Promise<void> {
         await this.ready;
-        if ('fetch' in global) {
+        if (this.fetch) {
             this.stop();
             const interval = this.refreshInterval;
             await this.fetchToggles();
@@ -198,7 +204,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private async fetchToggles() {
-        if (fetch) {
+        if (this.fetch) {
             try {
                 const context = this.context;
                 const urlWithQuery = new URL(this.url.toString());
@@ -214,7 +220,7 @@ export class UnleashClient extends TinyEmitter {
                         urlWithQuery.searchParams.append(contextKey, contextValue);
                     }
                 });
-                const response = await fetch(urlWithQuery.toString(), {
+                const response = await this.fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
                     headers: {
                         'Authorization': this.clientKey,

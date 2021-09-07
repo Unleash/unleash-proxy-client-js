@@ -1,5 +1,3 @@
-import { IFetch } from ".";
-
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/master/src/metrics.ts
 export interface MetricsOptions {
     appName: string;
@@ -7,7 +5,7 @@ export interface MetricsOptions {
     disableMetrics?: boolean;
     url: string;
     clientKey: string;
-    fetch?: IFetch;
+    fetch?: any;
 }
 
 interface Bucket {
@@ -25,7 +23,7 @@ export default class Metrics {
     private clientKey: string;
     private timer: any;
     private started: Date;
-    private fetch: IFetch;
+    private fetch: typeof global['fetch'];
 
     constructor({
         appName,

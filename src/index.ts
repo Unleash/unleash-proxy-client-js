@@ -18,7 +18,6 @@ export interface IMutableContext {
 }
 
 export type IContext = IStaticContext & IMutableContext;
-export type IFetch = typeof global.fetch
 export { IStorageProvider }
 
 export interface IConfig extends IStaticContext {
@@ -29,7 +28,7 @@ export interface IConfig extends IStaticContext {
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
-    fetch?: IFetch;
+    fetch?: any;
 }
 
 export interface IVariant {
@@ -65,7 +64,7 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = '';
     private metrics: Metrics;
     private ready: Promise<void>;
-    private fetch?: IFetch;
+    private fetch?: typeof global['fetch'];
 
     constructor({
             storageProvider,

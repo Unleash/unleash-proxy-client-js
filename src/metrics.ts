@@ -23,7 +23,7 @@ export default class Metrics {
     private clientKey: string;
     private timer: any;
     private started: Date;
-    private fetch: typeof global['fetch'];
+    private fetch: typeof globalThis['fetch'];
 
     constructor({
         appName,
@@ -40,7 +40,7 @@ export default class Metrics {
         this.started = new Date();
         this.clientKey = clientKey;
         this.resetBucket();
-        this.fetch = fetch ?? global.fetch
+        this.fetch = fetch ?? globalThis?.fetch ?? window?.fetch
 
         if (typeof this.metricsInterval === 'number' && this.metricsInterval > 0) {
             // send first metrics after two seconds.

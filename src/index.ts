@@ -64,7 +64,7 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = '';
     private metrics: Metrics;
     private ready: Promise<void>;
-    private fetch?: typeof global['fetch'];
+    private fetch?: typeof globalThis['fetch'];
 
     constructor({
             storageProvider,
@@ -103,7 +103,7 @@ export class UnleashClient extends TinyEmitter {
             } 
             resolve();    
         });
-        this.fetch = fetch ?? global.fetch
+        this.fetch = fetch ?? globalThis?.fetch ?? window?.fetch
         
 
         this.metrics = new Metrics({

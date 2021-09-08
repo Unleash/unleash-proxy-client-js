@@ -1,6 +1,6 @@
 import { TinyEmitter } from 'tiny-emitter';
 import Metrics from './metrics';
-import IStorageProvider from './storage-provider';
+import type IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 import InMemoryStorageProvider from './storage-provider-inmemory';
 

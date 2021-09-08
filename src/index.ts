@@ -2,6 +2,7 @@ import { TinyEmitter } from 'tiny-emitter';
 import Metrics from './metrics';
 import IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
+import InMemoryStorageProvider from './storage-provider-inmemory';
 
 export interface IStaticContext {
     appName: string;
@@ -18,7 +19,6 @@ export interface IMutableContext {
 }
 
 export type IContext = IStaticContext & IMutableContext;
-export { IStorageProvider }
 
 export interface IConfig extends IStaticContext {
     url: string;
@@ -240,3 +240,6 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 }
+
+// export storage providers from root module
+export { IStorageProvider, LocalStorageProvider, InMemoryStorageProvider }

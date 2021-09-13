@@ -1,7 +1,8 @@
 import { TinyEmitter } from 'tiny-emitter';
 import Metrics from './metrics';
-import IStorageProvider from './storage-provider';
+import type IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
+import InMemoryStorageProvider from './storage-provider-inmemory';
 
 export interface IStaticContext {
     appName: string;
@@ -27,8 +28,8 @@ export interface IConfig extends IStaticContext {
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
+    fetch?: any;
 }
-
 
 export interface IVariant {
     name: string;
@@ -63,6 +64,7 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = '';
     private metrics: Metrics;
     private ready: Promise<void>;
+    private fetch?: typeof globalThis['fetch'];
 
     constructor({
             storageProvider,
@@ -73,7 +75,8 @@ export class UnleashClient extends TinyEmitter {
             disableMetrics = false,
             appName,
             environment = 'default',
-            context}
+            context,
+            fetch}
         : IConfig) {
         super();
         // Validations
@@ -100,6 +103,7 @@ export class UnleashClient extends TinyEmitter {
             } 
             resolve();    
         });
+        this.fetch = fetch ?? globalThis?.fetch ?? window?.fetch
         
 
         this.metrics = new Metrics({
@@ -108,6 +112,7 @@ export class UnleashClient extends TinyEmitter {
             disableMetrics,
             url,
             clientKey,
+            fetch: this.fetch
         });
     }
 
@@ -159,7 +164,7 @@ export class UnleashClient extends TinyEmitter {
 
     public async start(): Promise<void> {
         await this.ready;
-        if ('fetch' in window) {
+        if (this.fetch) {
             this.stop();
             const interval = this.refreshInterval;
             await this.fetchToggles();
@@ -198,7 +203,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private async fetchToggles() {
-        if (fetch) {
+        if (this.fetch) {
             try {
                 const context = this.context;
                 const urlWithQuery = new URL(this.url.toString());
@@ -214,7 +219,7 @@ export class UnleashClient extends TinyEmitter {
                         urlWithQuery.searchParams.append(contextKey, contextValue);
                     }
                 });
-                const response = await fetch(urlWithQuery.toString(), {
+                const response = await this.fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
                     headers: {
                         'Authorization': this.clientKey,
@@ -235,3 +240,6 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 }
+
+// export storage providers from root module
+export { IStorageProvider, LocalStorageProvider, InMemoryStorageProvider }

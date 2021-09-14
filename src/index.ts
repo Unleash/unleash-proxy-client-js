@@ -53,6 +53,15 @@ export const EVENTS = {
 const defaultVariant: IVariant = {name: 'disabled'};
 const storeKey = 'repo';
 
+const resolveFetch = () => {
+    if('fetch' in window) {
+        return fetch.bind(window);
+    } else if ('fetch' in globalThis) {
+        return fetch.bind(globalThis);
+    }
+    return undefined;
+}
+
 export class UnleashClient extends TinyEmitter {
     private toggles: IToggle[] = [];
     private context: IContext;
@@ -64,7 +73,7 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = '';
     private metrics: Metrics;
     private ready: Promise<void>;
-    private fetch?: typeof globalThis['fetch'];
+    private fetch: any;
 
     constructor({
             storageProvider,
@@ -76,7 +85,7 @@ export class UnleashClient extends TinyEmitter {
             appName,
             environment = 'default',
             context,
-            fetch}
+            fetch = resolveFetch()}
         : IConfig) {
         super();
         // Validations
@@ -103,7 +112,7 @@ export class UnleashClient extends TinyEmitter {
             } 
             resolve();    
         });
-        this.fetch = fetch ?? globalThis?.fetch ?? window?.fetch
+        this.fetch = fetch;
         
 
         this.metrics = new Metrics({

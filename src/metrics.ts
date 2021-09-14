@@ -5,7 +5,7 @@ export interface MetricsOptions {
     disableMetrics?: boolean;
     url: string;
     clientKey: string;
-    fetch?: any;
+    fetch: any;
 }
 
 interface Bucket {
@@ -23,7 +23,7 @@ export default class Metrics {
     private clientKey: string;
     private timer: any;
     private started: Date;
-    private fetch: typeof globalThis['fetch'];
+    private fetch: any;
 
     constructor({
         appName,
@@ -40,7 +40,7 @@ export default class Metrics {
         this.started = new Date();
         this.clientKey = clientKey;
         this.resetBucket();
-        this.fetch = fetch ?? globalThis?.fetch ?? window?.fetch
+        this.fetch = fetch;
 
         if (typeof this.metricsInterval === 'number' && this.metricsInterval > 0) {
             // send first metrics after two seconds.

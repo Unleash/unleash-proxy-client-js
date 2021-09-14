@@ -17,6 +17,7 @@ test('should be disabled by flag disableMetrics', async () => {
         disableMetrics: true,
         url: 'http://localhost:3000',
         clientKey: '123',
+        fetch: fetchMock
     });
 
     metrics.count('foo', true);
@@ -33,6 +34,7 @@ test('should send metrics', async () => {
         disableMetrics: false,
         url: 'http://localhost:3000',
         clientKey: '123',
+        fetch: fetchMock
     });
 
     metrics.count('foo', true);

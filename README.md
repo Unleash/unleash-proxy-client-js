@@ -11,8 +11,8 @@ browsers you should probably use the [fetch polyfill](https://github.com/github/
 
 This package is not tied to any framework, but can be used together most popular frameworks, examples:
 
-- No framework
-- [React](https://reactjs.org/) - [example](https://github.com/unleash-hosted/unleash-proxy-client-js/tree/master/examples/react-app)
+- [Unleash React SDK](https://docs.getunleash.io/sdks/proxy-react)
+- [React](https://reactjs.org/)
 - [React Native](https://reactnative.dev/) 
 - [Angular JS](https://angularjs.org/)
 - [Vue.js](https://vuejs.org/)
@@ -96,7 +96,27 @@ const unleash = new UnleashClient({
 	},
 });
 ```
+## How to use in node.js
 
+This SDK can also be used in node.js applications (from v1.4.0). Please note that you will need to provide a valid "fetch" implementation. Only ECMAScript modules is exported from this package.  
+
+```js
+import fetch from 'node-fetch';
+import { UnleashClient, InMemoryStorageProvider } from 'unleash-proxy-client';
+
+const unleash = new UnleashClient({
+  url: 'https://app.unleash-hosted.com/demo/proxy',
+  clientKey: 'proxy-123',
+  appName: 'nodejs-proxy',
+  storageProvider: new InMemoryStorageProvider(),
+  fetch,
+});
+
+await unleash.start();
+const isEnabled = unleash.isEnabled('proxy.demo');
+console.log(isEnabled);
+```
+*index.mjs*
 
 ## How to use the client via CDN.
 

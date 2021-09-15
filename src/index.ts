@@ -54,11 +54,16 @@ const defaultVariant: IVariant = {name: 'disabled'};
 const storeKey = 'repo';
 
 const resolveFetch = () => {
-    if('fetch' in window) {
-        return fetch.bind(window);
-    } else if ('fetch' in globalThis) {
-        return fetch.bind(globalThis);
+    try {
+        if('fetch' in window) {
+            return fetch.bind(window);
+        } else if ('fetch' in globalThis) {
+            return fetch.bind(globalThis);
+        }
+    } catch (e) {
+        console.error('Unleash failed to resolve "fetch"', e);
     }
+    
     return undefined;
 }
 

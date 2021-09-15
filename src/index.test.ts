@@ -12,13 +12,13 @@ afterEach(() => {
     jest.clearAllTimers();
 });
 
-test('Should inititalize unleash-client', () => {
+test('Should initialize unleash-client', () => {
     const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
     expect(config.url).toBe('http://localhost/test');
 });
 
-test('Should perform an inital fetch', async () => {
+test('Should perform an initial fetch', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
     const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
     const client = new UnleashClient(config);
@@ -42,6 +42,7 @@ test('Should have correct variant', async () => {
 });
 
 test('Should handle error and return false for isEnabled', async () => {
+    jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     fetchMock.mockReject();
     class Store implements IStorageProvider {
         public async save(name: string, data: any) {
@@ -86,6 +87,7 @@ test('Should read session id form localStorage', async () => {
 });
 
 test('Should read toggles form localStorage', async () => {
+    jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     const toggles = [{
         "name": "featureToggleBackup",
         "enabled": true,
@@ -330,7 +332,7 @@ test('Should not add property fields when properties is an empty object', async 
 
     const url = new URL(fetchMock.mock.calls[0][0]);
 
-    console.log(url.toString(), url.searchParams.toString(), url.searchParams.get('properties'));
+    // console.log(url.toString(), url.searchParams.toString(), url.searchParams.get('properties'));
 
     expect(url.searchParams.get('appName')).toEqual('web');
     expect(url.searchParams.get('environment')).toEqual('prod');

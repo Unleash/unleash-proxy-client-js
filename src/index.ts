@@ -112,8 +112,13 @@ export class UnleashClient extends TinyEmitter {
             } 
             resolve();    
         });
+
+        if(!fetch) {
+              // tslint:disable-next-line
+              console.error('Unleash: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.');
+        }
+
         this.fetch = fetch;
-        
 
         this.metrics = new Metrics({
             appName,
@@ -121,7 +126,7 @@ export class UnleashClient extends TinyEmitter {
             disableMetrics,
             url,
             clientKey,
-            fetch: this.fetch
+            fetch
         });
     }
 
@@ -173,16 +178,11 @@ export class UnleashClient extends TinyEmitter {
 
     public async start(): Promise<void> {
         await this.ready;
-        if (this.fetch) {
-            this.stop();
-            const interval = this.refreshInterval;
-            await this.fetchToggles();
-            this.emit(EVENTS.READY);
-            this.timerRef = setInterval(() => this.fetchToggles(), interval);
-        } else {
-            // tslint:disable-next-line
-            console.error('Unleash: Client does not support fetch.');
-        }
+        this.stop();
+        const interval = this.refreshInterval;
+        await this.fetchToggles();
+        this.emit(EVENTS.READY);
+        this.timerRef = setInterval(() => this.fetchToggles(), interval);
     }
 
     public stop(): void {

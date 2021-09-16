@@ -7,7 +7,7 @@
         client.updateContext({userId: '1233'})
 
         client.on('update', () => {
-            console.log(client.isEnabled('demo.toggle'));
+            console.log(client.isEnabled('proxy.demo'));
         });
         client.start();
     </script>

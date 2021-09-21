@@ -4,6 +4,8 @@ import type IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 import InMemoryStorageProvider from './storage-provider-inmemory';
 
+const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
+
 export interface IStaticContext {
     appName: string;
     environment?: string;
@@ -169,6 +171,15 @@ export class UnleashClient extends TinyEmitter {
 
     public getContext() {
         return {...this.context};
+    }
+
+    public setContextField(field: string, value: string) {
+        if(DEFINED_FIELDS.includes(field)) {
+            return this.updateContext({...this.context, [field]: value});
+        } else {
+            const properties = {...this.context.properties, [field]: value};
+            return this.updateContext({...this.context, properties});
+        }
     }
 
     private async init(): Promise<void> {

@@ -37,8 +37,12 @@ const unleash = new UnleashClient({
     appName: 'my-webapp'
 });
 
-// Used to set the context fields, shared with the Unleash Proxy
+// Used to set the context fields, shared with the Unleash Proxy. This 
+// method will replace the entire (mutable part) of the Unleash Context.
 unleash.updateContext({userId: '1233'});
+
+// Used to update a single field on the Unleash Context.
+unleash.setContextField('userId', '4141');
 
 // Start the background polling
 unleash.start();
@@ -68,6 +72,13 @@ unleash.on('update', () => {
     //do something useful
 });
 ```
+
+Available events:
+
+- **ready** - emitted after the SDK has successfully started and performed the initial fetch towards the Unleash Proxy. 
+- **update** - emitted every time the Unleash Proxy return a new feature toggle configuration. The SDK will emit this event as part of the initial fetch from the SDK.  
+
+> PS! Please remember that you should always register your event listeners before your call `unleash.start()`. If you register them after you have started the SDK you risk loosing important events. 
 
 ### SessionId - Important note!
 

@@ -391,6 +391,17 @@ test('Should setContextField with custom property', async () => {
     expect(context.properties?.clientId).toBe(clientId);
 });
 
+test('Should setContextField with custom property and keep existing props', async () => {
+    const clientId = 'some-client-id-443';
+    const initialContext = {properties: { someField: '123'}};
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', context: initialContext };
+    const client = new UnleashClient(config);
+    client.setContextField('clientId', clientId);
+    const context = client.getContext();
+    expect(context.properties?.clientId).toBe(clientId);
+    expect(context.properties?.someField).toBe(initialContext.properties.someField);
+});
+
 test('Should override userId via setContextField', async () => {
     const userId = 'some-user-id-552';
     const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', context: { userId: 'old' }};

@@ -354,3 +354,48 @@ test('Should use default environment', async () => {
 
     expect(url.searchParams.get('environment')).toEqual('default');
 });
+
+test('Should setContextField with userId', async () => {
+    const userId = 'some-id-123';
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
+    client.setContextField('userId', userId);
+    const context = client.getContext();
+    expect(context.userId).toBe(userId);
+});
+
+test('Should setContextField with sessionId', async () => {
+    const sessionId = 'some-session-id-123';
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
+    client.setContextField('sessionId', sessionId);
+    const context = client.getContext();
+    expect(context.sessionId).toBe(sessionId);
+});
+
+test('Should setContextField with remoteAddress', async () => {
+    const remoteAddress = '10.0.0.1';
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
+    client.setContextField('remoteAddress', remoteAddress);
+    const context = client.getContext();
+    expect(context.remoteAddress).toBe(remoteAddress);
+});
+
+test('Should setContextField with custom property', async () => {
+    const clientId = 'some-client-id-443';
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
+    client.setContextField('clientId', clientId);
+    const context = client.getContext();
+    expect(context.properties?.clientId).toBe(clientId);
+});
+
+test('Should override userId via setContextField', async () => {
+    const userId = 'some-user-id-552';
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', context: { userId: 'old' }};
+    const client = new UnleashClient(config);
+    client.setContextField('userId', userId);
+    const context = client.getContext();
+    expect(context.userId).toBe(userId);
+});

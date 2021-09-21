@@ -175,10 +175,13 @@ export class UnleashClient extends TinyEmitter {
 
     public setContextField(field: string, value: string) {
         if(DEFINED_FIELDS.includes(field)) {
-            return this.updateContext({...this.context, [field]: value});
+            this.context = {...this.context, [field]: value};
         } else {
             const properties = {...this.context.properties, [field]: value};
-            return this.updateContext({...this.context, properties});
+            this.context = {...this.context, properties};
+        }
+        if (this.timerRef) {
+            this.fetchToggles();
         }
     }
 

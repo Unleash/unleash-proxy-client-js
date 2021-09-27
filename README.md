@@ -23,7 +23,7 @@ This package is not tied to any framework, but can be used together most popular
 
 **Step 1: Install**
 ```js
-npm install unleash-proxy-client --save
+npm install unleash-proxy-client
 ```
 
 **Step 2: Initialize the SDK**

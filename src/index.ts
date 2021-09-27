@@ -6,12 +6,12 @@ import InMemoryStorageProvider from './storage-provider-inmemory';
 
 const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
 
-export interface IStaticContext {
+interface IStaticContext {
     appName: string;
     environment?: string;
 }
 
-export interface IMutableContext {
+interface IMutableContext {
     userId?: string;
     sessionId?: string;
     remoteAddress?: string;
@@ -20,9 +20,9 @@ export interface IMutableContext {
     };
 }
 
-export type IContext = IStaticContext & IMutableContext;
+type IContext = IStaticContext & IMutableContext;
 
-export interface IConfig extends IStaticContext {
+interface IConfig extends IStaticContext {
     url: string;
     clientKey: string;
     refreshInterval?: number;
@@ -33,7 +33,7 @@ export interface IConfig extends IStaticContext {
     fetch?: any;
 }
 
-export interface IVariant {
+interface IVariant {
     name: string;
     payload?: {
         type: string,
@@ -41,7 +41,7 @@ export interface IVariant {
     };
 }
 
-export interface IToggle {
+interface IToggle {
     name: string;
     enabled: boolean;
     variant: IVariant;
@@ -271,3 +271,11 @@ export class UnleashClient extends TinyEmitter {
 
 // export storage providers from root module
 export { IStorageProvider, LocalStorageProvider, InMemoryStorageProvider }
+
+export type {
+    IConfig,
+    IContext,
+    IMutableContext,
+    IVariant,
+    IToggle
+}

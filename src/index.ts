@@ -1,4 +1,5 @@
 import { TinyEmitter } from 'tiny-emitter';
+import { boostrapData } from './boostrapData';
 import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
@@ -31,6 +32,8 @@ interface IConfig extends IStaticContext {
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
     fetch?: any;
+    boostrap?: IToggle[];
+    boostrapOverride?: boolean;
 }
 
 interface IVariant {
@@ -81,6 +84,7 @@ export class UnleashClient extends TinyEmitter {
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;
+    private boostrapOverride: boolean;
 
     constructor({
             storageProvider,
@@ -92,7 +96,8 @@ export class UnleashClient extends TinyEmitter {
             appName,
             environment = 'default',
             context,
-            fetch = resolveFetch()}
+            fetch = resolveFetch(),
+            boostrapOverride = true}
         : IConfig) {
         super();
         // Validations
@@ -126,6 +131,7 @@ export class UnleashClient extends TinyEmitter {
         }
 
         this.fetch = fetch;
+        this.boostrapOverride = boostrapOverride;
 
         this.metrics = new Metrics({
             appName,
@@ -135,6 +141,10 @@ export class UnleashClient extends TinyEmitter {
             clientKey,
             fetch
         });
+    }
+
+    public getAllToggles(): IToggle[] {
+        return this.toggles
     }
 
     public isEnabled(toggleName: string): boolean {
@@ -190,8 +200,14 @@ export class UnleashClient extends TinyEmitter {
         this.context = { sessionId, ...this.context };
 
         const togglesLocal = await this.storage.get(storeKey) || [];
-        if(this.toggles.length === 0) {
+        if (this.boostrapOverride) {
+            await this.storage.save(storeKey, boostrapData);
             this.toggles = togglesLocal;
+        } else {
+            if (togglesLocal.length === 0) {
+              await this.storage.save(storeKey, boostrapData);
+              this.toggles = togglesLocal;
+            }
         }
     }
 

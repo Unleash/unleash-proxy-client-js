@@ -50,6 +50,7 @@ interface IToggle {
 }
 
 export const EVENTS = {
+    INIT: 'initialized',
     READY: 'ready',
     UPDATE: 'update',
 };
@@ -84,7 +85,7 @@ export class UnleashClient extends TinyEmitter {
     private ready: Promise<void>;
     private fetch: any;
     private bootstrap?: IToggle[];
-    private bootstrapOverride?: boolean;
+    private bootstrapOverride: boolean;
 
     constructor({
             storageProvider,
@@ -132,7 +133,7 @@ export class UnleashClient extends TinyEmitter {
         }
 
         this.fetch = fetch;
-        this.bootstrap = bootstrap;
+        this.bootstrap = bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
 
         this.metrics = new Metrics({
@@ -201,15 +202,14 @@ export class UnleashClient extends TinyEmitter {
         const sessionId = await this.resolveSessionId();
         this.context = { sessionId, ...this.context };
 
-        const togglesLocal = await this.storage.get(storeKey) || [];
+        this.toggles = await this.storage.get(storeKey) || [];
 
-        if (this.bootstrap && this.bootstrapOverride) {
+        if (this.bootstrap && (this.bootstrapOverride || this.toggles.length === 0)) {
             await this.storage.save(storeKey, this.bootstrap);
-            this.toggles = await this.storage.get(storeKey)
-        } else if (this.bootstrap && !this.bootstrapOverride && togglesLocal.length === 0 ) {
-            await this.storage.save(storeKey, this.bootstrap);
-            this.toggles = await this.storage.get(storeKey)
+            this.toggles = this.bootstrap
         }
+
+        this.emit(EVENTS.INIT);
     }
 
     public async start(): Promise<void> {

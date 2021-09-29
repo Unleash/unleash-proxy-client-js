@@ -105,7 +105,7 @@ test('Should read toggles form localStorage', async () => {
     
         public async get(name: string) {
             if(name === 'repo') {
-                return toggles;
+                return Promise.resolve(toggles);
             } else {
                 return Promise.resolve(undefined);
             }
@@ -121,13 +121,14 @@ test('Should read toggles form localStorage', async () => {
 
 test('Should bootstrap data when bootstrap is provided', async () => {
     localStorage.clear();
-    const toggles = [{
+    const storeKey = 'unleash:repository:repo';
+    const bootstrap = [{
         "name": "toggles",
         "enabled": true,
         "variant": {
             "name": "disabled",
             "enabled": false
-        }
+            }
         },
         {
         "name": "algo",
@@ -135,7 +136,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
         "variant": {
             "name": "disabled",
             "enabled": false
-        }
+            }
         }
     ];
     const initialData = [{
@@ -144,7 +145,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
         "variant": {
             "name": "disabled",
             "enabled": false
-        }
+            }
         },
         {
         "name": "test initial",
@@ -152,18 +153,27 @@ test('Should bootstrap data when bootstrap is provided', async () => {
         "variant": {
             "name": "disabled",
             "enabled": false
-        }
+            }
         }
     ];
-    const KEY = 'repo'
 
-    localStorage.setItem('repo', JSON.stringify(initialData))
-    expect(localStorage.__STORE__[KEY]).toBe(JSON.stringify(initialData));
+    localStorage.setItem(storeKey, JSON.stringify(initialData))
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
 
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web',storageProvider:localStorage.__STORE__, bootstrap: toggles, bootstrapOverride: true};
+    const config: IConfig = { 
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+        bootstrapOverride: true};
     const client = new UnleashClient(config);
-    client.start()
-    expect(localStorage.__STORE__[KEY]).toBe(JSON.stringify(toggles));
+
+    await new Promise(resolve => {
+        client.on('initialized', resolve);
+    });
+
+    expect(client.getAllToggles()).toStrictEqual(bootstrap);
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));  
 });
 
 test('Should publish ready when initial fetch completed', (done) => {

@@ -11,6 +11,7 @@
   "scripts": {
     "preversion": "rm -rf build && npm run build",
     "build": "npm run build:ts && npm run build:web",
+    "lint": "eslint ./src",
     "build:ts": "tsc",
     "build:web": "rollup -c rollup.config.js",
     "test": "jest"
@@ -28,8 +29,12 @@
   "devDependencies": {
     "@babel/runtime": "^7.14.0",
     "@types/jest": "^27.0.1",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "eslint": "^7.32.0",
     "jest": "^27.0.6",
     "jest-fetch-mock": "^2.1.2",
+    "jest-localstorage-mock": "^2.4.18",
     "rollup": "^1.20.3",
     "rollup-plugin-babel-minify": "^9.0.0",
     "rollup-plugin-commonjs": "^10.1.0",
@@ -43,6 +48,7 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.15.5",
-    "tiny-emitter": "^2.1.0"
+    "tiny-emitter": "^2.1.0",
+    "tslib": "^2.3.1"
   }
 }

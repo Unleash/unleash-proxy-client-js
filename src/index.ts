@@ -1,5 +1,4 @@
 import { TinyEmitter } from 'tiny-emitter';
-import { boostrapData } from './boostrapData';
 import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
@@ -32,8 +31,8 @@ interface IConfig extends IStaticContext {
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
     fetch?: any;
-    boostrap?: IToggle[];
-    boostrapOverride?: boolean;
+    bootstrap?: IToggle[];
+    bootstrapOverride?: boolean;
 }
 
 interface IVariant {
@@ -84,7 +83,8 @@ export class UnleashClient extends TinyEmitter {
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;
-    private boostrapOverride: boolean;
+    private bootstrap?: IToggle[];
+    private bootstrapOverride?: boolean;
 
     constructor({
             storageProvider,
@@ -97,7 +97,8 @@ export class UnleashClient extends TinyEmitter {
             environment = 'default',
             context,
             fetch = resolveFetch(),
-            boostrapOverride = true}
+            bootstrap,
+            bootstrapOverride = true}
         : IConfig) {
         super();
         // Validations
@@ -131,7 +132,8 @@ export class UnleashClient extends TinyEmitter {
         }
 
         this.fetch = fetch;
-        this.boostrapOverride = boostrapOverride;
+        this.bootstrap = bootstrap;
+        this.bootstrapOverride = bootstrapOverride;
 
         this.metrics = new Metrics({
             appName,
@@ -144,7 +146,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public getAllToggles(): IToggle[] {
-        return this.toggles
+        return [...this.toggles]
     }
 
     public isEnabled(toggleName: string): boolean {
@@ -200,14 +202,13 @@ export class UnleashClient extends TinyEmitter {
         this.context = { sessionId, ...this.context };
 
         const togglesLocal = await this.storage.get(storeKey) || [];
-        if (this.boostrapOverride) {
-            await this.storage.save(storeKey, boostrapData);
-            this.toggles = togglesLocal;
-        } else {
-            if (togglesLocal.length === 0) {
-              await this.storage.save(storeKey, boostrapData);
-              this.toggles = togglesLocal;
-            }
+
+        if (this.bootstrap && this.bootstrapOverride) {
+            await this.storage.save(storeKey, this.bootstrap);
+            this.toggles = await this.storage.get(storeKey)
+        } else if (this.bootstrap && !this.bootstrapOverride && togglesLocal.length === 0 ) {
+            await this.storage.save(storeKey, this.bootstrap);
+            this.toggles = await this.storage.get(storeKey)
         }
     }
 

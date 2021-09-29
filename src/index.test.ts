@@ -1,4 +1,5 @@
 import { FetchMock } from 'jest-fetch-mock';
+import 'jest-localstorage-mock'
 import * as data from '../tests/example-data.json'; 
 import IStorageProvider from './storage-provider';
 import { EVENTS, IConfig, IMutableContext, UnleashClient } from './index';
@@ -116,6 +117,53 @@ test('Should read toggles form localStorage', async () => {
     await client.start();
     expect(client.isEnabled('featureToggleBackup')).toBe(true);
     expect(client.isEnabled('featureUnknown')).toBe(false);
+});
+
+test('Should bootstrap data when bootstrap is provided', async () => {
+    localStorage.clear();
+    const toggles = [{
+        "name": "toggles",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+        }
+        },
+        {
+        "name": "algo",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+        }
+        }
+    ];
+    const initialData = [{
+        "name": "initialData",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+        }
+        },
+        {
+        "name": "test initial",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+        }
+        }
+    ];
+    const KEY = 'repo'
+
+    localStorage.setItem('repo', JSON.stringify(initialData))
+    expect(localStorage.__STORE__[KEY]).toBe(JSON.stringify(initialData));
+
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web',storageProvider:localStorage.__STORE__, bootstrap: toggles, bootstrapOverride: true};
+    const client = new UnleashClient(config);
+    client.start()
+    expect(localStorage.__STORE__[KEY]).toBe(JSON.stringify(toggles));
 });
 
 test('Should publish ready when initial fetch completed', (done) => {

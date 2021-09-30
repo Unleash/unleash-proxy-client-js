@@ -148,3 +148,33 @@ console.log(isEnabled);
 </head>
 </html>
 ```
+## Bootstrap
+Now it is possible to bootstrap the SDK with your own feature toggle configuration when you don't want to make an API call.  
+
+This is also useful if you require the toggles to be in a certain state immediately after initializing the SDK.
+
+### How to use it ?
+Add a `bootstrap` attribute when create a new `UnleashClient`.  
+There's also a `bootstrapOverride` attribute which is by default is `true`.
+
+```js
+import { UnleashClient } from 'unleash-proxy-client';
+
+const unleash = new UnleashClient({
+  url: 'https://app.unleash-hosted.com/demo/proxy',
+  clientKey: 'proxy-123',
+  appName: 'nodejs-proxy',
+  bootstrap: [{
+	"enabled": true,
+	"name": "demoApp.step4",
+	"variant": {
+		"enabled": true,
+		"name": "blue"
+	}
+  }],
+  bootstrapOverride: false
+});
+```
+**NOTES: ⚠️**
+If `bootstrapOverride` is `true` (by default), any local cached data will be overrided with the bootstrap specified.   
+If `bootstrapOverride` is `false` any local cached data will not be overrided unless the local cache is empty.

@@ -31,6 +31,8 @@ interface IConfig extends IStaticContext {
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
     fetch?: any;
+    bootstrap?: IToggle[];
+    bootstrapOverride?: boolean;
 }
 
 interface IVariant {
@@ -48,6 +50,7 @@ interface IToggle {
 }
 
 export const EVENTS = {
+    INIT: 'initialized',
     READY: 'ready',
     UPDATE: 'update',
 };
@@ -81,6 +84,8 @@ export class UnleashClient extends TinyEmitter {
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;
+    private bootstrap?: IToggle[];
+    private bootstrapOverride: boolean;
 
     constructor({
             storageProvider,
@@ -92,7 +97,9 @@ export class UnleashClient extends TinyEmitter {
             appName,
             environment = 'default',
             context,
-            fetch = resolveFetch()}
+            fetch = resolveFetch(),
+            bootstrap,
+            bootstrapOverride = true}
         : IConfig) {
         super();
         // Validations
@@ -126,6 +133,8 @@ export class UnleashClient extends TinyEmitter {
         }
 
         this.fetch = fetch;
+        this.bootstrap = bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
+        this.bootstrapOverride = bootstrapOverride;
 
         this.metrics = new Metrics({
             appName,
@@ -135,6 +144,10 @@ export class UnleashClient extends TinyEmitter {
             clientKey,
             fetch
         });
+    }
+
+    public getAllToggles(): IToggle[] {
+        return [...this.toggles]
     }
 
     public isEnabled(toggleName: string): boolean {
@@ -189,10 +202,14 @@ export class UnleashClient extends TinyEmitter {
         const sessionId = await this.resolveSessionId();
         this.context = { sessionId, ...this.context };
 
-        const togglesLocal = await this.storage.get(storeKey) || [];
-        if(this.toggles.length === 0) {
-            this.toggles = togglesLocal;
+        this.toggles = await this.storage.get(storeKey) || [];
+
+        if (this.bootstrap && (this.bootstrapOverride || this.toggles.length === 0)) {
+            await this.storage.save(storeKey, this.bootstrap);
+            this.toggles = this.bootstrap
         }
+
+        this.emit(EVENTS.INIT);
     }
 
     public async start(): Promise<void> {

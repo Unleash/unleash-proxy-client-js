@@ -1,4 +1,5 @@
 import { FetchMock } from 'jest-fetch-mock';
+import 'jest-localstorage-mock'
 import * as data from '../tests/example-data.json'; 
 import IStorageProvider from './storage-provider';
 import { EVENTS, IConfig, IMutableContext, UnleashClient } from './index';
@@ -104,7 +105,7 @@ test('Should read toggles form localStorage', async () => {
     
         public async get(name: string) {
             if(name === 'repo') {
-                return toggles;
+                return Promise.resolve(toggles);
             } else {
                 return Promise.resolve(undefined);
             }
@@ -116,6 +117,199 @@ test('Should read toggles form localStorage', async () => {
     await client.start();
     expect(client.isEnabled('featureToggleBackup')).toBe(true);
     expect(client.isEnabled('featureUnknown')).toBe(false);
+});
+
+test('Should bootstrap data when bootstrap is provided', async () => {
+    localStorage.clear();
+    const storeKey = 'unleash:repository:repo';
+    const bootstrap = [{
+        "name": "toggles",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        },
+        {
+        "name": "algo",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        }
+    ];
+    const initialData = [{
+        "name": "initialData",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        },
+        {
+        "name": "test initial",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        }
+    ];
+
+    localStorage.setItem(storeKey, JSON.stringify(initialData))
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
+
+    const config: IConfig = { 
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap};
+    const client = new UnleashClient(config);
+
+    await new Promise(resolve => {
+        client.on('initialized', resolve);
+    });
+
+    expect(client.getAllToggles()).toStrictEqual(bootstrap);
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));  
+});
+
+test('Should not bootstrap data when bootstrapOverride is false and localStorage is not empty', async () => {
+    localStorage.clear();
+    const storeKey = 'unleash:repository:repo';
+    const bootstrap = [{
+        "name": "toggles",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        },
+        {
+        "name": "algo",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        }
+    ];
+    const initialData = [{
+        "name": "initialData",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        },
+        {
+        "name": "test initial",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        }
+    ];
+
+    localStorage.setItem(storeKey, JSON.stringify(initialData))
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
+
+    const config: IConfig = { 
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+        bootstrapOverride: false};
+    const client = new UnleashClient(config);
+
+    await new Promise(resolve => {
+        client.on('initialized', resolve);
+    });
+
+    expect(client.getAllToggles()).toStrictEqual(initialData);
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));  
+});
+
+test('Should bootstrap when bootstrapOverride is false and local storage is empty', async () => {
+    localStorage.clear();
+    const storeKey = 'unleash:repository:repo';
+    const bootstrap = [{
+        "name": "toggles",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        },
+        {
+        "name": "algo",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        }
+    ];
+
+    localStorage.setItem(storeKey, JSON.stringify([]))
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify([]));
+
+    const config: IConfig = { 
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+        bootstrapOverride: false};
+    const client = new UnleashClient(config);
+
+    await new Promise(resolve => {
+        client.on('initialized', resolve);
+    });
+
+    expect(client.getAllToggles()).toStrictEqual(bootstrap);
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));  
+});
+
+test('Should not bootstrap data when bootstrap is []', async () => {
+    localStorage.clear();
+    const storeKey = 'unleash:repository:repo';
+    const initialData = [{
+        "name": "initialData",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        },
+        {
+        "name": "test initial",
+        "enabled": true,
+        "variant": {
+            "name": "disabled",
+            "enabled": false
+            }
+        }
+    ];
+
+    localStorage.setItem(storeKey, JSON.stringify(initialData))
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
+
+    const config: IConfig = { 
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap: [],
+        bootstrapOverride: true};
+    const client = new UnleashClient(config);
+
+    await new Promise(resolve => {
+        client.on('initialized', resolve);
+    });
+
+    expect(client.getAllToggles()).toStrictEqual(initialData);
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));  
 });
 
 test('Should publish ready when initial fetch completed', (done) => {

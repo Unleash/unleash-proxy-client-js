@@ -7,7 +7,8 @@ module.exports = {
     },
     "automock": false,
     "setupFiles": [
-      "./setupJest.js"
+      "./setupJest.js", 
+      "jest-localstorage-mock"
     ],
     "testEnvironment": "jsdom"
   }

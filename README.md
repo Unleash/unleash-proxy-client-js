@@ -20,17 +20,22 @@ This package is not tied to any framework, but can be used together most popular
 
 ## How to use the client as a module.
 
+**Step 1: Unleash Proxy**
 
-**Step 1: Install**
+Before you can use this Unleash SDK you need set up a Unleash Proxy instance. [Read more about the Unleash Proxy](https://docs.getunleash.io/sdks/unleash-proxy).
+
+
+**Step 2: Install**
 ```js
 npm install unleash-proxy-client --save
 ```
 
-**Step 2: Initialize the SDK**
+**Step 3: Initialize the SDK**
 You need to have a Unleash-hosted instance, and the proxy need to be enabled. In addition you will need a proxy-specific `clientKey` in order to connect  to the Unleash-hosted Proxy.
 ```js
 import { UnleashClient } from 'unleash-proxy-client';
 
+// See all options in separate section.
 const unleash = new UnleashClient({
     url: 'https://eu.unleash-hosted.com/hosted/proxy',
     clientKey: 'your-proxy-key',
@@ -44,17 +49,17 @@ unleash.updateContext({userId: '1233'});
 // Used to update a single field on the Unleash Context.
 unleash.setContextField('userId', '4141');
 
-// Start the background polling
+// Send the initial fetch towards the Unleash Proxy and starts the background polling
 unleash.start();
 ```
 
-**Step 3: Check if feature toggle is enabled**
+**Step 4: Check if feature toggle is enabled**
 ```js
 unleash.isEnabled('proxy.demo');
 ```
 
 
-**Step 4: Get toggle variant**
+**Step 5: Get toggle variant**
 ```js
 const variant = unleash.getVariant('proxy.demo');
 if(variant.name === 'blue') {
@@ -62,7 +67,27 @@ if(variant.name === 'blue') {
 }
 ```
 
-**Listen for updates via the EventEmitter**
+### Available options
+
+The Unleash SDK takes the following options:
+
+| option   | required | default | description |
+|----------|----------|---------|-------------|
+| url      | yes | n/a | The Unleash Proxy URL to connect to. E.g.: `https://examples.com/proxy` |
+|clientKey | yes | n/a | The Unleash Proxy Secret to be used | 
+| appName | yes | n/a | The name of the application using this SDK. Will be used as part of the metrics sent to Unleash Proxy. Will also be part of the Unleash Context. | 
+|refreshInterval | no | 30 | How often, in seconds, the SDK should check for updated toggle configuration | 
+|metricsInterval | no | 60 | How often, in seconds, the SDK should send usage metrics back to Unleash Proxy | 
+| disableMetrics | no | false | Set this option to `true` if you want to disable usage metrics |
+storageProvider | no | `LocalStorageProvider` | Allows you to inject a custom storeProvider |
+| environment | no | 'default' | Identify the current environment. Will be part of the Unleash Context | 
+|fetch | no | window.fetch | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch` | 
+| bootstrap | no | `[]` | Allows you to bootstrap the cached feature toggle configuration. | 
+| bootstrapOverride | no| `true` | Should the boostrap automatically override cached data in the local-storage. Will only be used if boostrap is not an empty array. | 
+
+
+### Listen for updates via the EventEmitter**
+
 The client is also an event emitter. This means that your code can subscribe to updates from the client. 
 This is a neat way to update a single page app when toggle state updates. 
 

@@ -33,6 +33,7 @@ interface IConfig extends IStaticContext {
     fetch?: any;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
+    ignoreFetchTimestamp?: boolean;
 }
 
 interface IVariant {
@@ -87,6 +88,7 @@ export class UnleashClient extends TinyEmitter {
     private fetch: any;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
+    private ignoreFetchTimestamp? : boolean
 
     constructor({
             storageProvider,
@@ -100,7 +102,9 @@ export class UnleashClient extends TinyEmitter {
             context,
             fetch = resolveFetch(),
             bootstrap,
-            bootstrapOverride = true}
+            bootstrapOverride = true,
+            ignoreFetchTimestamp: alwaysFetch
+        }
         : IConfig) {
         super();
         // Validations
@@ -136,6 +140,7 @@ export class UnleashClient extends TinyEmitter {
         this.fetch = fetch;
         this.bootstrap = bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
+        this.ignoreFetchTimestamp = alwaysFetch;
 
         this.metrics = new Metrics({
             appName,
@@ -227,7 +232,7 @@ export class UnleashClient extends TinyEmitter {
 
     private async getNextFetchNumber(): Promise<number> { 
         const nextFetchTimestamp = await this.storage.get(storeKeyTimestamp) as number;
-        if (nextFetchTimestamp === undefined || typeof nextFetchTimestamp !== 'number') {
+        if (nextFetchTimestamp === undefined || typeof nextFetchTimestamp !== 'number' || this.ignoreFetchTimestamp) {
             return 0;
         } else{
             return nextFetchTimestamp;

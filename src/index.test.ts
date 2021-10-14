@@ -331,9 +331,10 @@ test('Should publish update when state changes after refreshInterval', async () 
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web', ignoreFetchTimestamp: true };
     const client = new UnleashClient(config);
 
+    
     let counts = 0;
     client.on(EVENTS.UPDATE, () => {
         counts++;
@@ -344,7 +345,7 @@ test('Should publish update when state changes after refreshInterval', async () 
     });
 
     await client.start();
-
+    Date.now = jest.fn(() => new Date(Date.UTC(2025, 1, 14)).valueOf())
     jest.advanceTimersByTime(1001);
 });
 
@@ -354,7 +355,7 @@ test('Should include etag in second request', async () => {
         [JSON.stringify(data), { status: 200, headers: { ETag: etag} }],
         [JSON.stringify(data), { status: 304, headers: { ETag: etag} }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web', ignoreFetchTimestamp: true };
     const client = new UnleashClient(config);
 
     await client.start();
@@ -370,7 +371,7 @@ test('Should add clientKey as Authorization header', async () => {
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: 'some123key', appName: 'web' };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: 'some123key', appName: 'web', ignoreFetchTimestamp: true };
     const client = new UnleashClient(config);
     await client.start();
 
@@ -413,7 +414,7 @@ test('Should stop fetching when stop is called', async () => {
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web', ignoreFetchTimestamp: true };
     const client = new UnleashClient(config);
 
     await client.start();
@@ -448,7 +449,8 @@ test('Should include context fields on request', async () => {
         clientKey: '12',
         appName: 'web',
         environment: 'prod',
-        context
+        context,
+        ignoreFetchTimestamp: true
     };
     const client = new UnleashClient(config);
 
@@ -476,7 +478,8 @@ test('Should update context fields on request', async () => {
         url: 'http://localhost/test',
         clientKey: '12',
         appName: 'web',
-        environment: 'prod'
+        environment: 'prod',
+        ignoreFetchTimestamp: true
     };
     const client = new UnleashClient(config);
     client.updateContext({
@@ -516,7 +519,8 @@ test('Should not add property fields when properties is an empty object', async 
         environment: 'prod',
         context: {
             properties: {}
-        }
+        },
+        ignoreFetchTimestamp: true
     };
     const client = new UnleashClient(config);
 
@@ -538,7 +542,7 @@ test('Should use default environment', async () => {
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
     );
-    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', ignoreFetchTimestamp: true };
     const client = new UnleashClient(config);
     await client.start();
 

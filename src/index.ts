@@ -57,6 +57,7 @@ export const EVENTS = {
 
 const defaultVariant: IVariant = {name: 'disabled'};
 const storeKey = 'repo';
+const storeKeyTimestamp = 'nextFetchTimestamp';
 
 const resolveFetch = () => {
     try {
@@ -216,7 +217,10 @@ export class UnleashClient extends TinyEmitter {
         await this.ready;
         this.stop();
         const interval = this.refreshInterval;
-        await this.fetchToggles();
+        const nextFetchTimestamp = await this.storage.get(storeKeyTimestamp) as number;
+        if (nextFetchTimestamp < Date.now()) {
+            await this.fetchToggles();
+        }
         this.emit(EVENTS.READY);
         this.timerRef = setInterval(() => this.fetchToggles(), interval);
     }
@@ -245,6 +249,12 @@ export class UnleashClient extends TinyEmitter {
         this.toggles = toggles;
         this.emit(EVENTS.UPDATE);
         this.storage.save(storeKey, toggles);
+        await this.updateNextFetchTimestamp();
+        
+    }
+
+    private async updateNextFetchTimestamp(): Promise<void> {
+        await this.storage.save(storeKeyTimestamp, Date.now() + this.refreshInterval);
     }
 
     private async fetchToggles() {

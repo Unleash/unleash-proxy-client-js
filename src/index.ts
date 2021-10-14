@@ -217,12 +217,22 @@ export class UnleashClient extends TinyEmitter {
         await this.ready;
         this.stop();
         const interval = this.refreshInterval;
-        const nextFetchTimestamp = await this.storage.get(storeKeyTimestamp) as number;
+        const nextFetchTimestamp = await this.getNextFetchNumber();
+        console.log(`number : ${nextFetchTimestamp}`)
         if (nextFetchTimestamp < Date.now()) {
             await this.fetchToggles();
         }
         this.emit(EVENTS.READY);
         this.timerRef = setInterval(() => this.fetchToggles(), interval);
+    }
+
+    private async getNextFetchNumber(): Promise<number> { 
+        const nextFetchTimestamp = await this.storage.get(storeKeyTimestamp) as number;
+        if(nextFetchTimestamp === undefined) {
+            return 0;
+        } else{
+            return nextFetchTimestamp;
+        }
     }
 
     public stop(): void {

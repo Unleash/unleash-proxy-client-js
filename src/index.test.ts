@@ -325,6 +325,30 @@ test('Should publish ready when initial fetch completed', (done) => {
     });
 });
 
+test('Should ignore fetch when local timestamp set and time not passed', async () => {
+    expect.assertions(1);
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 200 }],
+    );
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web', ignoreFetchTimestamp: false };
+    const client = new UnleashClient(config);
+
+    
+    let counts = 0;
+    client.on(EVENTS.UPDATE, () => {
+        counts++;
+        if (counts === 2) {
+            expect(fetchMock.mock.calls.length).toEqual(1);
+            client.stop();
+        }
+    });
+
+    await client.start();
+    jest.advanceTimersByTime(1001);
+    jest.advanceTimersByTime(1001);
+});
+
 test('Should publish update when state changes after refreshInterval', async () => {
     expect.assertions(1);
     fetchMock.mockResponses(
@@ -345,7 +369,6 @@ test('Should publish update when state changes after refreshInterval', async () 
     });
 
     await client.start();
-    Date.now = jest.fn(() => new Date(Date.UTC(2025, 1, 14)).valueOf())
     jest.advanceTimersByTime(1001);
 });
 

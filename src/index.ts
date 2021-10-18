@@ -33,7 +33,7 @@ interface IConfig extends IStaticContext {
     fetch?: any;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
-    ignoreFetchTimestamp?: boolean;
+    checkFetchTimestamp?: boolean;
 }
 
 interface IVariant {
@@ -88,7 +88,7 @@ export class UnleashClient extends TinyEmitter {
     private fetch: any;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
-    private ignoreFetchTimestamp? : boolean
+    private checkFetchTimestamp? : boolean
 
     constructor({
             storageProvider,
@@ -103,7 +103,7 @@ export class UnleashClient extends TinyEmitter {
             fetch = resolveFetch(),
             bootstrap,
             bootstrapOverride = true,
-            ignoreFetchTimestamp: alwaysFetch
+            checkFetchTimestamp: checkFetchTimestamp
         }
         : IConfig) {
         super();
@@ -140,7 +140,7 @@ export class UnleashClient extends TinyEmitter {
         this.fetch = fetch;
         this.bootstrap = bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
-        this.ignoreFetchTimestamp = alwaysFetch;
+        this.checkFetchTimestamp = checkFetchTimestamp;
 
         this.metrics = new Metrics({
             appName,
@@ -222,8 +222,12 @@ export class UnleashClient extends TinyEmitter {
         await this.ready;
         this.stop();
         const interval = this.refreshInterval;
-        const nextFetchTimestamp = await this.getNextFetchNumber();
-        if (nextFetchTimestamp < Date.now()) {
+        if (this.checkFetchTimestamp) {
+            const nextFetchTimestamp = await this.getNextFetchNumber();
+            if (nextFetchTimestamp < Date.now()) {
+                await this.fetchToggles();
+            }
+        } else { 
             await this.fetchToggles();
         }
         this.emit(EVENTS.READY);
@@ -232,7 +236,7 @@ export class UnleashClient extends TinyEmitter {
 
     private async getNextFetchNumber(): Promise<number> { 
         const nextFetchTimestamp = await this.storage.get(storeKeyTimestamp) as number;
-        if (nextFetchTimestamp === undefined || typeof nextFetchTimestamp !== 'number' || this.ignoreFetchTimestamp) {
+        if (nextFetchTimestamp === undefined || typeof nextFetchTimestamp !== 'number') {
             return 0;
         } else{
             return nextFetchTimestamp;

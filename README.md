@@ -84,7 +84,7 @@ storageProvider | no | `LocalStorageProvider` | Allows you to inject a custom st
 |fetch | no | window.fetch | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch` | 
 | bootstrap | no | `[]` | Allows you to bootstrap the cached feature toggle configuration. | 
 | bootstrapOverride | no| `true` | Should the boostrap automatically override cached data in the local-storage. Will only be used if boostrap is not an empty array. | 
-| ignoreFetchTimestamp | no| `false` | Set to true force always fetch proxy endpoint, ignoring local timestamp. Useful for development. | 
+| checkFetchTimestamp | no| `false` | Set to true to use timestamp feature to fetch proxy endpoint. Helpful if you don't want to fetch endpoint every page refresh. | 
 
 
 ### Listen for updates via the EventEmitter**

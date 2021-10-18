@@ -10,9 +10,8 @@
   ],
   "scripts": {
     "preversion": "rm -rf build && npm run build",
-    "build": "npm run build:ts && npm run build:web",
-    "prepare": "npm run build",
-    "prepack": "npm run build",
+    "build": "yarn run build:ts && yarn run build:web || npm run build:ts && npm run build:web",
+    "prepare": "yarn build || npm run build",
     "lint": "eslint ./src",
     "build:ts": "tsc",
     "build:web": "rollup -c rollup.config.js",

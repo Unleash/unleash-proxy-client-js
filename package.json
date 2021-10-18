@@ -11,7 +11,7 @@
   "scripts": {
     "preversion": "rm -rf build && npm run build",
     "build": "npm run build:ts && npm run build:web",
-    "postinstall": "npm run build",
+    "prepare": "npm run build",
     "lint": "eslint ./src",
     "build:ts": "tsc",
     "build:web": "rollup -c rollup.config.js",

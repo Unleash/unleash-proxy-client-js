@@ -100,6 +100,7 @@ unleash.on('update', () => {
 
 Available events:
 
+- **error** - emitted when an error occurs on init, or when fetch function fails. The error object is sent as payload.
 - **initialized** - emitted after the SDK has read local cached data in the storageProvider. 
 - **ready** - emitted after the SDK has successfully started and performed the initial fetch towards the Unleash Proxy. 
 - **update** - emitted every time the Unleash Proxy return a new feature toggle configuration. The SDK will emit this event as part of the initial fetch from the SDK.  

@@ -328,11 +328,11 @@ test('Should publish ready when initial fetch completed', (done) => {
 test('Should publish error when initial init fails', (done) => {
     const givenError = 'Error';
     class Store implements IStorageProvider {
-        public async save(name: string, data: any) {
+        public async save(name: string, data: any): Promise<void> {
             return Promise.reject(givenError);
         }
     
-        public async get(name: string) {
+        public async get(name: string): Promise<any> {
             return Promise.reject(givenError);
         }
     }

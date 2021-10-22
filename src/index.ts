@@ -246,7 +246,7 @@ export class UnleashClient extends TinyEmitter {
     private async storeToggles(toggles: IToggle[]): Promise<void> {
         this.toggles = toggles;
         this.emit(EVENTS.UPDATE);
-        this.storage.save(storeKey, toggles);
+        await this.storage.save(storeKey, toggles);
     }
 
     private async fetchToggles() {

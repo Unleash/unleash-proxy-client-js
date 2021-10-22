@@ -51,6 +51,7 @@ interface IToggle {
 
 export const EVENTS = {
     INIT: 'initialized',
+    ERROR: 'error',
     READY: 'ready',
     UPDATE: 'update',
 };
@@ -123,6 +124,7 @@ export class UnleashClient extends TinyEmitter {
                 await this.init();
             } catch (error) {
                 console.error(error);
+                this.emit(EVENTS.ERROR, error);
             } 
             resolve();    
         });
@@ -244,7 +246,7 @@ export class UnleashClient extends TinyEmitter {
     private async storeToggles(toggles: IToggle[]): Promise<void> {
         this.toggles = toggles;
         this.emit(EVENTS.UPDATE);
-        this.storage.save(storeKey, toggles);
+        await this.storage.save(storeKey, toggles);
     }
 
     private async fetchToggles() {
@@ -281,6 +283,7 @@ export class UnleashClient extends TinyEmitter {
             } catch (e) {
                 // tslint:disable-next-line
                 console.error('Unleash: unable to fetch feature toggles', e);
+                this.emit(EVENTS.ERROR, e);
             }
         }
     }

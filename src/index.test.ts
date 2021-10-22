@@ -325,6 +325,46 @@ test('Should publish ready when initial fetch completed', (done) => {
     });
 });
 
+test('Should publish error when initial init fails', (done) => {
+    const givenError = 'Error';
+    class Store implements IStorageProvider {
+        public async save(name: string, data: any): Promise<void> {
+            return Promise.reject(givenError);
+        }
+    
+        public async get(name: string): Promise<any> {
+            return Promise.reject(givenError);
+        }
+    }
+    
+    jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+
+    const storageProvider = new Store();
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', storageProvider };
+    const client = new UnleashClient(config);
+    client.start();
+    client.on(EVENTS.ERROR, (e:any) => {
+        expect(e).toBe(givenError)
+        done()
+    });
+});
+
+test('Should publish error when fetch fails', (done) => {
+    const givenError = new Error('Error');
+    
+    jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
+    fetchMock.mockReject(givenError);
+
+    const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web' };
+    const client = new UnleashClient(config);
+    client.start();
+    client.on(EVENTS.ERROR, (e:any) => {
+        expect(e).toBe(givenError)
+        done()
+    });
+});
+
 test('Should publish update when state changes after refreshInterval', async () => {
     expect.assertions(1);
     fetchMock.mockResponses(

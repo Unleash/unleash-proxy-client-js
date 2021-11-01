@@ -1,4 +1,4 @@
-# Unleash Proxy Client for the browser (js)
+# Unleash Proxy Client for the browser (JS)
 
 This is a tiny Unleash Client SDK you can use together with the 
 [Unleash Proxy](https://docs.getunleash.io/sdks/unleash-proxy). 
@@ -18,7 +18,7 @@ This package is not tied to any framework, but can be used together most popular
 - [Vue.js](https://vuejs.org/)
 - ...and probably your favorite! 
 
-## How to use the client as a module.
+## How to use the client as a module
 
 **Step 1: Unleash Proxy**
 
@@ -26,12 +26,15 @@ Before you can use this Unleash SDK you need set up a Unleash Proxy instance. [R
 
 
 **Step 2: Install**
+
 ```js
 npm install unleash-proxy-client --save
 ```
 
 **Step 3: Initialize the SDK**
+
 You need to have a Unleash-hosted instance, and the proxy need to be enabled. In addition you will need a proxy-specific `clientKey` in order to connect  to the Unleash-hosted Proxy.
+
 ```js
 import { UnleashClient } from 'unleash-proxy-client';
 
@@ -41,7 +44,27 @@ const unleash = new UnleashClient({
     clientKey: 'your-proxy-key',
     appName: 'my-webapp'
 });
+```
 
+**Step 4: Listen for when the client is ready**
+
+You shouldn't start working with the client immediately. It's recommended to wait for `ready` or `initialized` event:
+
+```js
+unleash.on('ready', () => {
+  if (unleash.isEnabled('proxy.demo')) {
+    console.log('proxy.demo is enabled');
+  } else {
+    console.log('proxy.demo is disabled');
+  }
+})
+```
+
+The difference between the events is [explained below](#available-events).
+
+**Step 5: Start polling the Unleash Proxy**
+
+```js
 // Used to set the context fields, shared with the Unleash Proxy. This 
 // method will replace the entire (mutable part) of the Unleash Context.
 unleash.updateContext({userId: '1233'});
@@ -53,13 +76,8 @@ unleash.setContextField('userId', '4141');
 unleash.start();
 ```
 
-**Step 4: Check if feature toggle is enabled**
-```js
-unleash.isEnabled('proxy.demo');
-```
+**Step 6: Get toggle variant**
 
-
-**Step 5: Get toggle variant**
 ```js
 const variant = unleash.getVariant('proxy.demo');
 if(variant.name === 'blue') {
@@ -86,7 +104,7 @@ storageProvider | no | `LocalStorageProvider` | Allows you to inject a custom st
 | bootstrapOverride | no| `true` | Should the boostrap automatically override cached data in the local-storage. Will only be used if boostrap is not an empty array. | 
 
 
-### Listen for updates via the EventEmitter**
+### Listen for updates via the EventEmitter
 
 The client is also an event emitter. This means that your code can subscribe to updates from the client. 
 This is a neat way to update a single page app when toggle state updates. 
@@ -98,7 +116,7 @@ unleash.on('update', () => {
 });
 ```
 
-Available events:
+#### Available events:
 
 - **error** - emitted when an error occurs on init, or when fetch function fails. The error object is sent as payload.
 - **initialized** - emitted after the SDK has read local cached data in the storageProvider. 

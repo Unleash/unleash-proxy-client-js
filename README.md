@@ -60,7 +60,7 @@ unleash.on('ready', () => {
 })
 ```
 
-The difference between the events is explained below.
+The difference between the events is [explained below](#available-events).
 
 **Step 5: Start polling the Unleash Proxy**
 

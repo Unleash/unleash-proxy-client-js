@@ -170,7 +170,7 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
-    public updateContext(context: IMutableContext) {
+    public async updateContext(context: IMutableContext): Promise<void> {
         // Give the user a nicer error message when including
         // static fields in the mutable context object
         // @ts-ignore
@@ -180,7 +180,7 @@ export class UnleashClient extends TinyEmitter {
         const staticContext = {environment: this.context.environment, appName: this.context.appName };
         this.context = {...staticContext, ...context};
         if (this.timerRef) {
-            this.fetchToggles();
+            await this.fetchToggles();
         }
     }
 

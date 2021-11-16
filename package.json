@@ -21,7 +21,7 @@
     "url": "git+https://github.com/unleash-hosted/unleash-proxy-client-js.git"
   },
   "author": "@Unleash",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/unleash-hosted/unleash-proxy-client-js/issues"
   },

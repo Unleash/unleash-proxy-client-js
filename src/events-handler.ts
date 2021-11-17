@@ -1,15 +1,15 @@
 import { IContext } from ".";
+import uuid from "uuid";
 
 class EventsHandler {
     private events: any[] = [];
-    private url: URL = new URL("");
-    private clientKey: string = "";
-    private interval: number | null = null;
+    private url: URL;
+    private clientKey: string;
 
     constructor(url: URL, clientKey: string) {
         this.url = url;
         this.clientKey = clientKey;
-        this.interval = setInterval(() => {
+        setInterval(() => {
             this.sendEvents();
         }, 5000);
     }
@@ -18,13 +18,18 @@ class EventsHandler {
         this.events.push(event);
     }
 
+    private generateEventId() {
+        return uuid();
+    }
+
     public addIsEnabledEvent(
         context: IContext,
         enabled: boolean,
         featureName: string
     ) {
         const event = {
-            name: "isEnabled",
+            eventName: "isEnabled",
+            eventId: this.generateEventId(),
             context,
             enabled,
             featureName,
@@ -38,7 +43,8 @@ class EventsHandler {
         featureName: string
     ) {
         const event = {
-            name: "getVariant",
+            eventName: "getVariant",
+            eventId: this.generateEventId(),
             context,
             enabled,
             featureName,
@@ -48,7 +54,7 @@ class EventsHandler {
 
     public addCustomEvent(context: IContext, featureName: string) {
         const event = {
-            name: "custom",
+            eventName: "custom",
             context,
             featureName,
         };
@@ -56,23 +62,28 @@ class EventsHandler {
     }
 
     private sendEvents() {
-        const url = this.url + "/events";
+        const url = "http://localhost:5000" + "/receiver";
         const start = 0;
         const end = this.events.length;
 
-        const data = this.events.splice(start, end);
+        if (start === end) return;
+        const data = this.events.slice(start, end);
 
-        if (data.length < 1) return;
         const headers = {
             Authorization: this.clientKey,
-            type: "application/json",
+            "Content-Type": "application/json",
         };
-        const blob = new Blob([JSON.stringify(data)], headers);
-        const success = navigator.sendBeacon(url, blob);
-
-        if (!success) {
-            this.events = [...data, ...this.events];
-        }
+        fetch(url, {
+            method: "POST",
+            body: JSON.stringify({ data }),
+            headers,
+        })
+            .then(() => {
+                this.events.splice(start, end);
+            })
+            .catch((err) => {
+                console.log("Error reaching unleash proxy");
+            });
     }
 }
 

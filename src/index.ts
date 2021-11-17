@@ -171,7 +171,8 @@ export class UnleashClient extends TinyEmitter {
         this.eventsHandler.addVariantEvent(
             this.context,
             Boolean(toggle),
-            toggleName
+            toggleName,
+            toggle?.variant?.name || ""
         );
         if (toggle) {
             this.metrics.count(toggleName, true);

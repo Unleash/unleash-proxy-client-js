@@ -1,5 +1,5 @@
 import { IContext } from ".";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 
 class EventsHandler {
     private events: any[] = [];
@@ -19,7 +19,7 @@ class EventsHandler {
     }
 
     private generateEventId() {
-        return uuid();
+        return uuidv4();
     }
 
     public addIsEnabledEvent(
@@ -28,41 +28,47 @@ class EventsHandler {
         featureName: string
     ) {
         const event = {
-            eventName: "isEnabled",
+            eventType: "isEnabled",
             eventId: this.generateEventId(),
             context,
             enabled,
             featureName,
         };
+
         this.addEvent(event);
     }
 
     public addVariantEvent(
         context: IContext,
         enabled: boolean,
-        featureName: string
+        featureName: string,
+        variant: string
     ) {
         const event = {
-            eventName: "getVariant",
+            eventType: "getVariant",
             eventId: this.generateEventId(),
+            variant: variant,
             context,
             enabled,
             featureName,
         };
+
         this.addEvent(event);
     }
 
     public addCustomEvent(context: IContext, featureName: string) {
         const event = {
-            eventName: "custom",
+            eventType: "custom",
+            eventId: this.generateEventId(),
             context,
             featureName,
         };
+
         this.addEvent(event);
     }
 
     private sendEvents() {
-        const url = "http://localhost:5000" + "/receiver";
+        const url = this.url + "/events";
         const start = 0;
         const end = this.events.length;
 

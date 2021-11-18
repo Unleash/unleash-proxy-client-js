@@ -85,6 +85,7 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = "";
     private metrics: Metrics;
     private ready: Promise<void>;
+    private callback: (event: any) => any | undefined;
     private fetch: any;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
@@ -99,6 +100,7 @@ export class UnleashClient extends TinyEmitter {
         disableMetrics = false,
         appName,
         environment = "default",
+        callback,
         context,
         fetch = resolveFetch(),
         bootstrap,
@@ -115,7 +117,7 @@ export class UnleashClient extends TinyEmitter {
         if (!appName) {
             throw new Error("appName is required.");
         }
-
+        this.callback = callback;
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
@@ -162,18 +164,31 @@ export class UnleashClient extends TinyEmitter {
         const toggle = this.toggles.find((t) => t.name === toggleName);
         const enabled = toggle ? toggle.enabled : false;
         this.metrics.count(toggleName, enabled);
-        this.eventsHandler.addIsEnabledEvent(this.context, enabled, toggleName);
+        const event = this.eventsHandler.createIsEnabledEvent(
+            this.context,
+            enabled,
+            toggleName
+        );
+        this.eventsHandler.addIsEnabledEvent(event);
+        if (this.callback && typeof this.callback === "function") {
+            this.callback(event);
+        }
         return enabled;
     }
 
     public getVariant(toggleName: string): IVariant {
         const toggle = this.toggles.find((t) => t.name === toggleName);
-        this.eventsHandler.addVariantEvent(
+        const event = this.eventsHandler.createVariantEvent(
             this.context,
             Boolean(toggle),
             toggleName,
             toggle?.variant?.name || ""
         );
+
+        if (this.callback && typeof this.callback === "function") {
+            this.callback(event);
+        }
+        this.eventsHandler.addVariantEvent(event);
         if (toggle) {
             this.metrics.count(toggleName, true);
             return toggle.variant;
@@ -184,7 +199,11 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public sendCustomEvent(toggleName: string) {
-        this.eventsHandler.addCustomEvent(this.context, toggleName);
+        const event = this.eventsHandler.createCustomEvent(
+            this.context,
+            toggleName
+        );
+        this.eventsHandler.addCustomEvent(event);
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {

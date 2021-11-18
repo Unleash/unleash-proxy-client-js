@@ -22,29 +22,27 @@ class EventsHandler {
         return uuidv4();
     }
 
-    public addIsEnabledEvent(
+    public createIsEnabledEvent(
         context: IContext,
         enabled: boolean,
         featureName: string
     ) {
-        const event = {
+        return {
             eventType: "isEnabled",
             eventId: this.generateEventId(),
             context,
             enabled,
             featureName,
         };
-
-        this.addEvent(event);
     }
 
-    public addVariantEvent(
+    public createVariantEvent(
         context: IContext,
         enabled: boolean,
         featureName: string,
         variant: string
     ) {
-        const event = {
+        return {
             eventType: "getVariant",
             eventId: this.generateEventId(),
             variant: variant,
@@ -52,18 +50,26 @@ class EventsHandler {
             enabled,
             featureName,
         };
-
-        this.addEvent(event);
     }
 
-    public addCustomEvent(context: IContext, featureName: string) {
-        const event = {
+    public createCustomEvent(context: IContext, featureName: string) {
+        return {
             eventType: "custom",
             eventId: this.generateEventId(),
             context,
             featureName,
         };
+    }
 
+    public addIsEnabledEvent(event: any) {
+        this.addEvent(event);
+    }
+
+    public addVariantEvent(event: any) {
+        this.addEvent(event);
+    }
+
+    public addCustomEvent(event: any) {
         this.addEvent(event);
     }
 
@@ -79,9 +85,10 @@ class EventsHandler {
             Authorization: this.clientKey,
             "Content-Type": "application/json",
         };
+
         fetch(url, {
             method: "POST",
-            body: JSON.stringify({ data }),
+            body: JSON.stringify([...data]),
             headers,
         })
             .then(() => {

@@ -31,6 +31,7 @@ interface IConfig extends IStaticContext {
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
+    callbacks: Array<(event: any) => any | undefined>;
     fetch?: any;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
@@ -85,11 +86,12 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = "";
     private metrics: Metrics;
     private ready: Promise<void>;
-    private callback: (event: any) => any | undefined;
+    private callbacks: Array<(event: any) => any | undefined>;
     private fetch: any;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
     private eventsHandler: EventsHandler;
+    private proxycallback: (event: any) => any | undefined;
 
     constructor({
         storageProvider,
@@ -100,7 +102,7 @@ export class UnleashClient extends TinyEmitter {
         disableMetrics = false,
         appName,
         environment = "default",
-        callback,
+        callbacks,
         context,
         fetch = resolveFetch(),
         bootstrap,
@@ -117,13 +119,18 @@ export class UnleashClient extends TinyEmitter {
         if (!appName) {
             throw new Error("appName is required.");
         }
-        this.callback = callback;
+        this.callbacks = callbacks;
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.eventsHandler = new EventsHandler(this.url, this.clientKey);
+        this.proxycallback = (event) => {
+            this.eventsHandler.addEvent(event);
+        };
+        this.callbacks.push(this.proxycallback);
+
         this.ready = new Promise(async (resolve) => {
             try {
                 await this.init();
@@ -169,9 +176,10 @@ export class UnleashClient extends TinyEmitter {
             enabled,
             toggleName
         );
-        this.eventsHandler.addIsEnabledEvent(event);
-        if (this.callback && typeof this.callback === "function") {
-            this.callback(event);
+        for (let callback of this.callbacks) {
+            if (callback && typeof callback === "function") {
+                callback(event);
+            }
         }
         return enabled;
     }
@@ -185,10 +193,12 @@ export class UnleashClient extends TinyEmitter {
             toggle?.variant?.name || ""
         );
 
-        if (this.callback && typeof this.callback === "function") {
-            this.callback(event);
+        for (let callback of this.callbacks) {
+            if (callback && typeof callback === "function") {
+                callback(event);
+            }
         }
-        this.eventsHandler.addVariantEvent(event);
+        this.eventsHandler.addEvent(event);
         if (toggle) {
             this.metrics.count(toggleName, true);
             return toggle.variant;
@@ -203,7 +213,11 @@ export class UnleashClient extends TinyEmitter {
             this.context,
             toggleName
         );
-        this.eventsHandler.addCustomEvent(event);
+        for (let callback of this.callbacks) {
+            if (callback && typeof callback === "function") {
+                callback(event);
+            }
+        }
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {

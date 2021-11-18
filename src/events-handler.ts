@@ -14,7 +14,7 @@ class EventsHandler {
         }, 5000);
     }
 
-    private addEvent(event: any) {
+    public addEvent(event: any) {
         this.events.push(event);
     }
 
@@ -59,18 +59,6 @@ class EventsHandler {
             context,
             featureName,
         };
-    }
-
-    public addIsEnabledEvent(event: any) {
-        this.addEvent(event);
-    }
-
-    public addVariantEvent(event: any) {
-        this.addEvent(event);
-    }
-
-    public addCustomEvent(event: any) {
-        this.addEvent(event);
     }
 
     private sendEvents() {

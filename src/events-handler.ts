@@ -81,6 +81,7 @@ class EventsHandler {
         })
             .then(() => {
                 this.events.splice(start, end);
+                console.log(this.events);
             })
             .catch((err) => {
                 console.log("Error reaching unleash proxy");

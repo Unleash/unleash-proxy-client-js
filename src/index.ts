@@ -4,7 +4,7 @@ import type IStorageProvider from "./storage-provider";
 import LocalStorageProvider from "./storage-provider-local";
 import InMemoryStorageProvider from "./storage-provider-inmemory";
 import EventsHandler from "./events-handler";
-import PlausibleProvider from './providers/plausible-analytics-provider'
+import PlausibleProvider from "./providers/plausible-analytics-provider";
 
 const DEFINED_FIELDS = ["userId", "sessionId", "remoteAddress"];
 
@@ -57,6 +57,9 @@ export const EVENTS = {
     ERROR: "error",
     READY: "ready",
     UPDATE: "update",
+    IS_ENABLED: "is-enabled",
+    GET_VARIANT: "get-variant",
+    CUSTOM: "custom",
 };
 
 const defaultVariant: IVariant = { name: "disabled" };
@@ -87,12 +90,10 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = "";
     private metrics: Metrics;
     private ready: Promise<void>;
-    private callbacks: Array<(event: any) => any | undefined>;
     private fetch: any;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
     private eventsHandler: EventsHandler;
-    private proxycallback: (event: any) => any | undefined;
 
     constructor({
         storageProvider,
@@ -103,7 +104,6 @@ export class UnleashClient extends TinyEmitter {
         disableMetrics = false,
         appName,
         environment = "default",
-        callbacks,
         context,
         fetch = resolveFetch(),
         bootstrap,
@@ -120,17 +120,12 @@ export class UnleashClient extends TinyEmitter {
         if (!appName) {
             throw new Error("appName is required.");
         }
-        this.callbacks = callbacks;
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.eventsHandler = new EventsHandler(this.url, this.clientKey);
-        this.proxycallback = (event) => {
-            this.eventsHandler.addEvent(event);
-        };
-        this.callbacks.push(this.proxycallback);
 
         this.ready = new Promise(async (resolve) => {
             try {
@@ -177,11 +172,8 @@ export class UnleashClient extends TinyEmitter {
             enabled,
             toggleName
         );
-        for (let callback of this.callbacks) {
-            if (callback && typeof callback === "function") {
-                callback(event);
-            }
-        }
+        this.eventsHandler.addEvent(event);
+        this.emit(EVENTS.IS_ENABLED, event);
         return enabled;
     }
 
@@ -193,12 +185,7 @@ export class UnleashClient extends TinyEmitter {
             toggleName,
             toggle?.variant?.name || ""
         );
-
-        for (let callback of this.callbacks) {
-            if (callback && typeof callback === "function") {
-                callback(event);
-            }
-        }
+        this.emit(EVENTS.GET_VARIANT, event);
         this.eventsHandler.addEvent(event);
         if (toggle) {
             this.metrics.count(toggleName, true);
@@ -214,11 +201,8 @@ export class UnleashClient extends TinyEmitter {
             this.context,
             toggleName
         );
-        for (let callback of this.callbacks) {
-            if (callback && typeof callback === "function") {
-                callback(event);
-            }
-        }
+        this.eventsHandler.addEvent(event);
+        this.emit(EVENTS.CUSTOM, event);
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {
@@ -358,6 +342,11 @@ export class UnleashClient extends TinyEmitter {
 }
 
 // export storage providers from root module
-export { IStorageProvider, LocalStorageProvider, InMemoryStorageProvider, PlausibleProvider };
+export {
+    IStorageProvider,
+    LocalStorageProvider,
+    InMemoryStorageProvider,
+    PlausibleProvider,
+};
 
 export type { IConfig, IContext, IMutableContext, IVariant, IToggle };

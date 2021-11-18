@@ -4,6 +4,7 @@ import type IStorageProvider from "./storage-provider";
 import LocalStorageProvider from "./storage-provider-local";
 import InMemoryStorageProvider from "./storage-provider-inmemory";
 import EventsHandler from "./events-handler";
+import PlausibleProvider from './providers/plausible-analytics-provider'
 
 const DEFINED_FIELDS = ["userId", "sessionId", "remoteAddress"];
 
@@ -357,6 +358,6 @@ export class UnleashClient extends TinyEmitter {
 }
 
 // export storage providers from root module
-export { IStorageProvider, LocalStorageProvider, InMemoryStorageProvider };
+export { IStorageProvider, LocalStorageProvider, InMemoryStorageProvider, PlausibleProvider };
 
 export type { IConfig, IContext, IMutableContext, IVariant, IToggle };

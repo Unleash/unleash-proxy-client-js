@@ -9,9 +9,6 @@ class EventsHandler {
     constructor(url: URL, clientKey: string) {
         this.url = url;
         this.clientKey = clientKey;
-        setInterval(() => {
-            this.sendEvents();
-        }, 5000);
     }
 
     public addEvent(event: any) {
@@ -52,12 +49,17 @@ class EventsHandler {
         };
     }
 
-    public createCustomEvent(context: IContext, featureName: string) {
+    public createCustomEvent(
+        context: IContext,
+        featureName: string,
+        action: string
+    ) {
         return {
             eventType: "custom",
             eventId: this.generateEventId(),
             context,
             featureName,
+            action,
         };
     }
 

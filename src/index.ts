@@ -4,7 +4,6 @@ import type IStorageProvider from "./storage-provider";
 import LocalStorageProvider from "./storage-provider-local";
 import InMemoryStorageProvider from "./storage-provider-inmemory";
 import EventsHandler from "./events-handler";
-import PlausibleProvider from "./providers/plausible-analytics-provider";
 
 const DEFINED_FIELDS = ["userId", "sessionId", "remoteAddress"];
 
@@ -32,7 +31,6 @@ interface IConfig extends IStaticContext {
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
-    callbacks: Array<(event: any) => any | undefined>;
     fetch?: any;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
@@ -172,7 +170,6 @@ export class UnleashClient extends TinyEmitter {
             enabled,
             toggleName
         );
-        this.eventsHandler.addEvent(event);
         this.emit(EVENTS.IS_ENABLED, event);
         return enabled;
     }
@@ -186,7 +183,6 @@ export class UnleashClient extends TinyEmitter {
             toggle?.variant?.name || ""
         );
         this.emit(EVENTS.GET_VARIANT, event);
-        this.eventsHandler.addEvent(event);
         if (toggle) {
             this.metrics.count(toggleName, true);
             return toggle.variant;
@@ -196,13 +192,12 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
-    public sendCustomEvent(toggleName: string) {
-        const event = this.eventsHandler.createCustomEvent(
+    public createCustomEvent(toggleName: string, action: string) {
+        return this.eventsHandler.createCustomEvent(
             this.context,
-            toggleName
+            toggleName,
+            action
         );
-        this.eventsHandler.addEvent(event);
-        this.emit(EVENTS.CUSTOM, event);
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {
@@ -342,11 +337,6 @@ export class UnleashClient extends TinyEmitter {
 }
 
 // export storage providers from root module
-export {
-    IStorageProvider,
-    LocalStorageProvider,
-    InMemoryStorageProvider,
-    PlausibleProvider,
-};
+export { IStorageProvider, LocalStorageProvider, InMemoryStorageProvider };
 
 export type { IConfig, IContext, IMutableContext, IVariant, IToggle };

@@ -52,15 +52,15 @@ class EventsHandler {
 
     public createCustomEvent(
         context: IContext,
-        featureName: string,
-        action: string
+        action: string,
+        featureName?: string
     ) {
         return {
             eventType: "custom",
             eventId: this.generateEventId(),
             context,
-            featureName,
             action,
+            featureName,
         };
     }
 

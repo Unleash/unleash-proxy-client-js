@@ -1,6 +1,6 @@
-import { IContext } from ".";
-import { v4 as uuidv4 } from "uuid";
-import { urlFormatter } from "./url-formatter";
+import { IContext } from '.';
+import { v4 as uuidv4 } from 'uuid';
+import { urlFormatter } from './url-formatter';
 
 class EventsHandler {
     private events: any[] = [];
@@ -8,7 +8,7 @@ class EventsHandler {
     private clientKey: string;
 
     constructor(url: URL, clientKey: string) {
-        this.url = urlFormatter("events", url);
+        this.url = urlFormatter('events', url);
         this.clientKey = clientKey;
     }
 
@@ -22,7 +22,7 @@ class EventsHandler {
         featureName: string
     ) {
         return {
-            eventType: "isEnabled",
+            eventType: 'isEnabled',
             eventId: this.generateEventId(),
             context,
             enabled,
@@ -37,7 +37,7 @@ class EventsHandler {
         variant: string
     ) {
         return {
-            eventType: "getVariant",
+            eventType: 'getVariant',
             eventId: this.generateEventId(),
             variant: variant,
             context,
@@ -52,7 +52,7 @@ class EventsHandler {
         featureName?: string
     ) {
         return {
-            eventType: "custom",
+            eventType: 'custom',
             eventId: this.generateEventId(),
             context,
             action,
@@ -69,19 +69,19 @@ class EventsHandler {
 
         const headers = {
             Authorization: this.clientKey,
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
         };
 
         fetch(this.url.toString(), {
-            method: "POST",
+            method: 'POST',
             body: JSON.stringify([...data]),
             headers,
         })
             .then(() => {
                 this.events.splice(start, end);
             })
-            .catch((err) => {
-                console.log("Error reaching unleash proxy");
+            .catch(err => {
+                console.log('Error reaching unleash proxy');
             });
     }
 }

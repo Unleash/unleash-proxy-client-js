@@ -1,5 +1,6 @@
 import { IContext } from ".";
 import { v4 as uuidv4 } from "uuid";
+import { urlFormatter } from "./url-formatter";
 
 class EventsHandler {
     private events: any[] = [];
@@ -7,7 +8,7 @@ class EventsHandler {
     private clientKey: string;
 
     constructor(url: URL, clientKey: string) {
-        this.url = new URL("events", url.toString());
+        this.url = urlFormatter("events", url);
         this.clientKey = clientKey;
     }
 
@@ -82,7 +83,6 @@ class EventsHandler {
         })
             .then(() => {
                 this.events.splice(start, end);
-                console.log(this.events);
             })
             .catch((err) => {
                 console.log("Error reaching unleash proxy");

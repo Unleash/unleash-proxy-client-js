@@ -57,7 +57,6 @@ export const EVENTS = {
     UPDATE: "update",
     IS_ENABLED: "is-enabled",
     GET_VARIANT: "get-variant",
-    CUSTOM: "custom",
 };
 
 const defaultVariant: IVariant = { name: "disabled" };

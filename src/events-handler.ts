@@ -12,10 +12,6 @@ class EventsHandler {
         this.clientKey = clientKey;
     }
 
-    public addEvent(event: any) {
-        this.events.push(event);
-    }
-
     private generateEventId() {
         return uuidv4();
     }

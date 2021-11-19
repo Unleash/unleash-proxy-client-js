@@ -410,6 +410,27 @@ test("Should publish get-variant event when getVariant is called", (done) => {
     });
 });
 
+test("Should publish custom event when sendCustomEvent is called", (done) => {
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+    const config: IConfig = {
+        url: "http://localhost/test",
+        clientKey: "12",
+        appName: "web",
+    };
+    const client = new UnleashClient(config);
+    client.start();
+    console.log("Sending an event")
+    client.on(EVENTS.READY, () => {
+        client.sendCustomEvent("simpleToggle");
+    });
+
+    client.on(EVENTS.CUSTOM, (event: any) => {
+        expect(event.eventType).toBe("custom");
+        client.stop();
+        done();
+    });
+});
+
 test("Should publish error when initial init fails", (done) => {
     const givenError = "Error";
     class Store implements IStorageProvider {

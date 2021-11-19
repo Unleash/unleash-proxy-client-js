@@ -57,6 +57,7 @@ export const EVENTS = {
     UPDATE: "update",
     IS_ENABLED: "is-enabled",
     GET_VARIANT: "get-variant",
+    CUSTOM: "custom",
 };
 
 const defaultVariant: IVariant = { name: "disabled" };
@@ -191,12 +192,13 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
-    public createCustomEvent(action: string, toggleName?: string) {
-        return this.eventsHandler.createCustomEvent(
+    public sendCustomEvent(toggleName: string) {
+        const event = this.eventsHandler.createCustomEvent(
             this.context,
-            action,
             toggleName
         );
+        this.eventsHandler.addEvent(event);
+        this.emit(EVENTS.CUSTOM, event);
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {

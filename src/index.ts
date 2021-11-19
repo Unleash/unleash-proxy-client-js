@@ -191,11 +191,11 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
-    public createCustomEvent(toggleName: string, action: string) {
+    public createCustomEvent(action: string, toggleName?: string) {
         return this.eventsHandler.createCustomEvent(
             this.context,
-            toggleName,
-            action
+            action,
+            toggleName
         );
     }
 

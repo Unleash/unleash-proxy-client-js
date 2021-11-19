@@ -421,7 +421,7 @@ test("Should publish custom event when sendCustomEvent is called", (done) => {
     client.start();
     console.log("Sending an event")
     client.on(EVENTS.READY, () => {
-        client.sendCustomEvent("simpleToggle");
+        client.sendCustomEvent("simpleToggle", "action");
     });
 
     client.on(EVENTS.CUSTOM, (event: any) => {

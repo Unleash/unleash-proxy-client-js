@@ -7,7 +7,7 @@ class EventsHandler {
     private clientKey: string;
 
     constructor(url: URL, clientKey: string) {
-        this.url = url;
+        this.url = new URL("events", url.toString());
         this.clientKey = clientKey;
     }
 
@@ -64,7 +64,6 @@ class EventsHandler {
     }
 
     private sendEvents() {
-        const url = this.url + "/events";
         const start = 0;
         const end = this.events.length;
 
@@ -76,7 +75,7 @@ class EventsHandler {
             "Content-Type": "application/json",
         };
 
-        fetch(url, {
+        fetch(this.url.toString(), {
             method: "POST",
             body: JSON.stringify([...data]),
             headers,

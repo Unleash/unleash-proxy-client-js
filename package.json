@@ -18,14 +18,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unleash-hosted/unleash-proxy-client-js.git"
+    "url": "git+https://github.com/unleash/unleash-proxy-client-js.git"
   },
   "author": "@Unleash",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/unleash-hosted/unleash-proxy-client-js/issues"
+    "url": "https://github.com/unleash/unleash-proxy-client-js/issues"
   },
-  "homepage": "https://github.com/unleash-hosted/unleash-proxy-client-js#readme",
+  "homepage": "https://github.com/unleash/unleash-proxy-client-js#readme",
   "devDependencies": {
     "@babel/runtime": "^7.14.0",
     "@types/jest": "^27.0.1",

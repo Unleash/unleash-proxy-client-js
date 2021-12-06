@@ -1,6 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import 'jest-localstorage-mock'
-import * as data from '../tests/example-data.json'; 
+import * as data from '../tests/example-data.json';
 import IStorageProvider from './storage-provider';
 import { EVENTS, IConfig, IMutableContext, UnleashClient } from './index';
 
@@ -49,12 +49,12 @@ test('Should handle error and return false for isEnabled', async () => {
         public async save(name: string, data: any) {
             return Promise.resolve();
         }
-    
+
         public async get(name: string) {
             return Promise.resolve([]);
         }
     }
-    const storageProvider = new Store 
+    const storageProvider = new Store
     const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', storageProvider };
     const client = new UnleashClient(config);
     await client.start();
@@ -63,14 +63,14 @@ test('Should handle error and return false for isEnabled', async () => {
     expect(isEnabled).toBe(false);
 });
 
-test('Should read session id form localStorage', async () => {
+test('Should read session id from localStorage', async () => {
     const sessionId = '123';
     fetchMock.mockReject();
     class Store implements IStorageProvider {
         public async save(name: string, data: any) {
             return Promise.resolve();
         }
-    
+
         public async get(name: string) {
             if(name === 'sessionId') {
                 return sessionId;
@@ -79,7 +79,7 @@ test('Should read session id form localStorage', async () => {
             }
         }
     }
-    const storageProvider = new Store 
+    const storageProvider = new Store
     const config: IConfig = { url: 'http://localhost/test', clientKey: '12', appName: 'web', storageProvider };
     const client = new UnleashClient(config);
     await client.start();
@@ -87,7 +87,7 @@ test('Should read session id form localStorage', async () => {
     expect(context.sessionId).toBe(sessionId);
 });
 
-test('Should read toggles form localStorage', async () => {
+test('Should read toggles from localStorage', async () => {
     jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     const toggles = [{
         "name": "featureToggleBackup",
@@ -102,7 +102,7 @@ test('Should read toggles form localStorage', async () => {
         public async save(name: string, data: any) {
             return Promise.resolve();
         }
-    
+
         public async get(name: string) {
             if(name === 'repo') {
                 return Promise.resolve(toggles);
@@ -160,7 +160,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
     localStorage.setItem(storeKey, JSON.stringify(initialData))
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
 
-    const config: IConfig = { 
+    const config: IConfig = {
         url: 'http://localhost/test',
         clientKey: '12',
         appName: 'web',
@@ -172,7 +172,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
     });
 
     expect(client.getAllToggles()).toStrictEqual(bootstrap);
-    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));  
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));
 });
 
 test('Should not bootstrap data when bootstrapOverride is false and localStorage is not empty', async () => {
@@ -216,7 +216,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
     localStorage.setItem(storeKey, JSON.stringify(initialData))
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
 
-    const config: IConfig = { 
+    const config: IConfig = {
         url: 'http://localhost/test',
         clientKey: '12',
         appName: 'web',
@@ -229,7 +229,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
     });
 
     expect(client.getAllToggles()).toStrictEqual(initialData);
-    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));  
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
 });
 
 test('Should bootstrap when bootstrapOverride is false and local storage is empty', async () => {
@@ -256,7 +256,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
     localStorage.setItem(storeKey, JSON.stringify([]))
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify([]));
 
-    const config: IConfig = { 
+    const config: IConfig = {
         url: 'http://localhost/test',
         clientKey: '12',
         appName: 'web',
@@ -269,7 +269,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
     });
 
     expect(client.getAllToggles()).toStrictEqual(bootstrap);
-    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));  
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));
 });
 
 test('Should not bootstrap data when bootstrap is []', async () => {
@@ -296,7 +296,7 @@ test('Should not bootstrap data when bootstrap is []', async () => {
     localStorage.setItem(storeKey, JSON.stringify(initialData))
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
 
-    const config: IConfig = { 
+    const config: IConfig = {
         url: 'http://localhost/test',
         clientKey: '12',
         appName: 'web',
@@ -309,7 +309,7 @@ test('Should not bootstrap data when bootstrap is []', async () => {
     });
 
     expect(client.getAllToggles()).toStrictEqual(initialData);
-    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));  
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
 });
 
 test('Should publish ready when initial fetch completed', (done) => {
@@ -331,12 +331,12 @@ test('Should publish error when initial init fails', (done) => {
         public async save(name: string, data: any): Promise<void> {
             return Promise.reject(givenError);
         }
-    
+
         public async get(name: string): Promise<any> {
             return Promise.reject(givenError);
         }
     }
-    
+
     jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     fetchMock.mockResponseOnce(JSON.stringify(data));
 
@@ -352,7 +352,7 @@ test('Should publish error when initial init fails', (done) => {
 
 test('Should publish error when fetch fails', (done) => {
     const givenError = new Error('Error');
-    
+
     jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     fetchMock.mockReject(givenError);
 
@@ -386,6 +386,18 @@ test('Should publish update when state changes after refreshInterval', async () 
     await client.start();
 
     jest.advanceTimersByTime(1001);
+});
+
+test(`If refresh is disabled should not fetch`, async () => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 200 }],
+    );
+    const config: IConfig = { disableRefresh: true, url: 'http://localhost/test', clientKey: '12', refreshInterval: 1, appName: 'web' };
+    const client = new UnleashClient(config);
+    await client.start();
+    jest.advanceTimersByTime(100000);
+    expect(fetchMock.mock.calls.length).toEqual(1); // Never called again
 });
 
 test('Should include etag in second request', async () => {

@@ -25,6 +25,7 @@ type IContext = IStaticContext & IMutableContext;
 interface IConfig extends IStaticContext {
     url: string;
     clientKey: string;
+    disableRefresh?: boolean;
     refreshInterval?: number;
     metricsInterval?: number;
     disableMetrics?: boolean;
@@ -69,7 +70,7 @@ const resolveFetch = () => {
     } catch (e) {
         console.error('Unleash failed to resolve "fetch"', e);
     }
-    
+
     return undefined;
 }
 
@@ -92,6 +93,7 @@ export class UnleashClient extends TinyEmitter {
             storageProvider,
             url,
             clientKey,
+            disableRefresh = false,
             refreshInterval = 30,
             metricsInterval = 30,
             disableMetrics = false,
@@ -117,7 +119,7 @@ export class UnleashClient extends TinyEmitter {
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();
-        this.refreshInterval = refreshInterval * 1000;
+        this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.ready = new Promise(async (resolve) => {
             try {
@@ -125,8 +127,8 @@ export class UnleashClient extends TinyEmitter {
             } catch (error) {
                 console.error(error);
                 this.emit(EVENTS.ERROR, error);
-            } 
-            resolve();    
+            }
+            resolve();
         });
 
         if(!fetch) {
@@ -149,7 +151,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public getAllToggles(): IToggle[] {
-        return [...this.toggles]
+        return [...this.toggles];
     }
 
     public isEnabled(toggleName: string): boolean {
@@ -220,7 +222,9 @@ export class UnleashClient extends TinyEmitter {
         const interval = this.refreshInterval;
         await this.fetchToggles();
         this.emit(EVENTS.READY);
-        this.timerRef = setInterval(() => this.fetchToggles(), interval);
+        if (interval > 0) {
+            this.timerRef = setInterval(() => this.fetchToggles(), interval);
+        }
     }
 
     public stop(): void {
@@ -236,7 +240,7 @@ export class UnleashClient extends TinyEmitter {
         } else {
             let sessionId = await this.storage.get('sessionId');
             if(!sessionId) {
-                sessionId = Math.floor(Math.random() * 1_000_000_000); 
+                sessionId = Math.floor(Math.random() * 1_000_000_000);
                 await this.storage.save('sessionId', sessionId);
             }
             return sessionId;

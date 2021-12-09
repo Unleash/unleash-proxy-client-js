@@ -11,18 +11,23 @@ export interface MetricsOptions {
 interface Bucket {
     start: Date;
     stop: Date | null;
-    toggles: { [s: string]: { yes: number; no: number; } };
+    toggles: { [s: string]: { yes: number; no: number } };
+}
+
+interface Payload {
+    bucket: Bucket;
+    appName: string;
+    instanceId: string;
 }
 
 export default class Metrics {
-    private bucket: Bucket | undefined;
+    private bucket: Bucket;
     private appName: string;
     private metricsInterval: number;
     private disabled: boolean;
     private url: string;
     private clientKey: string;
     private timer: any;
-    private started: Date;
     private fetch: any;
 
     constructor({
@@ -31,20 +36,31 @@ export default class Metrics {
         disableMetrics = false,
         url,
         clientKey,
-        fetch
+        fetch,
     }: MetricsOptions) {
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
         this.appName = appName;
         this.url = url;
-        this.started = new Date();
         this.clientKey = clientKey;
-        this.resetBucket();
+        this.bucket = this.createEmptyBucket();
         this.fetch = fetch;
+    }
 
-        if (typeof this.metricsInterval === 'number' && this.metricsInterval > 0) {
+    public start() {
+        if (this.disabled) {
+            return false;
+        }
+
+        if (
+            typeof this.metricsInterval === 'number' &&
+            this.metricsInterval > 0
+        ) {
             // send first metrics after two seconds.
-            this.startTimer(2000);
+            setTimeout(() => {
+                this.startTimer();
+                this.sendMetrics();
+            }, 2000);
         }
     }
 
@@ -53,33 +69,36 @@ export default class Metrics {
             clearTimeout(this.timer);
             delete this.timer;
         }
-        this.disabled = true;
     }
 
-    public async sendMetrics(): Promise<boolean> {
+    public createEmptyBucket(): Bucket {
+        return {
+            start: new Date(),
+            stop: null,
+            toggles: {},
+        };
+    }
+
+    public async sendMetrics(): Promise<void> {
         /* istanbul ignore next if */
-        if (this.disabled) {
-            return false;
-        }
-        if (this.bucketIsEmpty()) {
-            this.resetBucket();
-            this.startTimer();
-            return true;
-        }
+
         const url = `${this.url}/client/metrics`;
         const payload = this.getPayload();
+
+        if (this.bucketIsEmpty(payload)) {
+            return;
+        }
 
         await this.fetch(url, {
             cache: 'no-cache',
             method: 'POST',
             headers: {
-                'Authorization': this.clientKey,
-                'Accept': 'application/json',
+                Authorization: this.clientKey,
+                Accept: 'application/json',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
         });
-        return true;
     }
 
     public count(name: string, enabled: boolean): boolean {
@@ -103,51 +122,24 @@ export default class Metrics {
         }
     }
 
-    private startTimer(timeout?: number) {
-        if (this.disabled) {
-            return false;
-        }
-        this.timer = setTimeout(() => {
+    private startTimer(): void {
+        this.timer = setInterval(() => {
             this.sendMetrics();
-        }, timeout || this.metricsInterval);
-
-        return true;
+        }, this.metricsInterval);
     }
 
-    private bucketIsEmpty() {
-        if (!this.bucket) {
-            return false;
-        }
-        return Object.keys(this.bucket.toggles).length === 0;
+    private bucketIsEmpty(payload: Payload) {
+        return Object.keys(payload.bucket.toggles).length === 0;
     }
 
-    private resetBucket() {
-        const bucket: Bucket = {
-            start: new Date(),
-            stop: null,
-            toggles: {},
-        };
-        this.bucket = bucket;
-    }
+    private getPayload(): Payload {
+        const bucket = { ...this.bucket, stop: new Date() };
+        this.bucket = this.createEmptyBucket();
 
-    private closeBucket() {
-        if (this.bucket) {
-            this.bucket.stop = new Date();
-        }
-    }
-
-    private getPayload() {
-        this.closeBucket();
-        const payload = this.getMetricsData();
-        this.resetBucket();
-        return payload;
-    }
-
-    private getMetricsData() {
         return {
+            bucket,
             appName: this.appName,
             instanceId: 'browser',
-            bucket: this.bucket,
         };
     }
 }

@@ -17,7 +17,7 @@ test('should be disabled by flag disableMetrics', async () => {
         disableMetrics: true,
         url: 'http://localhost:3000',
         clientKey: '123',
-        fetch: fetchMock
+        fetch: fetchMock,
     });
 
     metrics.count('foo', true);
@@ -34,7 +34,7 @@ test('should send metrics', async () => {
         disableMetrics: false,
         url: 'http://localhost:3000',
         clientKey: '123',
-        fetch: fetchMock
+        fetch: fetchMock,
     });
 
     metrics.count('foo', true);
@@ -51,4 +51,61 @@ test('should send metrics', async () => {
     expect(content.bucket.toggles.foo.no).toEqual(1);
     expect(content.bucket.toggles.bar.yes).toEqual(0);
     expect(content.bucket.toggles.bar.no).toEqual(1);
+});
+
+test('Should send initial metrics after 2 seconds', () => {
+    const metrics = new Metrics({
+        appName: 'test',
+        metricsInterval: 5,
+        disableMetrics: false,
+        url: 'http://localhost:3000',
+        clientKey: '123',
+        fetch: fetchMock,
+    });
+
+    metrics.start();
+
+    metrics.count('foo', true);
+    metrics.count('foo', true);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    // Account for 2 second timeout before the set interval starts
+    jest.advanceTimersByTime(2000);
+    expect(fetchMock.mock.calls.length).toEqual(1);
+});
+
+test('should send metrics based on timer interval', async () => {
+    const metrics = new Metrics({
+        appName: 'test',
+        metricsInterval: 5,
+        disableMetrics: false,
+        url: 'http://localhost:3000',
+        clientKey: '123',
+        fetch: fetchMock,
+    });
+
+    metrics.start();
+
+    metrics.count('foo', true);
+    metrics.count('foo', true);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    // Account for 2 second timeout before the set interval starts
+    jest.advanceTimersByTime(2000);
+
+    metrics.count('foo', true);
+    metrics.count('foo', true);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    // Fill bucket and advance the interval
+    jest.advanceTimersByTime(5000);
+
+    metrics.count('foo', true);
+    metrics.count('foo', true);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    // Fill bucket and advance the interval
+    jest.advanceTimersByTime(5000);
+
+    expect(fetchMock.mock.calls.length).toEqual(3);
 });

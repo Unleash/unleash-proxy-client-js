@@ -123,9 +123,6 @@ export default class Metrics {
     }
 
     private startTimer(): void {
-        if (this.disabled) {
-            return;
-        }
         this.timer = setInterval(() => {
             this.sendMetrics();
         }, this.metricsInterval);

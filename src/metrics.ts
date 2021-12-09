@@ -53,7 +53,7 @@ export default class Metrics {
         }
 
         if (
-            typeof this.metricsInterval === "number" &&
+            typeof this.metricsInterval === 'number' &&
             this.metricsInterval > 0
         ) {
             // send first metrics after two seconds.
@@ -90,12 +90,12 @@ export default class Metrics {
         }
 
         await this.fetch(url, {
-            cache: "no-cache",
-            method: "POST",
+            cache: 'no-cache',
+            method: 'POST',
             headers: {
                 Authorization: this.clientKey,
-                Accept: "application/json",
-                "Content-Type": "application/json",
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
         });
@@ -106,7 +106,7 @@ export default class Metrics {
             return false;
         }
         this.assertBucket(name);
-        this.bucket.toggles[name][enabled ? "yes" : "no"]++;
+        this.bucket.toggles[name][enabled ? 'yes' : 'no']++;
         return true;
     }
 
@@ -142,7 +142,7 @@ export default class Metrics {
         return {
             bucket,
             appName: this.appName,
-            instanceId: "browser",
+            instanceId: 'browser',
         };
     }
 }

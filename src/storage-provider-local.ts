@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type IStorageProvider from './storage-provider';
 
 export default class LocalStorageProvider implements IStorageProvider {
@@ -9,8 +9,8 @@ export default class LocalStorageProvider implements IStorageProvider {
         const key = `${this.prefix}:${name}`;
         try {
             await AsyncStorage.setItem(key, repo);
-        } catch(ex) {
-            console.error(ex);  
+        } catch (ex) {
+            console.error(ex);
         }
     }
 
@@ -19,10 +19,9 @@ export default class LocalStorageProvider implements IStorageProvider {
             const key = `${this.prefix}:${name}`;
             const data = await AsyncStorage.getItem(key);
             return data ? JSON.parse(data) : undefined;
-        } catch(e) {
+        } catch (e) {
             // tslint:disable-next-line
             console.error(e);
         }
     }
-
 }

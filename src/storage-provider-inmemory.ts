@@ -8,6 +8,6 @@ export default class ImMemoryStorageProvider implements IStorageProvider {
     }
 
     public async get(name: string) {
-        return this.store.get(name)
+        return this.store.get(name);
     }
 }

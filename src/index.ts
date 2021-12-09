@@ -1,10 +1,10 @@
-import { TinyEmitter } from "tiny-emitter";
-import Metrics from "./metrics";
-import type IStorageProvider from "./storage-provider";
-import LocalStorageProvider from "./storage-provider-local";
-import InMemoryStorageProvider from "./storage-provider-inmemory";
+import { TinyEmitter } from 'tiny-emitter';
+import Metrics from './metrics';
+import type IStorageProvider from './storage-provider';
+import LocalStorageProvider from './storage-provider-local';
+import InMemoryStorageProvider from './storage-provider-inmemory';
 
-const DEFINED_FIELDS = ["userId", "sessionId", "remoteAddress"];
+const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
 
 interface IStaticContext {
     appName: string;
@@ -51,20 +51,20 @@ interface IToggle {
 }
 
 export const EVENTS = {
-    INIT: "initialized",
-    ERROR: "error",
-    READY: "ready",
-    UPDATE: "update",
+    INIT: 'initialized',
+    ERROR: 'error',
+    READY: 'ready',
+    UPDATE: 'update',
 };
 
-const defaultVariant: IVariant = { name: "disabled" };
-const storeKey = "repo";
+const defaultVariant: IVariant = { name: 'disabled' };
+const storeKey = 'repo';
 
 const resolveFetch = () => {
     try {
-        if ("fetch" in window) {
+        if ('fetch' in window) {
             return fetch.bind(window);
-        } else if ("fetch" in globalThis) {
+        } else if ('fetch' in globalThis) {
             return fetch.bind(globalThis);
         }
     } catch (e) {
@@ -82,7 +82,7 @@ export class UnleashClient extends TinyEmitter {
     private refreshInterval: number;
     private url: URL;
     private clientKey: string;
-    private etag: string = "";
+    private etag: string = '';
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;
@@ -98,7 +98,7 @@ export class UnleashClient extends TinyEmitter {
         metricsInterval = 30,
         disableMetrics = false,
         appName,
-        environment = "default",
+        environment = 'default',
         context,
         fetch = resolveFetch(),
         bootstrap,
@@ -107,13 +107,13 @@ export class UnleashClient extends TinyEmitter {
         super();
         // Validations
         if (!url) {
-            throw new Error("url is required");
+            throw new Error('url is required');
         }
         if (!clientKey) {
-            throw new Error("clientKey is required");
+            throw new Error('clientKey is required');
         }
         if (!appName) {
-            throw new Error("appName is required.");
+            throw new Error('appName is required.');
         }
 
         this.url = new URL(`${url}`);
@@ -230,7 +230,7 @@ export class UnleashClient extends TinyEmitter {
     public async start(): Promise<void> {
         if (this.timerRef) {
             console.error(
-                "Unleash SDK has already started, if you want to restart the SDK you should call client.stop() before starting again."
+                'Unleash SDK has already started, if you want to restart the SDK you should call client.stop() before starting again.'
             );
             return;
         }
@@ -256,10 +256,10 @@ export class UnleashClient extends TinyEmitter {
         if (this.context.sessionId) {
             return this.context.sessionId;
         } else {
-            let sessionId = await this.storage.get("sessionId");
+            let sessionId = await this.storage.get('sessionId');
             if (!sessionId) {
                 sessionId = Math.floor(Math.random() * 1_000_000_000);
-                await this.storage.save("sessionId", sessionId);
+                await this.storage.save('sessionId', sessionId);
             }
             return sessionId;
         }
@@ -281,7 +281,7 @@ export class UnleashClient extends TinyEmitter {
                 // e.g. /?...&property.param1=param1Value&property.param2=param2Value
                 Object.entries(context).forEach(
                     ([contextKey, contextValue]) => {
-                        if (contextKey === "properties" && contextValue) {
+                        if (contextKey === 'properties' && contextValue) {
                             Object.entries<string>(contextValue).forEach(
                                 ([propertyKey, propertyValue]) =>
                                     urlWithQuery.searchParams.append(
@@ -298,22 +298,22 @@ export class UnleashClient extends TinyEmitter {
                     }
                 );
                 const response = await this.fetch(urlWithQuery.toString(), {
-                    cache: "no-cache",
+                    cache: 'no-cache',
                     headers: {
                         Authorization: this.clientKey,
-                        Accept: "application/json",
-                        "Content-Type": "application/json",
-                        "If-None-Match": this.etag,
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'If-None-Match': this.etag,
                     },
                 });
                 if (response.ok && response.status !== 304) {
-                    this.etag = response.headers.get("ETag") || "";
+                    this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
                 }
             } catch (e) {
                 // tslint:disable-next-line
-                console.error("Unleash: unable to fetch feature toggles", e);
+                console.error('Unleash: unable to fetch feature toggles', e);
                 this.emit(EVENTS.ERROR, e);
             }
         }

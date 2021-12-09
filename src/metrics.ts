@@ -59,6 +59,7 @@ export default class Metrics {
             // send first metrics after two seconds.
             setTimeout(() => {
                 this.startTimer();
+                this.sendMetrics();
             }, 2000);
         }
     }

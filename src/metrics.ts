@@ -11,7 +11,7 @@ export interface MetricsOptions {
 interface Bucket {
     start: Date;
     stop: Date | null;
-    toggles: { [s: string]: { yes: number; no: number; } };
+    toggles: { [s: string]: { yes: number; no: number } };
 }
 
 export default class Metrics {
@@ -31,7 +31,7 @@ export default class Metrics {
         disableMetrics = false,
         url,
         clientKey,
-        fetch
+        fetch,
     }: MetricsOptions) {
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
@@ -41,8 +41,13 @@ export default class Metrics {
         this.clientKey = clientKey;
         this.resetBucket();
         this.fetch = fetch;
+    }
 
-        if (typeof this.metricsInterval === 'number' && this.metricsInterval > 0) {
+    public start() {
+        if (
+            typeof this.metricsInterval === "number" &&
+            this.metricsInterval > 0
+        ) {
             // send first metrics after two seconds.
             this.startTimer(2000);
         }
@@ -53,7 +58,6 @@ export default class Metrics {
             clearTimeout(this.timer);
             delete this.timer;
         }
-        this.disabled = true;
     }
 
     public async sendMetrics(): Promise<boolean> {
@@ -70,12 +74,12 @@ export default class Metrics {
         const payload = this.getPayload();
 
         await this.fetch(url, {
-            cache: 'no-cache',
-            method: 'POST',
+            cache: "no-cache",
+            method: "POST",
             headers: {
-                'Authorization': this.clientKey,
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
+                Authorization: this.clientKey,
+                Accept: "application/json",
+                "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
         });
@@ -87,7 +91,7 @@ export default class Metrics {
             return false;
         }
         this.assertBucket(name);
-        this.bucket.toggles[name][enabled ? 'yes' : 'no']++;
+        this.bucket.toggles[name][enabled ? "yes" : "no"]++;
         return true;
     }
 
@@ -146,7 +150,7 @@ export default class Metrics {
     private getMetricsData() {
         return {
             appName: this.appName,
-            instanceId: 'browser',
+            instanceId: "browser",
             bucket: this.bucket,
         };
     }

@@ -116,6 +116,7 @@ export class UnleashClient extends TinyEmitter {
             throw new Error('appName is required.');
         }
 
+        this.toggles = bootstrap && bootstrap.length > 0 ? bootstrap : [];
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.storage = storageProvider || new LocalStorageProvider();

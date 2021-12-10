@@ -198,12 +198,64 @@ test('Should bootstrap data when bootstrap is provided', async () => {
         bootstrap,
     };
     const client = new UnleashClient(config);
-
-    await new Promise((resolve) => {
-        client.on('initialized', resolve);
-    });
+    await client.start();
 
     expect(client.getAllToggles()).toStrictEqual(bootstrap);
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));
+});
+
+test('Should set internal toggle state when bootstrap is set, before client is started', async () => {
+    localStorage.clear();
+    const storeKey = 'unleash:repository:repo';
+    const bootstrap = [
+        {
+            name: 'toggles',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+        },
+        {
+            name: 'algo',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+        },
+    ];
+    const initialData = [
+        {
+            name: 'initialData',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+        },
+        {
+            name: 'test initial',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+        },
+    ];
+
+    localStorage.setItem(storeKey, JSON.stringify(initialData));
+    expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+    };
+    const client = new UnleashClient(config);
+    expect(client.getAllToggles()).toStrictEqual(bootstrap);
+    await client.start();
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));
 });
 
@@ -258,10 +310,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
         bootstrapOverride: false,
     };
     const client = new UnleashClient(config);
-
-    await new Promise((resolve) => {
-        client.on('initialized', resolve);
-    });
+    await client.start();
 
     expect(client.getAllToggles()).toStrictEqual(initialData);
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
@@ -300,10 +349,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
         bootstrapOverride: false,
     };
     const client = new UnleashClient(config);
-
-    await new Promise((resolve) => {
-        client.on('initialized', resolve);
-    });
+    await client.start();
 
     expect(client.getAllToggles()).toStrictEqual(bootstrap);
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));
@@ -342,10 +388,7 @@ test('Should not bootstrap data when bootstrap is []', async () => {
         bootstrapOverride: true,
     };
     const client = new UnleashClient(config);
-
-    await new Promise((resolve) => {
-        client.on('initialized', resolve);
-    });
+    await client.start();
 
     expect(client.getAllToggles()).toStrictEqual(initialData);
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));

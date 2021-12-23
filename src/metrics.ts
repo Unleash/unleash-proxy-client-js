@@ -1,4 +1,4 @@
-// Simplified version of: https://github.com/Unleash/unleash-client-node/blob/master/src/metrics.ts
+// Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 export interface MetricsOptions {
     appName: string;
     metricsInterval: number;

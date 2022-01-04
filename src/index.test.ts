@@ -838,3 +838,25 @@ test('Initializing client twice should show a console warning', async () => {
     // Expect console.error to be called once before start runs.
     expect(console.error).toBeCalledTimes(2);
 });
+
+test('Should pass under custom header clientKey', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        headerName: 'NotAuthorization'
+    };
+    const client = new UnleashClient(config);
+
+    client.on(EVENTS.UPDATE, () => {
+        expect(fetchMock.mock.calls.length).toEqual(1);
+        expect(fetchMock.mock.calls[0][1].headers).toMatchObject({ 'NotAuthorization': '12' });
+        client.stop();
+    });
+
+    await client.start();
+
+    jest.advanceTimersByTime(999);
+});

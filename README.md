@@ -103,6 +103,7 @@ The Unleash SDK takes the following options:
 | fetch             | no | window.fetch | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch`                    | 
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 
 | bootstrapOverride | no| `true` | Should the boostrap automatically override cached data in the local-storage. Will only be used if boostrap is not an empty array.     | 
+| headerName        | no| `Authorization` | Provides possiblity to specify custom header that is passed to Unleash / Unleash Proxy with the `clientKey` | 
 
 
 ### Listen for updates via the EventEmitter

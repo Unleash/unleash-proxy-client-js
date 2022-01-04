@@ -34,6 +34,7 @@ interface IConfig extends IStaticContext {
     fetch?: any;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
+    headerName?: string
 }
 
 interface IVariant {
@@ -88,6 +89,7 @@ export class UnleashClient extends TinyEmitter {
     private fetch: any;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
+    private headerName: string;
 
     constructor({
         storageProvider,
@@ -103,6 +105,7 @@ export class UnleashClient extends TinyEmitter {
         fetch = resolveFetch(),
         bootstrap,
         bootstrapOverride = true,
+        headerName = 'Authorization'
     }: IConfig) {
         super();
         // Validations
@@ -119,6 +122,7 @@ export class UnleashClient extends TinyEmitter {
         this.toggles = bootstrap && bootstrap.length > 0 ? bootstrap : [];
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
+        this.headerName = headerName;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
@@ -301,7 +305,7 @@ export class UnleashClient extends TinyEmitter {
                 const response = await this.fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
                     headers: {
-                        Authorization: this.clientKey,
+                        [this.headerName]: this.clientKey,
                         Accept: 'application/json',
                         'Content-Type': 'application/json',
                         'If-None-Match': this.etag,

@@ -6,6 +6,7 @@ export interface MetricsOptions {
     url: string;
     clientKey: string;
     fetch: any;
+    headerName: string
 }
 
 interface Bucket {
@@ -29,6 +30,7 @@ export default class Metrics {
     private clientKey: string;
     private timer: any;
     private fetch: any;
+    private headerName: string
 
     constructor({
         appName,
@@ -37,6 +39,7 @@ export default class Metrics {
         url,
         clientKey,
         fetch,
+        headerName
     }: MetricsOptions) {
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
@@ -45,6 +48,7 @@ export default class Metrics {
         this.clientKey = clientKey;
         this.bucket = this.createEmptyBucket();
         this.fetch = fetch;
+        this.headerName = headerName 
     }
 
     public start() {
@@ -93,7 +97,7 @@ export default class Metrics {
             cache: 'no-cache',
             method: 'POST',
             headers: {
-                Authorization: this.clientKey,
+                [this.headerName]: this.clientKey,
                 Accept: 'application/json',
                 'Content-Type': 'application/json',
             },

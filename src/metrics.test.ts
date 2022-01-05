@@ -18,6 +18,7 @@ test('should be disabled by flag disableMetrics', async () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
+        headerName: 'Authorization'
     });
 
     metrics.count('foo', true);
@@ -35,6 +36,7 @@ test('should send metrics', async () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
+        headerName: 'Authorization'
     });
 
     metrics.count('foo', true);
@@ -53,6 +55,25 @@ test('should send metrics', async () => {
     expect(content.bucket.toggles.bar.no).toEqual(1);
 });
 
+test('should send metrics under custom header', async () => {
+    const metrics = new Metrics({
+        appName: 'test',
+        metricsInterval: 0,
+        disableMetrics: false,
+        url: 'http://localhost:3000',
+        clientKey: '123',
+        fetch: fetchMock,
+        headerName: 'NotAuthorization'
+    });
+
+    metrics.count('foo', true);
+    
+    await metrics.sendMetrics();
+
+    expect(fetchMock.mock.calls.length).toEqual(1);
+    expect(fetchMock.mock.calls[0][1].headers).toMatchObject({ 'NotAuthorization': '123' });
+});
+
 test('Should send initial metrics after 2 seconds', () => {
     const metrics = new Metrics({
         appName: 'test',
@@ -61,6 +82,7 @@ test('Should send initial metrics after 2 seconds', () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
+        headerName: 'Authorization'
     });
 
     metrics.start();
@@ -82,6 +104,7 @@ test('should send metrics based on timer interval', async () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
+        headerName: 'Authorization'
     });
 
     metrics.start();

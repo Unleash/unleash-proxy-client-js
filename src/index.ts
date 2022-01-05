@@ -155,6 +155,7 @@ export class UnleashClient extends TinyEmitter {
             url,
             clientKey,
             fetch,
+            headerName
         });
     }
 

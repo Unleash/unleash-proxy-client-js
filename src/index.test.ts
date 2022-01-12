@@ -653,6 +653,45 @@ test('Should include context fields on request', async () => {
     expect(url.searchParams.get('environment')).toEqual('prod');
 });
 
+test('Should note include context fields with "null" value', async () => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 304 }]
+    );
+    const context: IMutableContext = {
+        //@ts-ignore
+        userId: null,
+        sessionId: '456',
+        remoteAddress: 'address',
+        properties: {
+            property1: 'property1',
+            property2: 'property2',
+        },
+    };
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        environment: 'prod',
+        context,
+    };
+    const client = new UnleashClient(config);
+
+    await client.start();
+
+    jest.advanceTimersByTime(1001);
+
+    const url = new URL(fetchMock.mock.calls[0][0]);
+
+    expect(url.searchParams.has('userId')).toBe(false);
+    expect(url.searchParams.get('sessionId')).toEqual('456');
+    expect(url.searchParams.get('remoteAddress')).toEqual('address');
+    expect(url.searchParams.get('properties[property1]')).toEqual('property1');
+    expect(url.searchParams.get('properties[property2]')).toEqual('property2');
+    expect(url.searchParams.get('appName')).toEqual('web');
+    expect(url.searchParams.get('environment')).toEqual('prod');
+});
+
 test('Should update context fields on request', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],

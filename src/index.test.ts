@@ -661,8 +661,9 @@ test('Should note include context fields with "null" value', async () => {
     const context: IMutableContext = {
         //@ts-ignore
         userId: null,
-        sessionId: '456',
-        remoteAddress: 'address',
+        //@ts-ignore
+        sessionId: 0,
+        remoteAddress: undefined,
         properties: {
             property1: 'property1',
             property2: 'property2',
@@ -684,12 +685,10 @@ test('Should note include context fields with "null" value', async () => {
     const url = new URL(fetchMock.mock.calls[0][0]);
 
     expect(url.searchParams.has('userId')).toBe(false);
-    expect(url.searchParams.get('sessionId')).toEqual('456');
-    expect(url.searchParams.get('remoteAddress')).toEqual('address');
-    expect(url.searchParams.get('properties[property1]')).toEqual('property1');
-    expect(url.searchParams.get('properties[property2]')).toEqual('property2');
-    expect(url.searchParams.get('appName')).toEqual('web');
-    expect(url.searchParams.get('environment')).toEqual('prod');
+    expect(url.searchParams.has('remoteAddress')).toBe(false);
+    expect(url.searchParams.has('sessionId')).toBe(true);
+    expect(url.searchParams.get('sessionId')).toBe('0');
+    
 });
 
 test('Should update context fields on request', async () => {

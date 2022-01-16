@@ -163,9 +163,9 @@ export class UnleashClient extends TinyEmitter {
         return [...this.toggles];
     }
 
-    public isEnabled(toggleName: string): boolean {
+    public isEnabled(toggleName: string, defaultValue = false): boolean {
         const toggle = this.toggles.find((t) => t.name === toggleName);
-        const enabled = toggle ? toggle.enabled : false;
+        const enabled = toggle ? toggle.enabled : defaultValue;
         this.metrics.count(toggleName, enabled);
         return enabled;
     }

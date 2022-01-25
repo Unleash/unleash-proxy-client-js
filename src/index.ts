@@ -244,7 +244,11 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.start();
         const interval = this.refreshInterval;
         await this.fetchToggles();
-        this.emit(EVENTS.READY);
+
+        if (!this.bootstrap) {
+            this.emit(EVENTS.READY);
+        }
+
         if (interval > 0) {
             this.timerRef = setInterval(() => this.fetchToggles(), interval);
         }

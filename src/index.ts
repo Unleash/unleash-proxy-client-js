@@ -201,15 +201,6 @@ export class UnleashClient extends TinyEmitter {
             return toggle.variant;
         } else {
             this.metrics.count(toggleName, false);
-            if (toggle?.impressionData) {
-                const event = this.eventsHandler.createVariantEvent(
-                    this.context,
-                    false,
-                    toggleName,
-                    'disabled'
-                );
-                this.emit(EVENTS.GET_VARIANT, event);
-            }
 
             return defaultVariant;
         }

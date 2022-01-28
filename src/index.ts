@@ -189,23 +189,27 @@ export class UnleashClient extends TinyEmitter {
         const toggle = this.toggles.find((t) => t.name === toggleName);
         if (toggle) {
             this.metrics.count(toggleName, true);
-            const event = this.eventsHandler.createVariantEvent(
-                this.context,
-                toggle.enabled,
-                toggleName,
-                toggle.variant.name
-            );
-            this.emit(EVENTS.GET_VARIANT, event);
+            if (toggle.impressionData) {
+                const event = this.eventsHandler.createVariantEvent(
+                    this.context,
+                    toggle.enabled,
+                    toggleName,
+                    toggle.variant.name
+                );
+                this.emit(EVENTS.GET_VARIANT, event);
+            }
             return toggle.variant;
         } else {
             this.metrics.count(toggleName, false);
-            const event = this.eventsHandler.createVariantEvent(
-                this.context,
-                false,
-                toggleName,
-                'disabled'
-            );
-            this.emit(EVENTS.GET_VARIANT, event);
+            if (toggle?.impressionData) {
+                const event = this.eventsHandler.createVariantEvent(
+                    this.context,
+                    false,
+                    toggleName,
+                    'disabled'
+                );
+                this.emit(EVENTS.GET_VARIANT, event);
+            }
 
             return defaultVariant;
         }

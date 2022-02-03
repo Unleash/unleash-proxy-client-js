@@ -35,7 +35,7 @@ interface IConfig extends IStaticContext {
     fetch?: any;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
-    headerName?: string
+    headerName?: string;
 }
 
 interface IVariant {
@@ -106,7 +106,7 @@ export class UnleashClient extends TinyEmitter {
         fetch = resolveFetch(),
         bootstrap,
         bootstrapOverride = true,
-        headerName = 'Authorization'
+        headerName = 'Authorization',
     }: IConfig) {
         super();
         // Validations
@@ -156,7 +156,7 @@ export class UnleashClient extends TinyEmitter {
             url,
             clientKey,
             fetch,
-            headerName
+            headerName,
         });
     }
 
@@ -229,8 +229,8 @@ export class UnleashClient extends TinyEmitter {
         ) {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
+            this.emit(EVENTS.READY);
         }
-
         this.emit(EVENTS.INIT);
     }
 
@@ -245,7 +245,11 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.start();
         const interval = this.refreshInterval;
         await this.fetchToggles();
-        this.emit(EVENTS.READY);
+
+        if (!this.bootstrap) {
+            this.emit(EVENTS.READY);
+        }
+
         if (interval > 0) {
             this.timerRef = setInterval(() => this.fetchToggles(), interval);
         }

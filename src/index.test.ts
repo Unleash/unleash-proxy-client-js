@@ -394,6 +394,41 @@ test('Should not bootstrap data when bootstrap is []', async () => {
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(initialData));
 });
 
+test('Should publish ready event when bootstrap is provided, before client is started', async () => {
+    localStorage.clear();
+    const storeKey = 'unleash:repository:repo';
+    const bootstrap = [
+        {
+            name: 'toggles',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+        },
+        {
+            name: 'algo',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+    };
+    const client = new UnleashClient(config);
+    expect(client.getAllToggles()).toStrictEqual(bootstrap);
+    client.on(EVENTS.READY, () => {
+        expect(client.isEnabled('algo')).toBe(true);
+    });
+});
+
 test('Should publish ready when initial fetch completed', (done) => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
     const config: IConfig = {
@@ -884,13 +919,15 @@ test('Should pass under custom header clientKey', async () => {
         url: 'http://localhost/test',
         clientKey: '12',
         appName: 'web',
-        headerName: 'NotAuthorization'
+        headerName: 'NotAuthorization',
     };
     const client = new UnleashClient(config);
 
     client.on(EVENTS.UPDATE, () => {
         expect(fetchMock.mock.calls.length).toEqual(1);
-        expect(fetchMock.mock.calls[0][1].headers).toMatchObject({ 'NotAuthorization': '12' });
+        expect(fetchMock.mock.calls[0][1].headers).toMatchObject({
+            NotAuthorization: '12',
+        });
         client.stop();
     });
 

@@ -1,4 +1,4 @@
-import { EVENTS, IContext } from '.';
+import { IContext } from '.';
 import { v4 as uuidv4 } from 'uuid';
 
 class EventsHandler {

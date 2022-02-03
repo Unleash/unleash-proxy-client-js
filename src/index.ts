@@ -61,7 +61,7 @@ export const EVENTS = {
     IMPRESSION: 'impression',
 };
 
-const IMPRESSION_EVENTS: {
+const IMPRESSION_EVENTS = {
     isEnabled: 'isEnabled';
     getVariant: 'getVariant';
 };

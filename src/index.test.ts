@@ -559,8 +559,11 @@ test('Should include etag in second request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    expect(fetchMock.mock.calls[0][1].headers['If-None-Match']).toEqual('');
-    expect(fetchMock.mock.calls[1][1].headers['If-None-Match']).toEqual(etag);
+    const req1 = fetchMock.mock.calls[0][1];
+    const req2 = fetchMock.mock.calls[1][1];
+
+    expect(req1.headers['If-None-Match']).toEqual('');
+    expect(req2.headers['If-None-Match']).toEqual(etag);
 });
 
 test('Should add clientKey as Authorization header', async () => {
@@ -578,7 +581,7 @@ test('Should add clientKey as Authorization header', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toEqual(
+    expect(fetchMock.mock.calls[0][1]?.headers['Authorization']).toEqual(
         'some123key'
     );
 });
@@ -677,7 +680,7 @@ test('Should include context fields on request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(fetchMock.mock.calls[0][0] as string);
 
     expect(url.searchParams.get('userId')).toEqual('123');
     expect(url.searchParams.get('sessionId')).toEqual('456');
@@ -714,7 +717,7 @@ test('Should update context fields on request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(fetchMock.mock.calls[0][0] as string);
 
     expect(url.searchParams.get('userId')).toEqual('123');
     expect(url.searchParams.get('sessionId')).toEqual('456');
@@ -745,7 +748,7 @@ test('Should not add property fields when properties is an empty object', async 
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(fetchMock.mock.calls[0][0] as string);
 
     // console.log(url.toString(), url.searchParams.toString(), url.searchParams.get('properties'));
 
@@ -769,7 +772,7 @@ test('Should use default environment', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(fetchMock.mock.calls[0][0] as string);
 
     expect(url.searchParams.get('environment')).toEqual('default');
 });

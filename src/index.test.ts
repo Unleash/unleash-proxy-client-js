@@ -159,6 +159,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -167,6 +168,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
     const initialData = [
@@ -177,6 +179,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'test initial',
@@ -185,6 +188,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -215,6 +219,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -223,6 +228,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
     const initialData = [
@@ -233,6 +239,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'test initial',
@@ -241,6 +248,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -270,6 +278,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -278,6 +287,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
     const initialData = [
@@ -288,6 +298,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'test initial',
@@ -296,6 +307,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -327,6 +339,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -335,6 +348,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -405,6 +419,7 @@ test('Should publish ready event when bootstrap is provided, before client is st
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -413,6 +428,7 @@ test('Should publish ready event when bootstrap is provided, before client is st
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -896,4 +912,76 @@ test('Should pass under custom header clientKey', async () => {
     await client.start();
 
     jest.advanceTimersByTime(999);
+});
+
+test('Should call isEnabled event when impressionData is true', (done) => {
+    const bootstrap = [
+        {
+            name: 'impression',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+            impressionData: true,
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+    };
+    const client = new UnleashClient(config);
+    client.start();
+
+    client.on(EVENTS.READY, () => {
+        const isEnabled = client.isEnabled('impression');
+        expect(isEnabled).toBe(true);
+    });
+
+    client.on(EVENTS.IMPRESSION, (event: any) => {
+        console.log(event);
+        expect(event.featureName).toBe('impression');
+        expect(event.eventType).toBe('isEnabled');
+        client.stop();
+        done();
+    });
+});
+
+test('Should call getVariant event when impressionData is true', (done) => {
+    const bootstrap = [
+        {
+            name: 'impression-variant',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+            impressionData: true,
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+    };
+    const client = new UnleashClient(config);
+    client.start();
+
+    client.on(EVENTS.READY, () => {
+        const isEnabled = client.getVariant('impression-variant');
+        expect(isEnabled).toBe(true);
+    });
+
+    client.on(EVENTS.IMPRESSION, (event: any) => {
+        console.log(event);
+        expect(event.featureName).toBe('impression-variant');
+        expect(event.eventType).toBe('getVariant');
+        client.stop();
+        done();
+    });
 });

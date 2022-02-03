@@ -58,8 +58,7 @@ export const EVENTS = {
     ERROR: 'error',
     READY: 'ready',
     UPDATE: 'update',
-    IS_ENABLED: 'is-enabled',
-    GET_VARIANT: 'get-variant',
+    IMPRESSION: 'impression',
 };
 
 const defaultVariant: IVariant = { name: 'disabled' };
@@ -174,12 +173,13 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.count(toggleName, enabled);
 
         if (toggle?.impressionData) {
-            const event = this.eventsHandler.createIsEnabledEvent(
+            const event = this.eventsHandler.createImpressionEvent(
                 this.context,
                 enabled,
-                toggleName
+                toggleName,
+                'isEnabled'
             );
-            this.emit(EVENTS.IS_ENABLED, event);
+            this.emit(EVENTS.IMPRESSION, event);
         }
 
         return enabled;
@@ -190,13 +190,14 @@ export class UnleashClient extends TinyEmitter {
         if (toggle) {
             this.metrics.count(toggleName, true);
             if (toggle.impressionData) {
-                const event = this.eventsHandler.createVariantEvent(
+                const event = this.eventsHandler.createImpressionEvent(
                     this.context,
                     toggle.enabled,
                     toggleName,
+                    'getVariant',
                     toggle.variant.name
                 );
-                this.emit(EVENTS.GET_VARIANT, event);
+                this.emit(EVENTS.IMPRESSION, event);
             }
             return toggle.variant;
         } else {

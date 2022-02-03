@@ -6,30 +6,38 @@ class EventsHandler {
         return uuidv4();
     }
 
-    public createIsEnabledEvent(
-        context: IContext,
-        enabled: boolean,
-        featureName: string
-    ) {
-        return {
-            eventType: EVENTS.IS_ENABLED,
-            eventId: this.generateEventId(),
-            context,
-            enabled,
-            featureName,
-        };
-    }
-
-    public createVariantEvent(
+    public createImpressionEvent(
         context: IContext,
         enabled: boolean,
         featureName: string,
-        variant: string
+        eventType: string,
+        variant?: string
+    ) {
+        const baseEvent = this.createBaseEvent(
+            context,
+            enabled,
+            featureName,
+            eventType
+        );
+
+        if (variant) {
+            return {
+                ...baseEvent,
+                variant,
+            };
+        }
+        return baseEvent;
+    }
+
+    private createBaseEvent(
+        context: IContext,
+        enabled: boolean,
+        featureName: string,
+        eventType: string
     ) {
         return {
-            eventType: EVENTS.GET_VARIANT,
+            eventType,
             eventId: this.generateEventId(),
-            variant: variant,
             context,
             enabled,
             featureName,

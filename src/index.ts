@@ -63,8 +63,8 @@ export const EVENTS = {
 };
 
 const IMPRESSION_EVENTS = {
-    isEnabled: 'isEnabled';
-    getVariant: 'getVariant';
+    IS_ENABLED: 'isEnabled',
+    GET_VARIANT: 'getVariant',
 };
 
 const defaultVariant: IVariant = { name: 'disabled' };
@@ -183,7 +183,7 @@ export class UnleashClient extends TinyEmitter {
                 this.context,
                 enabled,
                 toggleName,
-                IMPRESSION_EVENTS.isEnabled
+                IMPRESSION_EVENTS.IS_ENABLED
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
@@ -200,7 +200,7 @@ export class UnleashClient extends TinyEmitter {
                     this.context,
                     toggle.enabled,
                     toggleName,
-                    IMPRESSION_EVENTS.getVariant,
+                    IMPRESSION_EVENTS.GET_VARIANT,
                     toggle.variant.name
                 );
                 this.emit(EVENTS.IMPRESSION, event);

@@ -3,6 +3,7 @@ import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 import InMemoryStorageProvider from './storage-provider-inmemory';
+import EventsHandler from './events-handler';
 import { notNullOrUndefined } from './util';
 
 const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
@@ -50,6 +51,7 @@ interface IToggle {
     name: string;
     enabled: boolean;
     variant: IVariant;
+    impressionData: boolean;
 }
 
 export const EVENTS = {
@@ -57,6 +59,12 @@ export const EVENTS = {
     ERROR: 'error',
     READY: 'ready',
     UPDATE: 'update',
+    IMPRESSION: 'impression',
+};
+
+const IMPRESSION_EVENTS = {
+    IS_ENABLED: 'isEnabled',
+    GET_VARIANT: 'getVariant',
 };
 
 const defaultVariant: IVariant = { name: 'disabled' };
@@ -91,6 +99,7 @@ export class UnleashClient extends TinyEmitter {
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
     private headerName: string;
+    private eventsHandler: EventsHandler;
 
     constructor({
         storageProvider,
@@ -119,7 +128,7 @@ export class UnleashClient extends TinyEmitter {
         if (!appName) {
             throw new Error('appName is required.');
         }
-
+        this.eventsHandler = new EventsHandler();
         this.toggles = bootstrap && bootstrap.length > 0 ? bootstrap : [];
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
@@ -168,6 +177,17 @@ export class UnleashClient extends TinyEmitter {
         const toggle = this.toggles.find((t) => t.name === toggleName);
         const enabled = toggle ? toggle.enabled : false;
         this.metrics.count(toggleName, enabled);
+
+        if (toggle?.impressionData) {
+            const event = this.eventsHandler.createImpressionEvent(
+                this.context,
+                enabled,
+                toggleName,
+                IMPRESSION_EVENTS.IS_ENABLED
+            );
+            this.emit(EVENTS.IMPRESSION, event);
+        }
+
         return enabled;
     }
 
@@ -175,9 +195,20 @@ export class UnleashClient extends TinyEmitter {
         const toggle = this.toggles.find((t) => t.name === toggleName);
         if (toggle) {
             this.metrics.count(toggleName, true);
+            if (toggle.impressionData) {
+                const event = this.eventsHandler.createImpressionEvent(
+                    this.context,
+                    toggle.enabled,
+                    toggleName,
+                    IMPRESSION_EVENTS.GET_VARIANT,
+                    toggle.variant.name
+                );
+                this.emit(EVENTS.IMPRESSION, event);
+            }
             return toggle.variant;
         } else {
             this.metrics.count(toggleName, false);
+
             return defaultVariant;
         }
     }

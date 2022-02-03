@@ -4,6 +4,7 @@ import type IStorageProvider from './storage-provider';
 import LocalStorageProvider from './storage-provider-local';
 import InMemoryStorageProvider from './storage-provider-inmemory';
 import EventsHandler from './events-handler';
+import { notNullOrUndefined } from './util';
 
 const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
 
@@ -69,7 +70,7 @@ const IMPRESSION_EVENTS = {
 const defaultVariant: IVariant = { name: 'disabled' };
 const storeKey = 'repo';
 
-const resolveFetch = () => {
+export const resolveFetch = () => {
     try {
         if ('fetch' in window) {
             return fetch.bind(window);
@@ -320,10 +321,14 @@ export class UnleashClient extends TinyEmitter {
                 // Add context information to url search params. If the properties
                 // object is included in the context, flatten it into the search params
                 // e.g. /?...&property.param1=param1Value&property.param2=param2Value
-                Object.entries(context).forEach(
+                Object.entries(context)
+                    .filter(notNullOrUndefined)
+                    .forEach(
                     ([contextKey, contextValue]) => {
                         if (contextKey === 'properties' && contextValue) {
-                            Object.entries<string>(contextValue).forEach(
+                            Object.entries<string>(contextValue)
+                            .filter(notNullOrUndefined)
+                            .forEach(
                                 ([propertyKey, propertyValue]) =>
                                     urlWithQuery.searchParams.append(
                                         `properties[${propertyKey}]`,

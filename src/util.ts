@@ -1,0 +1,1 @@
+export const notNullOrUndefined = ([, value]: [string, string]) => value !== undefined && value !== null;

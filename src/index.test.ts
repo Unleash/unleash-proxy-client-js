@@ -942,7 +942,6 @@ test('Should call isEnabled event when impressionData is true', (done) => {
     });
 
     client.on(EVENTS.IMPRESSION, (event: any) => {
-        console.log(event);
         expect(event.featureName).toBe('impression');
         expect(event.eventType).toBe('isEnabled');
         client.stop();
@@ -978,7 +977,6 @@ test('Should call getVariant event when impressionData is true', (done) => {
     });
 
     client.on(EVENTS.IMPRESSION, (event: any) => {
-        console.log(event);
         expect(event.featureName).toBe('impression-variant');
         expect(event.eventType).toBe('getVariant');
         client.stop();

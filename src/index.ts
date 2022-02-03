@@ -61,6 +61,11 @@ export const EVENTS = {
     IMPRESSION: 'impression',
 };
 
+const IMPRESSION_EVENTS: {
+    isEnabled: 'isEnabled';
+    getVariant: 'getVariant';
+};
+
 const defaultVariant: IVariant = { name: 'disabled' };
 const storeKey = 'repo';
 
@@ -177,7 +182,7 @@ export class UnleashClient extends TinyEmitter {
                 this.context,
                 enabled,
                 toggleName,
-                'isEnabled'
+                IMPRESSION_EVENTS.isEnabled
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
@@ -194,7 +199,7 @@ export class UnleashClient extends TinyEmitter {
                     this.context,
                     toggle.enabled,
                     toggleName,
-                    'getVariant',
+                    IMPRESSION_EVENTS.getVariant,
                     toggle.variant.name
                 );
                 this.emit(EVENTS.IMPRESSION, event);

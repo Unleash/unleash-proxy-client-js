@@ -23,6 +23,17 @@ test('Should initialize unleash-client', () => {
     expect(config.url).toBe('http://localhost/test');
 });
 
+test('Should initialize unleash-client when using URL instance', () => {
+    const url = new URL('test', 'http://localhost');
+    const config: IConfig = {
+        url,
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    expect(client).toHaveProperty('url', url);
+});
+
 test('Should perform an initial fetch', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
     const config: IConfig = {
@@ -739,7 +750,6 @@ test('Should note include context fields with "null" value', async () => {
     expect(url.searchParams.has('remoteAddress')).toBe(false);
     expect(url.searchParams.has('sessionId')).toBe(true);
     expect(url.searchParams.get('sessionId')).toBe('0');
-    
 });
 
 test('Should update context fields on request', async () => {

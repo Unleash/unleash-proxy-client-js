@@ -25,7 +25,7 @@ interface IMutableContext {
 type IContext = IStaticContext & IMutableContext;
 
 interface IConfig extends IStaticContext {
-    url: string;
+    url: string | URL;
     clientKey: string;
     disableRefresh?: boolean;
     refreshInterval?: number;
@@ -130,7 +130,7 @@ export class UnleashClient extends TinyEmitter {
         }
         this.eventsHandler = new EventsHandler();
         this.toggles = bootstrap && bootstrap.length > 0 ? bootstrap : [];
-        this.url = new URL(`${url}`);
+        this.url = typeof url === 'string' ? new URL(`${url}`) : url;
         this.clientKey = clientKey;
         this.headerName = headerName;
         this.storage = storageProvider || new LocalStorageProvider();
@@ -162,7 +162,7 @@ export class UnleashClient extends TinyEmitter {
             appName,
             metricsInterval,
             disableMetrics,
-            url,
+            url: this.url.toString(),
             clientKey,
             fetch,
             headerName,

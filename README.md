@@ -131,6 +131,15 @@ unleash.on('update', () => {
 
 You may provide a custom session id via the "context". If you do not provide a sessionId this SDK will create a random session id, which will also be stored in the provided storage (local storage). By always having a consistent sessionId available ensures that even "anonymous" users will get a consistent experience when feature toggles is evaluated, in combination with a gradual (percentage based) rollout. 
 
+### Stop the SDK
+You can stop the Unleash client by calling the `stop` method. Once the client has been stopped, it will no longer check for updates or send metrics to the server.
+
+A stopped client _can_ be restarted.
+
+```js
+unleash.stop()
+```
+
 ### Custom store
 
 This SDK will use [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) to backup feature toggles locally. This is useful for bootstrapping the SDK the next time the user comes back to your application. 

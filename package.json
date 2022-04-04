@@ -51,7 +51,6 @@
     "uglify-js": "^3.6.0"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.15.17",
     "tiny-emitter": "^2.1.0",
     "uuid": "^8.3.2"
   }

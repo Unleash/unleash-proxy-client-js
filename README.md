@@ -144,14 +144,13 @@ unleash.stop()
 
 ### Custom store
 
-This SDK will use [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) to backup feature toggles locally. This is useful for bootstrapping the SDK the next time the user comes back to your application. 
+This SDK can work with React Native storage [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) or [react-native-shared-preferences](https://github.com/sriraman/react-native-shared-preferences) and many more to backup feature toggles locally. This is useful for bootstrapping the SDK the next time the user comes back to your application. 
 
 You can provide your own storage implementation. 
 
-Example: 
+Examples: 
 
-```js
-
+```typescript
 import SharedPreferences from 'react-native-shared-preferences';
 import { UnleashClient } from 'unleash-proxy-client';
 
@@ -159,15 +158,40 @@ const unleash = new UnleashClient({
     url: 'https://eu.unleash-hosted.com/hosted/proxy',
     clientKey: 'your-proxy-key',
     appName: 'my-webapp',
-	storage: {
-		save: (name: string, data: any) => SharedPreferences.setItem(name, data),
-		get: (name: string) => SharedPreferences.getItem(name, (val) => val)
-	},
+    storageProvider: {
+      save: (name: string, data: any) => SharedPreferences.setItem(name, data),
+      get: (name: string) => SharedPreferences.getItem(name, (val) => val)
+    },
+});
+```
+
+```typescript
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UnleashClient } from 'unleash-proxy-client';
+
+const PREFIX = 'unleash:repository';
+
+const unleash = new UnleashClient({
+    url: 'https://eu.unleash-hosted.com/hosted/proxy',
+    clientKey: 'your-proxy-key',
+    appName: 'my-webapp',
+    storageProvider: {
+       save: (name: string, data: any) => {
+        const repo = JSON.stringify(data);
+        const key = `${PREFIX}:${name}`;
+        return AsyncStorage.setItem(key, repo);
+      },
+      get: (name: string) => {
+        const key = `${PREFIX}:${name}`;
+        const data = await AsyncStorage.getItem(key);
+        return data ? JSON.parse(data) : undefined;
+      }
+    },
 });
 ```
 ## How to use in node.js
 
-This SDK can also be used in node.js applications (from v1.4.0). Please note that you will need to provide a valid "fetch" implementation. Only ECMAScript modules is exported from this package.  
+This SDK can also be used in node.js applications (from v1.4.0). Please note that you will need to provide a valid "fetch" implementation. Only ECMAScript modules is exported from this package.
 
 ```js
 import fetch from 'node-fetch';

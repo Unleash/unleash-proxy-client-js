@@ -55,6 +55,24 @@ test('Should have correct variant', async () => {
     expect(payload.value).toBe('some-text');
 });
 
+test('Should return default variant if not found', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    const variant = client.getVariant('missingToggle');
+    const payload = variant.payload || { type: 'undef', value: '' };
+    client.stop();
+    expect(variant.name).toBe('disabled');
+    expect(variant.enabled).toBe(false);
+    expect(payload.type).toBe('undef');
+    expect(payload.value).toBe('');
+});
+
 test('Should handle error and return false for isEnabled', async () => {
     jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     fetchMock.mockReject();

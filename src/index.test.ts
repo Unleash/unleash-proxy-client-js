@@ -50,8 +50,27 @@ test('Should have correct variant', async () => {
     const payload = variant.payload || { type: 'undef', value: '' };
     client.stop();
     expect(variant.name).toBe('green');
+    expect(variant.enabled).toBe(true);
     expect(payload.type).toBe('string');
     expect(payload.value).toBe('some-text');
+});
+
+test('Should return default variant if not found', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    const variant = client.getVariant('missingToggle');
+    const payload = variant.payload || { type: 'undef', value: '' };
+    client.stop();
+    expect(variant.name).toBe('disabled');
+    expect(variant.enabled).toBe(false);
+    expect(payload.type).toBe('undef');
+    expect(payload.value).toBe('');
 });
 
 test('Should handle error and return false for isEnabled', async () => {
@@ -739,7 +758,7 @@ test('Should note include context fields with "null" value', async () => {
     expect(url.searchParams.has('remoteAddress')).toBe(false);
     expect(url.searchParams.has('sessionId')).toBe(true);
     expect(url.searchParams.get('sessionId')).toBe('0');
-    
+
 });
 
 test('Should update context fields on request', async () => {

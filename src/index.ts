@@ -41,6 +41,7 @@ interface IConfig extends IStaticContext {
 
 interface IVariant {
     name: string;
+    enabled: boolean;
     payload?: {
         type: string;
         value: string;
@@ -67,7 +68,7 @@ const IMPRESSION_EVENTS = {
     GET_VARIANT: 'getVariant',
 };
 
-const defaultVariant: IVariant = { name: 'disabled' };
+const defaultVariant: IVariant = { name: 'disabled', enabled: false };
 const storeKey = 'repo';
 
 export const resolveFetch = () => {

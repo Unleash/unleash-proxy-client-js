@@ -44,6 +44,8 @@ const unleash = new UnleashClient({
     clientKey: 'your-proxy-key',
     appName: 'my-webapp'
 });
+
+unleash.start();
 ```
 
 **Step 4: Listen for when the client is ready**

@@ -258,5 +258,5 @@ const unleash = new UnleashClient({
 });
 ```
 **NOTES: ⚠️**
-If `bootstrapOverride` is `true` (by default), any local cached data will be overrided with the bootstrap specified.   
-If `bootstrapOverride` is `false` any local cached data will not be overrided unless the local cache is empty.
+If `bootstrapOverride` is `true` (by default), any local cached data will be overridden with the bootstrap specified.   
+If `bootstrapOverride` is `false` any local cached data will not be overridden unless the local cache is empty.

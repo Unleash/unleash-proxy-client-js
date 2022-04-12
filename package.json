@@ -53,5 +53,8 @@
   "dependencies": {
     "tiny-emitter": "^2.1.0",
     "uuid": "^8.3.2"
+  },
+  "overrides": {
+    "node-fetch": "2.6.7"
   }
 }

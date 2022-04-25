@@ -37,6 +37,7 @@ interface IConfig extends IStaticContext {
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
     headerName?: string;
+    customHeaders?: Record<string, string>;
 }
 
 interface IVariant {
@@ -101,6 +102,7 @@ export class UnleashClient extends TinyEmitter {
     private bootstrapOverride: boolean;
     private headerName: string;
     private eventsHandler: EventsHandler;
+    private customHeaders: Record<string, string>;
 
     constructor({
         storageProvider,
@@ -117,6 +119,8 @@ export class UnleashClient extends TinyEmitter {
         bootstrap,
         bootstrapOverride = true,
         headerName = 'Authorization',
+        customHeaders = {},
+
     }: IConfig) {
         super();
         // Validations
@@ -134,6 +138,7 @@ export class UnleashClient extends TinyEmitter {
         this.url = typeof url === 'string' ? new URL(`${url}`) : url;
         this.clientKey = clientKey;
         this.headerName = headerName;
+        this.customHeaders = customHeaders;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
@@ -308,6 +313,18 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
+    private getHeaders() {
+        const  headers = {[this.headerName]: this.clientKey,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'If-None-Match': this.etag
+                        }
+        Object.entries(this.customHeaders).filter(notNullOrUndefined).forEach(([name, value]) => 
+              headers[name] = value);
+        return headers;
+
+    }
+
     private async storeToggles(toggles: IToggle[]): Promise<void> {
         this.toggles = toggles;
         this.emit(EVENTS.UPDATE);
@@ -346,12 +363,7 @@ export class UnleashClient extends TinyEmitter {
                 );
                 const response = await this.fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
-                    headers: {
-                        [this.headerName]: this.clientKey,
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                        'If-None-Match': this.etag,
-                    },
+                    headers: this.getHeaders(),
                 });
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';

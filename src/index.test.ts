@@ -1016,6 +1016,30 @@ test('Should call isEnabled event when impressionData is true', (done) => {
     });
 });
 
+test('Should pass custom headers', async() => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 200 }]
+    );
+   const config: IConfig = {
+       url: 'http://localhost/test',
+       clientKey: 'extrakey',
+       appName: 'web',
+       customHeaders: {
+           'customheader1': 'header1val',
+           'customheader2': 'header2val'
+       }
+   };
+   const client = new UnleashClient(config);
+   await client.start();
+
+   jest.advanceTimersByTime(1001);
+
+   expect(fetchMock.mock.calls[0][1].headers.customheader2).toEqual(
+       'header2val'
+   );
+});
+
 test('Should call getVariant event when impressionData is true', (done) => {
     const bootstrap = [
         {

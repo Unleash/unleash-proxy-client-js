@@ -6,7 +6,8 @@
   "types": "./build/index.d.ts",
   "files": [
     "build",
-    "examples"
+    "examples",
+    "src"
   ],
   "scripts": {
     "preversion": "rm -rf build && npm run build",

@@ -44,6 +44,8 @@ const unleash = new UnleashClient({
     clientKey: 'your-proxy-key',
     appName: 'my-webapp'
 });
+
+unleash.start();
 ```
 
 **Step 4: Listen for when the client is ready**
@@ -104,6 +106,7 @@ The Unleash SDK takes the following options:
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 
 | bootstrapOverride | no| `true` | Should the boostrap automatically override cached data in the local-storage. Will only be used if boostrap is not an empty array.     | 
 | headerName        | no| `Authorization` | Provides possiblity to specify custom header that is passed to Unleash / Unleash Proxy with the `clientKey` | 
+| customHeaders     | no| `{}` | Additional headers to use when making HTTP requests to the Unleash proxy. In case of name collisions with the default headers, the `customHeaders` value will be used. | 
 
 
 ### Listen for updates via the EventEmitter
@@ -131,16 +134,24 @@ unleash.on('update', () => {
 
 You may provide a custom session id via the "context". If you do not provide a sessionId this SDK will create a random session id, which will also be stored in the provided storage (local storage). By always having a consistent sessionId available ensures that even "anonymous" users will get a consistent experience when feature toggles is evaluated, in combination with a gradual (percentage based) rollout. 
 
+### Stop the SDK
+You can stop the Unleash client by calling the `stop` method. Once the client has been stopped, it will no longer check for updates or send metrics to the server.
+
+A stopped client _can_ be restarted.
+
+```js
+unleash.stop()
+```
+
 ### Custom store
 
-This SDK will use [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) to backup feature toggles locally. This is useful for bootstrapping the SDK the next time the user comes back to your application. 
+This SDK can work with React Native storage [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) or [react-native-shared-preferences](https://github.com/sriraman/react-native-shared-preferences) and many more to backup feature toggles locally. This is useful for bootstrapping the SDK the next time the user comes back to your application. 
 
 You can provide your own storage implementation. 
 
-Example: 
+Examples: 
 
-```js
-
+```typescript
 import SharedPreferences from 'react-native-shared-preferences';
 import { UnleashClient } from 'unleash-proxy-client';
 
@@ -148,15 +159,40 @@ const unleash = new UnleashClient({
     url: 'https://eu.unleash-hosted.com/hosted/proxy',
     clientKey: 'your-proxy-key',
     appName: 'my-webapp',
-	storage: {
-		save: (name: string, data: any) => SharedPreferences.setItem(name, data),
-		get: (name: string) => SharedPreferences.getItem(name, (val) => val)
-	},
+    storageProvider: {
+      save: (name: string, data: any) => SharedPreferences.setItem(name, data),
+      get: (name: string) => SharedPreferences.getItem(name, (val) => val)
+    },
+});
+```
+
+```typescript
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UnleashClient } from 'unleash-proxy-client';
+
+const PREFIX = 'unleash:repository';
+
+const unleash = new UnleashClient({
+    url: 'https://eu.unleash-hosted.com/hosted/proxy',
+    clientKey: 'your-proxy-key',
+    appName: 'my-webapp',
+    storageProvider: {
+       save: (name: string, data: any) => {
+        const repo = JSON.stringify(data);
+        const key = `${PREFIX}:${name}`;
+        return AsyncStorage.setItem(key, repo);
+      },
+      get: (name: string) => {
+        const key = `${PREFIX}:${name}`;
+        const data = await AsyncStorage.getItem(key);
+        return data ? JSON.parse(data) : undefined;
+      }
+    },
 });
 ```
 ## How to use in node.js
 
-This SDK can also be used in node.js applications (from v1.4.0). Please note that you will need to provide a valid "fetch" implementation. Only ECMAScript modules is exported from this package.  
+This SDK can also be used in node.js applications (from v1.4.0). Please note that you will need to provide a valid "fetch" implementation. Only ECMAScript modules is exported from this package.
 
 ```js
 import fetch from 'node-fetch';
@@ -223,5 +259,5 @@ const unleash = new UnleashClient({
 });
 ```
 **NOTES: ⚠️**
-If `bootstrapOverride` is `true` (by default), any local cached data will be overrided with the bootstrap specified.   
-If `bootstrapOverride` is `false` any local cached data will not be overrided unless the local cache is empty.
+If `bootstrapOverride` is `true` (by default), any local cached data will be overridden with the bootstrap specified.   
+If `bootstrapOverride` is `false` any local cached data will not be overridden unless the local cache is empty.

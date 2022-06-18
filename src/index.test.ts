@@ -51,8 +51,27 @@ test('Should have correct variant', async () => {
     const payload = variant.payload || { type: 'undef', value: '' };
     client.stop();
     expect(variant.name).toBe('green');
+    expect(variant.enabled).toBe(true);
     expect(payload.type).toBe('string');
     expect(payload.value).toBe('some-text');
+});
+
+test('Should return default variant if not found', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    const variant = client.getVariant('missingToggle');
+    const payload = variant.payload || { type: 'undef', value: '' };
+    client.stop();
+    expect(variant.name).toBe('disabled');
+    expect(variant.enabled).toBe(false);
+    expect(payload.type).toBe('undef');
+    expect(payload.value).toBe('');
 });
 
 test('Should handle error and return false for isEnabled', async () => {
@@ -160,6 +179,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -168,6 +188,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
     const initialData = [
@@ -178,6 +199,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'test initial',
@@ -186,6 +208,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -216,6 +239,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -224,6 +248,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
     const initialData = [
@@ -234,6 +259,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'test initial',
@@ -242,6 +268,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -271,6 +298,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -279,6 +307,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
     const initialData = [
@@ -289,6 +318,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'test initial',
@@ -297,6 +327,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -328,6 +359,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -336,6 +368,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -406,6 +439,7 @@ test('Should publish ready event when bootstrap is provided, before client is st
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
         {
             name: 'algo',
@@ -414,6 +448,7 @@ test('Should publish ready event when bootstrap is provided, before client is st
                 name: 'disabled',
                 enabled: false,
             },
+            impressionData: true,
         },
     ];
 
@@ -698,6 +733,44 @@ test('Should include context fields on request', async () => {
     expect(url.searchParams.get('environment')).toEqual('prod');
 });
 
+test('Should note include context fields with "null" value', async () => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 304 }]
+    );
+    const context: IMutableContext = {
+        //@ts-ignore
+        userId: null,
+        //@ts-ignore
+        sessionId: 0,
+        remoteAddress: undefined,
+        properties: {
+            property1: 'property1',
+            property2: 'property2',
+        },
+    };
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        environment: 'prod',
+        context,
+    };
+    const client = new UnleashClient(config);
+
+    await client.start();
+
+    jest.advanceTimersByTime(1001);
+
+    const url = new URL(fetchMock.mock.calls[0][0]);
+
+    expect(url.searchParams.has('userId')).toBe(false);
+    expect(url.searchParams.has('remoteAddress')).toBe(false);
+    expect(url.searchParams.has('sessionId')).toBe(true);
+    expect(url.searchParams.get('sessionId')).toBe('0');
+
+});
+
 test('Should update context fields on request', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
@@ -908,4 +981,98 @@ test('Should pass under custom header clientKey', async () => {
     await client.start();
 
     jest.advanceTimersByTime(999);
+});
+
+test('Should call isEnabled event when impressionData is true', (done) => {
+    const bootstrap = [
+        {
+            name: 'impression',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+            impressionData: true,
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+    };
+    const client = new UnleashClient(config);
+    client.start();
+
+    client.on(EVENTS.READY, () => {
+        const isEnabled = client.isEnabled('impression');
+        expect(isEnabled).toBe(true);
+    });
+
+    client.on(EVENTS.IMPRESSION, (event: any) => {
+        expect(event.featureName).toBe('impression');
+        expect(event.eventType).toBe('isEnabled');
+        client.stop();
+        done();
+    });
+});
+
+test('Should pass custom headers', async() => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 200 }]
+    );
+   const config: IConfig = {
+       url: 'http://localhost/test',
+       clientKey: 'extrakey',
+       appName: 'web',
+       customHeaders: {
+           'customheader1': 'header1val',
+           'customheader2': 'header2val'
+       }
+   };
+   const client = new UnleashClient(config);
+   await client.start();
+
+   jest.advanceTimersByTime(1001);
+
+   expect(fetchMock.mock.calls[0][1].headers.customheader2).toEqual(
+       'header2val'
+   );
+});
+
+test('Should call getVariant event when impressionData is true', (done) => {
+    const bootstrap = [
+        {
+            name: 'impression-variant',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+            impressionData: true,
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+    };
+    const client = new UnleashClient(config);
+    client.start();
+
+    client.on(EVENTS.READY, () => {
+        const isEnabled = client.getVariant('impression-variant');
+        expect(isEnabled).toBe(true);
+    });
+
+    client.on(EVENTS.IMPRESSION, (event: any) => {
+        expect(event.featureName).toBe('impression-variant');
+        expect(event.eventType).toBe('getVariant');
+        client.stop();
+        done();
+    });
 });

@@ -1,8 +1,10 @@
 import { TinyEmitter } from 'tiny-emitter';
 import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
-import LocalStorageProvider from './storage-provider-local';
 import InMemoryStorageProvider from './storage-provider-inmemory';
+import LocalStorageProvider from './storage-provider-local';
+import EventsHandler from './events-handler';
+import { notNullOrUndefined } from './util';
 
 const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
 
@@ -35,10 +37,12 @@ interface IConfig extends IStaticContext {
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
     headerName?: string;
+    customHeaders?: Record<string, string>;
 }
 
 interface IVariant {
     name: string;
+    enabled: boolean;
     payload?: {
         type: string;
         value: string;
@@ -49,6 +53,7 @@ interface IToggle {
     name: string;
     enabled: boolean;
     variant: IVariant;
+    impressionData: boolean;
 }
 
 export const EVENTS = {
@@ -56,12 +61,18 @@ export const EVENTS = {
     ERROR: 'error',
     READY: 'ready',
     UPDATE: 'update',
+    IMPRESSION: 'impression',
 };
 
-const defaultVariant: IVariant = { name: 'disabled' };
+const IMPRESSION_EVENTS = {
+    IS_ENABLED: 'isEnabled',
+    GET_VARIANT: 'getVariant',
+};
+
+const defaultVariant: IVariant = { name: 'disabled', enabled: false };
 const storeKey = 'repo';
 
-const resolveFetch = () => {
+export const resolveFetch = () => {
     try {
         if ('fetch' in window) {
             return fetch.bind(window);
@@ -90,6 +101,8 @@ export class UnleashClient extends TinyEmitter {
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
     private headerName: string;
+    private eventsHandler: EventsHandler;
+    private customHeaders: Record<string, string>;
 
     constructor({
         storageProvider,
@@ -106,6 +119,8 @@ export class UnleashClient extends TinyEmitter {
         bootstrap,
         bootstrapOverride = true,
         headerName = 'Authorization',
+        customHeaders = {},
+
     }: IConfig) {
         super();
         // Validations
@@ -118,11 +133,12 @@ export class UnleashClient extends TinyEmitter {
         if (!appName) {
             throw new Error('appName is required.');
         }
-
+        this.eventsHandler = new EventsHandler();
         this.toggles = bootstrap && bootstrap.length > 0 ? bootstrap : [];
         this.url = new URL(`${url}`);
         this.clientKey = clientKey;
         this.headerName = headerName;
+        this.customHeaders = customHeaders;
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
@@ -167,6 +183,17 @@ export class UnleashClient extends TinyEmitter {
         const toggle = this.toggles.find((t) => t.name === toggleName);
         const enabled = toggle ? toggle.enabled : false;
         this.metrics.count(toggleName, enabled);
+
+        if (toggle?.impressionData) {
+            const event = this.eventsHandler.createImpressionEvent(
+                this.context,
+                enabled,
+                toggleName,
+                IMPRESSION_EVENTS.IS_ENABLED
+            );
+            this.emit(EVENTS.IMPRESSION, event);
+        }
+
         return enabled;
     }
 
@@ -174,9 +201,20 @@ export class UnleashClient extends TinyEmitter {
         const toggle = this.toggles.find((t) => t.name === toggleName);
         if (toggle) {
             this.metrics.count(toggleName, true);
+            if (toggle.impressionData) {
+                const event = this.eventsHandler.createImpressionEvent(
+                    this.context,
+                    toggle.enabled,
+                    toggleName,
+                    IMPRESSION_EVENTS.GET_VARIANT,
+                    toggle.variant.name
+                );
+                this.emit(EVENTS.IMPRESSION, event);
+            }
             return toggle.variant;
         } else {
             this.metrics.count(toggleName, false);
+
             return defaultVariant;
         }
     }
@@ -275,6 +313,18 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
+    private getHeaders() {
+        const  headers = {[this.headerName]: this.clientKey,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'If-None-Match': this.etag
+                        }
+        Object.entries(this.customHeaders).filter(notNullOrUndefined).forEach(([name, value]) => 
+              headers[name] = value);
+        return headers;
+
+    }
+
     private async storeToggles(toggles: IToggle[]): Promise<void> {
         this.toggles = toggles;
         this.emit(EVENTS.UPDATE);
@@ -289,10 +339,14 @@ export class UnleashClient extends TinyEmitter {
                 // Add context information to url search params. If the properties
                 // object is included in the context, flatten it into the search params
                 // e.g. /?...&property.param1=param1Value&property.param2=param2Value
-                Object.entries(context).forEach(
+                Object.entries(context)
+                    .filter(notNullOrUndefined)
+                    .forEach(
                     ([contextKey, contextValue]) => {
                         if (contextKey === 'properties' && contextValue) {
-                            Object.entries<string>(contextValue).forEach(
+                            Object.entries<string>(contextValue)
+                            .filter(notNullOrUndefined)
+                            .forEach(
                                 ([propertyKey, propertyValue]) =>
                                     urlWithQuery.searchParams.append(
                                         `properties[${propertyKey}]`,
@@ -309,12 +363,7 @@ export class UnleashClient extends TinyEmitter {
                 );
                 const response = await this.fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
-                    headers: {
-                        [this.headerName]: this.clientKey,
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                        'If-None-Match': this.etag,
-                    },
+                    headers: this.getHeaders(),
                 });
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';

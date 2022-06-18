@@ -3,6 +3,7 @@ import 'jest-localstorage-mock';
 import * as data from '../tests/example-data.json';
 import IStorageProvider from './storage-provider';
 import { EVENTS, IConfig, IMutableContext, UnleashClient } from './index';
+import { getTypeSafeRequest, getTypeSafeRequestUrl } from '../tests/util';
 
 jest.useFakeTimers();
 
@@ -559,11 +560,15 @@ test('Should include etag in second request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const req1 = fetchMock.mock.calls[0][1];
-    const req2 = fetchMock.mock.calls[1][1];
+    const firstRequest = getTypeSafeRequest(fetchMock, 0);
+    const secondRequest = getTypeSafeRequest(fetchMock, 1);
 
-    expect(req1.headers['If-None-Match']).toEqual('');
-    expect(req2.headers['If-None-Match']).toEqual(etag);
+    expect(firstRequest.headers).toMatchObject({
+        'If-None-Match': '',
+    });
+    expect(secondRequest.headers).toMatchObject({
+        'If-None-Match': etag,
+    });
 });
 
 test('Should add clientKey as Authorization header', async () => {
@@ -581,9 +586,11 @@ test('Should add clientKey as Authorization header', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    expect(fetchMock.mock.calls[0][1]?.headers['Authorization']).toEqual(
-        'some123key'
-    );
+    const request = getTypeSafeRequest(fetchMock);
+
+    expect(request.headers).toMatchObject({
+        Authorization: 'some123key',
+    });
 });
 
 test('Should require appName', () => {
@@ -680,7 +687,7 @@ test('Should include context fields on request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0] as string);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.get('userId')).toEqual('123');
     expect(url.searchParams.get('sessionId')).toEqual('456');
@@ -717,7 +724,7 @@ test('Should update context fields on request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0] as string);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.get('userId')).toEqual('123');
     expect(url.searchParams.get('sessionId')).toEqual('456');
@@ -748,7 +755,7 @@ test('Should not add property fields when properties is an empty object', async 
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0] as string);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     // console.log(url.toString(), url.searchParams.toString(), url.searchParams.get('properties'));
 
@@ -772,7 +779,7 @@ test('Should use default environment', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0] as string);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.get('environment')).toEqual('default');
 });
@@ -889,8 +896,10 @@ test('Should pass under custom header clientKey', async () => {
     const client = new UnleashClient(config);
 
     client.on(EVENTS.UPDATE, () => {
+        const requestHeader = getTypeSafeRequest(fetchMock, 0);
+
         expect(fetchMock.mock.calls.length).toEqual(1);
-        expect(fetchMock.mock.calls[0][1].headers).toMatchObject({
+        expect(requestHeader.headers).toMatchObject({
             NotAuthorization: '12',
         });
         client.stop();

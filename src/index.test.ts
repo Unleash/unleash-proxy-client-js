@@ -762,13 +762,12 @@ test('Should note include context fields with "null" value', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.has('userId')).toBe(false);
     expect(url.searchParams.has('remoteAddress')).toBe(false);
     expect(url.searchParams.has('sessionId')).toBe(true);
     expect(url.searchParams.get('sessionId')).toBe('0');
-
 });
 
 test('Should update context fields on request', async () => {
@@ -1018,28 +1017,30 @@ test('Should call isEnabled event when impressionData is true', (done) => {
     });
 });
 
-test('Should pass custom headers', async() => {
+test('Should pass custom headers', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }]
     );
-   const config: IConfig = {
-       url: 'http://localhost/test',
-       clientKey: 'extrakey',
-       appName: 'web',
-       customHeaders: {
-           'customheader1': 'header1val',
-           'customheader2': 'header2val'
-       }
-   };
-   const client = new UnleashClient(config);
-   await client.start();
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: 'extrakey',
+        appName: 'web',
+        customHeaders: {
+            customheader1: 'header1val',
+            customheader2: 'header2val',
+        },
+    };
+    const client = new UnleashClient(config);
+    await client.start();
 
-   jest.advanceTimersByTime(1001);
+    jest.advanceTimersByTime(1001);
 
-   expect(fetchMock.mock.calls[0][1].headers.customheader2).toEqual(
-       'header2val'
-   );
+    const request = getTypeSafeRequest(fetchMock);
+
+    expect(request.headers).toMatchObject({
+        customheader2: 'header2val',
+    });
 });
 
 test('Should call getVariant event when impressionData is true', (done) => {

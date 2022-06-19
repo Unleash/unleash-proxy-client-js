@@ -968,10 +968,10 @@ test('Should pass under custom header clientKey', async () => {
     const client = new UnleashClient(config);
 
     client.on(EVENTS.UPDATE, () => {
-        const requestHeader = getTypeSafeRequest(fetchMock, 0);
+        const request = getTypeSafeRequest(fetchMock, 0);
 
         expect(fetchMock.mock.calls.length).toEqual(1);
-        expect(requestHeader.headers).toMatchObject({
+        expect(request.headers).toMatchObject({
             NotAuthorization: '12',
         });
         client.stop();

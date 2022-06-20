@@ -3,6 +3,7 @@ import 'jest-localstorage-mock';
 import * as data from '../tests/example-data.json';
 import IStorageProvider from './storage-provider';
 import { EVENTS, IConfig, IMutableContext, UnleashClient } from './index';
+import { getTypeSafeRequest, getTypeSafeRequestUrl } from '../tests/util';
 
 jest.useFakeTimers();
 
@@ -594,8 +595,15 @@ test('Should include etag in second request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    expect(fetchMock.mock.calls[0][1].headers['If-None-Match']).toEqual('');
-    expect(fetchMock.mock.calls[1][1].headers['If-None-Match']).toEqual(etag);
+    const firstRequest = getTypeSafeRequest(fetchMock, 0);
+    const secondRequest = getTypeSafeRequest(fetchMock, 1);
+
+    expect(firstRequest.headers).toMatchObject({
+        'If-None-Match': '',
+    });
+    expect(secondRequest.headers).toMatchObject({
+        'If-None-Match': etag,
+    });
 });
 
 test('Should add clientKey as Authorization header', async () => {
@@ -613,9 +621,11 @@ test('Should add clientKey as Authorization header', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toEqual(
-        'some123key'
-    );
+    const request = getTypeSafeRequest(fetchMock);
+
+    expect(request.headers).toMatchObject({
+        Authorization: 'some123key',
+    });
 });
 
 test('Should require appName', () => {
@@ -712,7 +722,7 @@ test('Should include context fields on request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.get('userId')).toEqual('123');
     expect(url.searchParams.get('sessionId')).toEqual('456');
@@ -752,13 +762,12 @@ test('Should note include context fields with "null" value', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.has('userId')).toBe(false);
     expect(url.searchParams.has('remoteAddress')).toBe(false);
     expect(url.searchParams.has('sessionId')).toBe(true);
     expect(url.searchParams.get('sessionId')).toBe('0');
-
 });
 
 test('Should update context fields on request', async () => {
@@ -787,7 +796,7 @@ test('Should update context fields on request', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.get('userId')).toEqual('123');
     expect(url.searchParams.get('sessionId')).toEqual('456');
@@ -818,7 +827,7 @@ test('Should not add property fields when properties is an empty object', async 
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     // console.log(url.toString(), url.searchParams.toString(), url.searchParams.get('properties'));
 
@@ -842,7 +851,7 @@ test('Should use default environment', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const url = new URL(fetchMock.mock.calls[0][0]);
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.get('environment')).toEqual('default');
 });
@@ -959,8 +968,10 @@ test('Should pass under custom header clientKey', async () => {
     const client = new UnleashClient(config);
 
     client.on(EVENTS.UPDATE, () => {
+        const request = getTypeSafeRequest(fetchMock, 0);
+
         expect(fetchMock.mock.calls.length).toEqual(1);
-        expect(fetchMock.mock.calls[0][1].headers).toMatchObject({
+        expect(request.headers).toMatchObject({
             NotAuthorization: '12',
         });
         client.stop();
@@ -1006,28 +1017,30 @@ test('Should call isEnabled event when impressionData is true', (done) => {
     });
 });
 
-test('Should pass custom headers', async() => {
+test('Should pass custom headers', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }]
     );
-   const config: IConfig = {
-       url: 'http://localhost/test',
-       clientKey: 'extrakey',
-       appName: 'web',
-       customHeaders: {
-           'customheader1': 'header1val',
-           'customheader2': 'header2val'
-       }
-   };
-   const client = new UnleashClient(config);
-   await client.start();
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: 'extrakey',
+        appName: 'web',
+        customHeaders: {
+            customheader1: 'header1val',
+            customheader2: 'header2val',
+        },
+    };
+    const client = new UnleashClient(config);
+    await client.start();
 
-   jest.advanceTimersByTime(1001);
+    jest.advanceTimersByTime(1001);
 
-   expect(fetchMock.mock.calls[0][1].headers.customheader2).toEqual(
-       'header2val'
-   );
+    const request = getTypeSafeRequest(fetchMock);
+
+    expect(request.headers).toMatchObject({
+        customheader2: 'header2val',
+    });
 });
 
 test('Should call getVariant event when impressionData is true', (done) => {

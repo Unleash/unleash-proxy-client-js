@@ -1,5 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import Metrics from './metrics';
+import { getTypeSafeRequest, parseRequestBodyWithType } from '../tests/util';
 
 jest.useFakeTimers();
 
@@ -47,12 +48,16 @@ test('should send metrics', async () => {
     await metrics.sendMetrics();
 
     expect(fetchMock.mock.calls.length).toEqual(1);
-    const content = JSON.parse(fetchMock.mock.calls[0][1].body);
 
-    expect(content.bucket.toggles.foo.yes).toEqual(2);
-    expect(content.bucket.toggles.foo.no).toEqual(1);
-    expect(content.bucket.toggles.bar.yes).toEqual(0);
-    expect(content.bucket.toggles.bar.no).toEqual(1);
+    /** Parse request and get its body with casted type */
+    const request = getTypeSafeRequest(fetchMock);
+    const body =
+        parseRequestBodyWithType<{ bucket: Metrics['bucket'] }>(request);
+
+    expect(body.bucket.toggles.foo.yes).toEqual(2);
+    expect(body.bucket.toggles.foo.no).toEqual(1);
+    expect(body.bucket.toggles.bar.yes).toEqual(0);
+    expect(body.bucket.toggles.bar.no).toEqual(1);
 });
 
 test('should send metrics under custom header', async () => {
@@ -67,11 +72,14 @@ test('should send metrics under custom header', async () => {
     });
 
     metrics.count('foo', true);
-    
     await metrics.sendMetrics();
 
+    const requestBody = getTypeSafeRequest(fetchMock);
+
     expect(fetchMock.mock.calls.length).toEqual(1);
-    expect(fetchMock.mock.calls[0][1].headers).toMatchObject({ 'NotAuthorization': '123' });
+    expect(requestBody.headers).toMatchObject({
+        NotAuthorization: '123',
+    });
 });
 
 test('Should send initial metrics after 2 seconds', () => {

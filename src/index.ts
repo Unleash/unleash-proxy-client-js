@@ -156,6 +156,7 @@ export class UnleashClient extends TinyEmitter {
 
         this.synchronized = new Promise(async (resolve) => {
             await this.fetchToggles();
+            this.emit(EVENTS.SYNCHRONIZED);
             resolve();
         });
 
@@ -278,13 +279,7 @@ export class UnleashClient extends TinyEmitter {
         this.emit(EVENTS.INIT);
     }
 
-    public async startSynced(): Promise<void> {
-        await this.synchronized;
-        return this.start(true);
-    }
-
-
-    public async start(synchronized = false): Promise<void> {
+    public async start(): Promise<void> {
         if (this.timerRef) {
             console.error(
                 'Unleash SDK has already started, if you want to restart the SDK you should call client.stop() before starting again.'
@@ -295,9 +290,7 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.start();
         const interval = this.refreshInterval;
 
-        if (!synchronized) {
-            await this.fetchToggles();
-        }
+        await this.synchronized;
 
         if (!this.bootstrap) {
             this.emit(EVENTS.READY);
@@ -385,7 +378,6 @@ export class UnleashClient extends TinyEmitter {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
-                    this.emit(EVENTS.SYNCHRONIZED);
                 }
             } catch (e) {
                 // tslint:disable-next-line

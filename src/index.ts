@@ -98,13 +98,13 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = '';
     private metrics: Metrics;
     private ready: Promise<void>;
-    private synchronized: Promise<void>;
     private fetch: any;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
     private headerName: string;
     private eventsHandler: EventsHandler;
     private customHeaders: Record<string, string>;
+    private readyEventEmitted = false;
 
     constructor({
         storageProvider,
@@ -151,12 +151,6 @@ export class UnleashClient extends TinyEmitter {
                 console.error(error);
                 this.emit(EVENTS.ERROR, error);
             }
-            resolve();
-        });
-
-        this.synchronized = new Promise(async (resolve) => {
-            await this.fetchToggles();
-            this.emit(EVENTS.SYNCHRONIZED);
             resolve();
         });
 
@@ -290,11 +284,7 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.start();
         const interval = this.refreshInterval;
 
-        await this.synchronized;
-
-        if (!this.bootstrap) {
-            this.emit(EVENTS.READY);
-        }
+        await this.fetchToggles();
 
         if (interval > 0) {
             this.timerRef = setInterval(() => this.fetchToggles(), interval);
@@ -378,6 +368,12 @@ export class UnleashClient extends TinyEmitter {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
+
+                    if (!this.bootstrap && !this.readyEventEmitted) {
+                        this.emit(EVENTS.READY);
+                        this.readyEventEmitted = true;
+                    }
+
                 }
             } catch (e) {
                 // tslint:disable-next-line

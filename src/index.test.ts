@@ -1077,3 +1077,31 @@ test('Should call getVariant event when impressionData is true', (done) => {
         done();
     });
 });
+
+test('Should publish ready only when the first fetch was successful', async () => {
+    fetchMock.mockResponse(JSON.stringify(data));
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        refreshInterval: 1,
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+
+    let readyCount = 0;
+
+    client.on(EVENTS.READY, () => {
+        const isEnabled = client.isEnabled('simpleToggle');
+        expect(isEnabled).toBe(true);
+        readyCount++;
+        client.stop();
+        expect(readyCount).toEqual(1);
+    });
+
+    jest.advanceTimersByTime(1001);
+    jest.advanceTimersByTime(1001);
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+
+});

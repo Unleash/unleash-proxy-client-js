@@ -103,6 +103,7 @@ export class UnleashClient extends TinyEmitter {
     private headerName: string;
     private eventsHandler: EventsHandler;
     private customHeaders: Record<string, string>;
+    private readyEventEmitted = false;
 
     constructor({
         storageProvider,
@@ -281,11 +282,8 @@ export class UnleashClient extends TinyEmitter {
         await this.ready;
         this.metrics.start();
         const interval = this.refreshInterval;
-        await this.fetchToggles();
 
-        if (!this.bootstrap) {
-            this.emit(EVENTS.READY);
-        }
+        await this.fetchToggles();
 
         if (interval > 0) {
             this.timerRef = setInterval(() => this.fetchToggles(), interval);
@@ -319,7 +317,7 @@ export class UnleashClient extends TinyEmitter {
                             'Content-Type': 'application/json',
                             'If-None-Match': this.etag
                         }
-        Object.entries(this.customHeaders).filter(notNullOrUndefined).forEach(([name, value]) => 
+        Object.entries(this.customHeaders).filter(notNullOrUndefined).forEach(([name, value]) =>
               headers[name] = value);
         return headers;
 
@@ -369,6 +367,12 @@ export class UnleashClient extends TinyEmitter {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
+
+                    if (!this.bootstrap && !this.readyEventEmitted) {
+                        this.emit(EVENTS.READY);
+                        this.readyEventEmitted = true;
+                    }
+
                 }
             } catch (e) {
                 // tslint:disable-next-line

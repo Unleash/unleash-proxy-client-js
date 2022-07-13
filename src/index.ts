@@ -62,7 +62,6 @@ export const EVENTS = {
     READY: 'ready',
     UPDATE: 'update',
     IMPRESSION: 'impression',
-    SYNCHRONIZED: 'synchronized',
 };
 
 const IMPRESSION_EVENTS = {

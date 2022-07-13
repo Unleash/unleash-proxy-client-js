@@ -279,11 +279,12 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public async startSynced(): Promise<void> {
+        await this.synchronized;
         return this.start(true);
     }
 
 
-    public async start(blockUntilSynced = false): Promise<void> {
+    public async start(synchronized = false): Promise<void> {
         if (this.timerRef) {
             console.error(
                 'Unleash SDK has already started, if you want to restart the SDK you should call client.stop() before starting again.'
@@ -294,7 +295,9 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.start();
         const interval = this.refreshInterval;
 
-        blockUntilSynced ? await this.synchronized : await this.fetchToggles();
+        if (!synchronized) {
+            await this.fetchToggles();
+        }
 
         if (!this.bootstrap) {
             this.emit(EVENTS.READY);

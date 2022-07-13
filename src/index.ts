@@ -62,6 +62,7 @@ export const EVENTS = {
     READY: 'ready',
     UPDATE: 'update',
     IMPRESSION: 'impression',
+    SYNCHRONIZED: 'synchronized',
 };
 
 const IMPRESSION_EVENTS = {
@@ -97,6 +98,7 @@ export class UnleashClient extends TinyEmitter {
     private etag: string = '';
     private metrics: Metrics;
     private ready: Promise<void>;
+    private synchronized: Promise<void>;
     private fetch: any;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
@@ -149,6 +151,11 @@ export class UnleashClient extends TinyEmitter {
                 console.error(error);
                 this.emit(EVENTS.ERROR, error);
             }
+            resolve();
+        });
+
+        this.synchronized = new Promise(async (resolve) => {
+            await this.fetchToggles();
             resolve();
         });
 
@@ -271,7 +278,12 @@ export class UnleashClient extends TinyEmitter {
         this.emit(EVENTS.INIT);
     }
 
-    public async start(): Promise<void> {
+    public async startSynced(): Promise<void> {
+        return this.start(true);
+    }
+
+
+    public async start(blockUntilSynced = false): Promise<void> {
         if (this.timerRef) {
             console.error(
                 'Unleash SDK has already started, if you want to restart the SDK you should call client.stop() before starting again.'
@@ -281,7 +293,8 @@ export class UnleashClient extends TinyEmitter {
         await this.ready;
         this.metrics.start();
         const interval = this.refreshInterval;
-        await this.fetchToggles();
+
+        blockUntilSynced ? await this.synchronized : await this.fetchToggles();
 
         if (!this.bootstrap) {
             this.emit(EVENTS.READY);
@@ -319,7 +332,7 @@ export class UnleashClient extends TinyEmitter {
                             'Content-Type': 'application/json',
                             'If-None-Match': this.etag
                         }
-        Object.entries(this.customHeaders).filter(notNullOrUndefined).forEach(([name, value]) => 
+        Object.entries(this.customHeaders).filter(notNullOrUndefined).forEach(([name, value]) =>
               headers[name] = value);
         return headers;
 
@@ -369,6 +382,7 @@ export class UnleashClient extends TinyEmitter {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
+                    this.emit(EVENTS.SYNCHRONIZED);
                 }
             } catch (e) {
                 // tslint:disable-next-line

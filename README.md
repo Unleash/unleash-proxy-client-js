@@ -127,6 +127,7 @@ unleash.on('update', () => {
 - **initialized** - emitted after the SDK has read local cached data in the storageProvider. 
 - **ready** - emitted after the SDK has successfully started and performed the initial fetch towards the Unleash Proxy. 
 - **update** - emitted every time the Unleash Proxy return a new feature toggle configuration. The SDK will emit this event as part of the initial fetch from the SDK.  
+- **synchronized** - emitted when the proxy-client is synchronized with the proxy (features fetched)  
 
 > PS! Please remember that you should always register your event listeners before your call `unleash.start()`. If you register them after you have started the SDK you risk loosing important events. 
 
@@ -211,6 +212,28 @@ const isEnabled = unleash.isEnabled('proxy.demo');
 console.log(isEnabled);
 ```
 *index.mjs*
+
+#### Block until the proxy client has synchronized
+
+You can also use the `startSynced` function for the SDK to have fully synchronized
+with the unleash-proxy-api. This allows you to secure that the client is not operating on locally and
+potential stale feature toggle configuration.
+```js
+import fetch from 'node-fetch';
+import { UnleashClient, InMemoryStorageProvider } from 'unleash-proxy-client';
+
+const unleash = new UnleashClient({
+  url: 'https://app.unleash-hosted.com/demo/proxy',
+  clientKey: 'proxy-123',
+  appName: 'nodejs-proxy',
+  storageProvider: new InMemoryStorageProvider(),
+  fetch,
+});
+
+await unleash.startSynced();
+const isEnabled = unleash.isEnabled('proxy.demo');
+console.log(isEnabled);
+```
 
 ## How to use the client via CDN.
 

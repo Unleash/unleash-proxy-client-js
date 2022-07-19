@@ -22,7 +22,7 @@ jobs:
         registry-url: 'https://registry.npmjs.org'
         cache: 'yarn'
     - run: |
-        yarn install --frozen-lockfile
+        npm install --frozen-lockfile
     - run: |
         LATEST=$(npm show @unleash/proxy-client-js version)
         TAG=$(node scripts/npm-tag.js $LATEST)

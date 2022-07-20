@@ -1,6 +1,6 @@
 {
   "name": "unleash-proxy-client",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "A browser client that can be used together with the unleash-proxy.",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "preversion": "rm -rf build && npm run build",
+    "prepare": "npm run build",
     "build": "npm run build:ts && npm run build:web",
     "lint": "eslint ./src",
     "build:ts": "tsc",

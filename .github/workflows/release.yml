@@ -23,7 +23,7 @@ jobs:
     - run: |
         npm install --frozen-lockfile
     - run: |
-        LATEST=$(npm show @unleash/proxy-client-js version)
+        LATEST=$(npm show unleash-proxy-client version)
         TAG=$(node scripts/npm-tag.js $LATEST)
         npm publish --tag ${TAG:-latest}
       env:

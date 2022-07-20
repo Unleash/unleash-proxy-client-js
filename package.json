@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "preversion": "rm -rf build && npm run build",
+    "prepare": "npm run build",
     "build": "npm run build:ts && npm run build:web",
     "lint": "eslint ./src",
     "build:ts": "tsc",

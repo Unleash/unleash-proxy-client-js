@@ -1,6 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import Metrics from './metrics';
-import { getTypeSafeRequest, parseRequestBodyWithType } from '../tests/util';
+import { getTypeSafeRequest, parseRequestBodyWithType } from './tests/util';
 
 jest.useFakeTimers();
 
@@ -19,7 +19,7 @@ test('should be disabled by flag disableMetrics', async () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
-        headerName: 'Authorization'
+        headerName: 'Authorization',
     });
 
     metrics.count('foo', true);
@@ -37,7 +37,7 @@ test('should send metrics', async () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
-        headerName: 'Authorization'
+        headerName: 'Authorization',
     });
 
     metrics.count('foo', true);
@@ -68,7 +68,7 @@ test('should send metrics under custom header', async () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
-        headerName: 'NotAuthorization'
+        headerName: 'NotAuthorization',
     });
 
     metrics.count('foo', true);
@@ -90,7 +90,7 @@ test('Should send initial metrics after 2 seconds', () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
-        headerName: 'Authorization'
+        headerName: 'Authorization',
     });
 
     metrics.start();
@@ -112,7 +112,7 @@ test('should send metrics based on timer interval', async () => {
         url: 'http://localhost:3000',
         clientKey: '123',
         fetch: fetchMock,
-        headerName: 'Authorization'
+        headerName: 'Authorization',
     });
 
     metrics.start();

@@ -94,7 +94,7 @@ export class UnleashClient extends TinyEmitter {
     private refreshInterval: number;
     private url: URL;
     private clientKey: string;
-    private etag: string = '';
+    private etag = '';
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;

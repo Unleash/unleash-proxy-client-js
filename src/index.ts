@@ -143,14 +143,12 @@ export class UnleashClient extends TinyEmitter {
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
-        this.ready = new Promise(async (resolve) => {
-            try {
-                await this.init();
-            } catch (error) {
+        this.ready = new Promise((resolve) => {
+            this.init().then(resolve).catch((error) => {
                 console.error(error);
                 this.emit(EVENTS.ERROR, error);
-            }
-            resolve();
+                resolve();
+            })
         });
 
         if (!fetch) {

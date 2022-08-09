@@ -20,7 +20,7 @@ test('Should initialize unleash-client', () => {
         clientKey: '12',
         appName: 'web',
     };
-    const client = new UnleashClient(config);
+    new UnleashClient(config);
     expect(config.url).toBe('http://localhost/test');
 });
 
@@ -78,11 +78,11 @@ test('Should handle error and return false for isEnabled', async () => {
     jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     fetchMock.mockReject();
     class Store implements IStorageProvider {
-        public async save(name: string, data: any) {
+        public async save() {
             return Promise.resolve();
         }
 
-        public async get(name: string) {
+        public async get() {
             return Promise.resolve([]);
         }
     }
@@ -104,7 +104,7 @@ test('Should read session id from localStorage', async () => {
     const sessionId = '123';
     fetchMock.mockReject();
     class Store implements IStorageProvider {
-        public async save(name: string, data: any) {
+        public async save() {
             return Promise.resolve();
         }
 
@@ -143,7 +143,7 @@ test('Should read toggles from localStorage', async () => {
     ];
     fetchMock.mockReject();
     class Store implements IStorageProvider {
-        public async save(name: string, data: any) {
+        public async save() {
             return Promise.resolve();
         }
 
@@ -430,7 +430,6 @@ test('Should not bootstrap data when bootstrap is []', async () => {
 
 test('Should publish ready event when bootstrap is provided, before client is started', async () => {
     localStorage.clear();
-    const storeKey = 'unleash:repository:repo';
     const bootstrap = [
         {
             name: 'toggles',
@@ -485,11 +484,11 @@ test('Should publish ready when initial fetch completed', (done) => {
 test('Should publish error when initial init fails', (done) => {
     const givenError = 'Error';
     class Store implements IStorageProvider {
-        public async save(name: string, data: any): Promise<void> {
+        public async save(): Promise<void> {
             return Promise.reject(givenError);
         }
 
-        public async get(name: string): Promise<any> {
+        public async get(): Promise<any> {
             return Promise.reject(givenError);
         }
     }

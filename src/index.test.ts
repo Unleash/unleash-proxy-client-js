@@ -739,10 +739,8 @@ test('Should note include context fields with "null" value', async () => {
         [JSON.stringify(data), { status: 304 }]
     );
     const context: IMutableContext = {
-        //@ts-ignore
-        userId: null,
-        //@ts-ignore
-        sessionId: 0,
+        userId: undefined,
+        sessionId: "0",
         remoteAddress: undefined,
         properties: {
             property1: 'property1',

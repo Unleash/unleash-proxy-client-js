@@ -219,9 +219,8 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {
-        // Give the user a nicer error message when including
-        // static fields in the mutable context object
-        // @ts-ignore
+        // @ts-expect-error Give the user a nicer error message when
+        // including static fields in the mutable context object
         if (context.appName || context.environment) {
             console.warn(
                 "appName and environment are static. They can't be updated with updateContext."

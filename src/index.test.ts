@@ -629,7 +629,6 @@ test('Should add clientKey as Authorization header', async () => {
 
 test('Should require appName', () => {
     expect(() => {
-        // tslint:disable-next-line
         new UnleashClient({
             url: 'http://localhost/test',
             clientKey: '12',
@@ -640,14 +639,12 @@ test('Should require appName', () => {
 
 test('Should require url', () => {
     expect(() => {
-        // tslint:disable-next-line
         new UnleashClient({ url: '', clientKey: '12', appName: 'web' });
     }).toThrow();
 });
 
 test('Should require valid url', () => {
     expect(() => {
-        // tslint:disable-next-line
         new UnleashClient({
             url: 'not-a-url',
             clientKey: '12',
@@ -658,7 +655,6 @@ test('Should require valid url', () => {
 
 test('Should require valid clientKey', () => {
     expect(() => {
-        // tslint:disable-next-line
         new UnleashClient({
             url: 'http://localhost/test',
             clientKey: '',

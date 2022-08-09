@@ -152,7 +152,6 @@ export class UnleashClient extends TinyEmitter {
         });
 
         if (!fetch) {
-            // tslint:disable-next-line
             console.error(
                 'Unleash: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.'
             );
@@ -372,7 +371,6 @@ export class UnleashClient extends TinyEmitter {
 
                 }
             } catch (e) {
-                // tslint:disable-next-line
                 console.error('Unleash: unable to fetch feature toggles', e);
                 this.emit(EVENTS.ERROR, e);
             }

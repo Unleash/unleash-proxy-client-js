@@ -1,6 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import Metrics from './metrics';
-import { getTypeSafeRequest, parseRequestBodyWithType } from './tests/util';
+import { getTypeSafeRequest, parseRequestBodyWithType } from './test';
 
 jest.useFakeTimers();
 

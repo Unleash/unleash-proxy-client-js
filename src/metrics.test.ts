@@ -1,6 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import Metrics from './metrics';
-import { getTypeSafeRequest, parseRequestBodyWithType } from './tests/util';
+import { getTypeSafeRequest, parseRequestBodyWithType } from './test';
 
 jest.useFakeTimers();
 
@@ -13,6 +13,7 @@ afterEach(() => {
 
 test('should be disabled by flag disableMetrics', async () => {
     const metrics = new Metrics({
+        onError: console.error,
         appName: 'test',
         metricsInterval: 0,
         disableMetrics: true,
@@ -31,6 +32,7 @@ test('should be disabled by flag disableMetrics', async () => {
 
 test('should send metrics', async () => {
     const metrics = new Metrics({
+        onError: console.error,
         appName: 'test',
         metricsInterval: 0,
         disableMetrics: false,
@@ -62,6 +64,7 @@ test('should send metrics', async () => {
 
 test('should send metrics under custom header', async () => {
     const metrics = new Metrics({
+        onError: console.error,
         appName: 'test',
         metricsInterval: 0,
         disableMetrics: false,
@@ -84,6 +87,7 @@ test('should send metrics under custom header', async () => {
 
 test('Should send initial metrics after 2 seconds', () => {
     const metrics = new Metrics({
+        onError: console.error,
         appName: 'test',
         metricsInterval: 5,
         disableMetrics: false,
@@ -106,6 +110,7 @@ test('Should send initial metrics after 2 seconds', () => {
 
 test('should send metrics based on timer interval', async () => {
     const metrics = new Metrics({
+        onError: console.error,
         appName: 'test',
         metricsInterval: 5,
         disableMetrics: false,

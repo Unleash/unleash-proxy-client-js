@@ -15,6 +15,7 @@
     "build": "npm run build:ts && npm run build:web",
     "build:ts": "tsc",
     "build:web": "rollup -c rollup.config.js",
+    "fmt": "prettier src --write --loglevel warn",
     "lint": "eslint src",
     "test": "jest"
   },

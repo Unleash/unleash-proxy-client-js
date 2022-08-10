@@ -735,7 +735,7 @@ test('Should note include context fields with "null" value', async () => {
     );
     const context: IMutableContext = {
         userId: undefined,
-        sessionId: "0",
+        sessionId: '0',
         remoteAddress: undefined,
         properties: {
             property1: 'property1',
@@ -1096,5 +1096,4 @@ test('Should publish ready only when the first fetch was successful', async () =
     jest.advanceTimersByTime(1001);
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
-
 });

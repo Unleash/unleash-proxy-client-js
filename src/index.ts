@@ -121,7 +121,6 @@ export class UnleashClient extends TinyEmitter {
         bootstrapOverride = true,
         headerName = 'Authorization',
         customHeaders = {},
-
     }: IConfig) {
         super();
         // Validations
@@ -144,11 +143,13 @@ export class UnleashClient extends TinyEmitter {
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.ready = new Promise((resolve) => {
-            this.init().then(resolve).catch((error) => {
-                console.error(error);
-                this.emit(EVENTS.ERROR, error);
-                resolve();
-            })
+            this.init()
+                .then(resolve)
+                .catch((error) => {
+                    console.error(error);
+                    this.emit(EVENTS.ERROR, error);
+                    resolve();
+                });
         });
 
         if (!fetch) {
@@ -308,15 +309,16 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private getHeaders() {
-        const  headers = {[this.headerName]: this.clientKey,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                            'If-None-Match': this.etag
-                        }
-        Object.entries(this.customHeaders).filter(notNullOrUndefined).forEach(([name, value]) =>
-              headers[name] = value);
+        const headers = {
+            [this.headerName]: this.clientKey,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'If-None-Match': this.etag,
+        };
+        Object.entries(this.customHeaders)
+            .filter(notNullOrUndefined)
+            .forEach(([name, value]) => (headers[name] = value));
         return headers;
-
     }
 
     private async storeToggles(toggles: IToggle[]): Promise<void> {
@@ -335,26 +337,23 @@ export class UnleashClient extends TinyEmitter {
                 // e.g. /?...&property.param1=param1Value&property.param2=param2Value
                 Object.entries(context)
                     .filter(notNullOrUndefined)
-                    .forEach(
-                    ([contextKey, contextValue]) => {
+                    .forEach(([contextKey, contextValue]) => {
                         if (contextKey === 'properties' && contextValue) {
                             Object.entries<string>(contextValue)
-                            .filter(notNullOrUndefined)
-                            .forEach(
-                                ([propertyKey, propertyValue]) =>
+                                .filter(notNullOrUndefined)
+                                .forEach(([propertyKey, propertyValue]) =>
                                     urlWithQuery.searchParams.append(
                                         `properties[${propertyKey}]`,
                                         propertyValue
                                     )
-                            );
+                                );
                         } else {
                             urlWithQuery.searchParams.append(
                                 contextKey,
                                 contextValue
                             );
                         }
-                    }
-                );
+                    });
                 const response = await this.fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
                     headers: this.getHeaders(),
@@ -368,7 +367,6 @@ export class UnleashClient extends TinyEmitter {
                         this.emit(EVENTS.READY);
                         this.readyEventEmitted = true;
                     }
-
                 }
             } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);

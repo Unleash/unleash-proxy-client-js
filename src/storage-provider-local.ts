@@ -19,7 +19,6 @@ export default class LocalStorageProvider implements IStorageProvider {
             const data = window.localStorage.getItem(key);
             return data ? JSON.parse(data) : undefined;
         } catch (e) {
-            // tslint:disable-next-line
             console.error(e);
         }
     }

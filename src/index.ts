@@ -94,7 +94,7 @@ export class UnleashClient extends TinyEmitter {
     private refreshInterval: number;
     private url: URL;
     private clientKey: string;
-    private etag: string = '';
+    private etag = '';
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;
@@ -121,7 +121,6 @@ export class UnleashClient extends TinyEmitter {
         bootstrapOverride = true,
         headerName = 'Authorization',
         customHeaders = {},
-
     }: IConfig) {
         super();
         // Validations
@@ -143,18 +142,17 @@ export class UnleashClient extends TinyEmitter {
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
-        this.ready = new Promise(async (resolve) => {
-            try {
-                await this.init();
-            } catch (error) {
-                console.error(error);
-                this.emit(EVENTS.ERROR, error);
-            }
-            resolve();
+        this.ready = new Promise((resolve) => {
+            this.init()
+                .then(resolve)
+                .catch((error) => {
+                    console.error(error);
+                    this.emit(EVENTS.ERROR, error);
+                    resolve();
+                });
         });
 
         if (!fetch) {
-            // tslint:disable-next-line
             console.error(
                 'Unleash: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.'
             );
@@ -221,9 +219,8 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {
-        // Give the user a nicer error message when including
-        // static fields in the mutable context object
-        // @ts-ignore
+        // @ts-expect-error Give the user a nicer error message when
+        // including static fields in the mutable context object
         if (context.appName || context.environment) {
             console.warn(
                 "appName and environment are static. They can't be updated with updateContext."
@@ -312,15 +309,16 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private getHeaders() {
-        const  headers = {[this.headerName]: this.clientKey,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                            'If-None-Match': this.etag
-                        }
-        Object.entries(this.customHeaders).filter(notNullOrUndefined).forEach(([name, value]) =>
-              headers[name] = value);
+        const headers = {
+            [this.headerName]: this.clientKey,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'If-None-Match': this.etag,
+        };
+        Object.entries(this.customHeaders)
+            .filter(notNullOrUndefined)
+            .forEach(([name, value]) => (headers[name] = value));
         return headers;
-
     }
 
     private async storeToggles(toggles: IToggle[]): Promise<void> {
@@ -339,26 +337,23 @@ export class UnleashClient extends TinyEmitter {
                 // e.g. /?...&property.param1=param1Value&property.param2=param2Value
                 Object.entries(context)
                     .filter(notNullOrUndefined)
-                    .forEach(
-                    ([contextKey, contextValue]) => {
+                    .forEach(([contextKey, contextValue]) => {
                         if (contextKey === 'properties' && contextValue) {
                             Object.entries<string>(contextValue)
-                            .filter(notNullOrUndefined)
-                            .forEach(
-                                ([propertyKey, propertyValue]) =>
+                                .filter(notNullOrUndefined)
+                                .forEach(([propertyKey, propertyValue]) =>
                                     urlWithQuery.searchParams.append(
                                         `properties[${propertyKey}]`,
                                         propertyValue
                                     )
-                            );
+                                );
                         } else {
                             urlWithQuery.searchParams.append(
                                 contextKey,
                                 contextValue
                             );
                         }
-                    }
-                );
+                    });
                 const response = await this.fetch(urlWithQuery.toString(), {
                     cache: 'no-cache',
                     headers: this.getHeaders(),
@@ -372,10 +367,8 @@ export class UnleashClient extends TinyEmitter {
                         this.emit(EVENTS.READY);
                         this.readyEventEmitted = true;
                     }
-
                 }
             } catch (e) {
-                // tslint:disable-next-line
                 console.error('Unleash: unable to fetch feature toggles', e);
                 this.emit(EVENTS.ERROR, e);
             }

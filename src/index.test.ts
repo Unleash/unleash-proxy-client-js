@@ -20,7 +20,7 @@ test('Should initialize unleash-client', () => {
         clientKey: '12',
         appName: 'web',
     };
-    const client = new UnleashClient(config);
+    new UnleashClient(config);
     expect(config.url).toBe('http://localhost/test');
 });
 
@@ -78,11 +78,11 @@ test('Should handle error and return false for isEnabled', async () => {
     jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     fetchMock.mockReject();
     class Store implements IStorageProvider {
-        public async save(name: string, data: any) {
+        public async save() {
             return Promise.resolve();
         }
 
-        public async get(name: string) {
+        public async get() {
             return Promise.resolve([]);
         }
     }
@@ -104,7 +104,7 @@ test('Should read session id from localStorage', async () => {
     const sessionId = '123';
     fetchMock.mockReject();
     class Store implements IStorageProvider {
-        public async save(name: string, data: any) {
+        public async save() {
             return Promise.resolve();
         }
 
@@ -143,7 +143,7 @@ test('Should read toggles from localStorage', async () => {
     ];
     fetchMock.mockReject();
     class Store implements IStorageProvider {
-        public async save(name: string, data: any) {
+        public async save() {
             return Promise.resolve();
         }
 
@@ -430,7 +430,6 @@ test('Should not bootstrap data when bootstrap is []', async () => {
 
 test('Should publish ready event when bootstrap is provided, before client is started', async () => {
     localStorage.clear();
-    const storeKey = 'unleash:repository:repo';
     const bootstrap = [
         {
             name: 'toggles',
@@ -485,11 +484,11 @@ test('Should publish ready when initial fetch completed', (done) => {
 test('Should publish error when initial init fails', (done) => {
     const givenError = 'Error';
     class Store implements IStorageProvider {
-        public async save(name: string, data: any): Promise<void> {
+        public async save(): Promise<void> {
             return Promise.reject(givenError);
         }
 
-        public async get(name: string): Promise<any> {
+        public async get(): Promise<any> {
             return Promise.reject(givenError);
         }
     }
@@ -630,7 +629,6 @@ test('Should add clientKey as Authorization header', async () => {
 
 test('Should require appName', () => {
     expect(() => {
-        // tslint:disable-next-line
         new UnleashClient({
             url: 'http://localhost/test',
             clientKey: '12',
@@ -641,14 +639,12 @@ test('Should require appName', () => {
 
 test('Should require url', () => {
     expect(() => {
-        // tslint:disable-next-line
         new UnleashClient({ url: '', clientKey: '12', appName: 'web' });
     }).toThrow();
 });
 
 test('Should require valid url', () => {
     expect(() => {
-        // tslint:disable-next-line
         new UnleashClient({
             url: 'not-a-url',
             clientKey: '12',
@@ -659,7 +655,6 @@ test('Should require valid url', () => {
 
 test('Should require valid clientKey', () => {
     expect(() => {
-        // tslint:disable-next-line
         new UnleashClient({
             url: 'http://localhost/test',
             clientKey: '',
@@ -739,10 +734,8 @@ test('Should note include context fields with "null" value', async () => {
         [JSON.stringify(data), { status: 304 }]
     );
     const context: IMutableContext = {
-        //@ts-ignore
-        userId: null,
-        //@ts-ignore
-        sessionId: 0,
+        userId: undefined,
+        sessionId: '0',
         remoteAddress: undefined,
         properties: {
             property1: 'property1',
@@ -1103,5 +1096,4 @@ test('Should publish ready only when the first fetch was successful', async () =
     jest.advanceTimersByTime(1001);
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
-
 });

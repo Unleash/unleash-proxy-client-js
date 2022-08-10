@@ -1,6 +1,6 @@
 {
   "name": "unleash-proxy-client",
-  "version": "2.0.3",
+  "version": "2.1.0-beta.1",
   "description": "A browser client that can be used together with the unleash-proxy.",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",

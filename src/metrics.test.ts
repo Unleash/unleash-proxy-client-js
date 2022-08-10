@@ -114,7 +114,7 @@ test('should send metrics based on timer interval', async () => {
         appName: 'test',
         metricsInterval: 5,
         disableMetrics: false,
-        url: 'http://localhost:3000',
+        url: new URL('http://localhost:3000'),
         clientKey: '123',
         fetch: fetchMock,
         headerName: 'Authorization',

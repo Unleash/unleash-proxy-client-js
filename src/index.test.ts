@@ -1097,3 +1097,14 @@ test('Should publish ready only when the first fetch was successful', async () =
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
 });
+
+test('Should be able to configure UnleashClient with a URL instance', () => {
+    const url = new URL('test', 'http://localhost');
+    const config: IConfig = {
+        url,
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    expect(client).toHaveProperty('url', url);
+});

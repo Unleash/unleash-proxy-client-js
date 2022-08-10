@@ -5,7 +5,7 @@ export interface MetricsOptions {
     appName: string;
     metricsInterval: number;
     disableMetrics?: boolean;
-    url: string;
+    url: URL | string;
     clientKey: string;
     fetch: any;
     headerName: string;
@@ -31,7 +31,7 @@ export default class Metrics {
     private appName: string;
     private metricsInterval: number;
     private disabled: boolean;
-    private url: string;
+    private url: URL;
     private clientKey: string;
     private timer: any;
     private fetch: any;
@@ -51,7 +51,7 @@ export default class Metrics {
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
         this.appName = appName;
-        this.url = url;
+        this.url = url instanceof URL ? url : new URL(url);
         this.clientKey = clientKey;
         this.bucket = this.createEmptyBucket();
         this.fetch = fetch;

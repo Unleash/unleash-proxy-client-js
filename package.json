@@ -13,9 +13,10 @@
     "preversion": "rm -rf build && npm run build",
     "prepare": "npm run build && ./scripts/check-release.sh",
     "build": "npm run build:ts && npm run build:web",
-    "lint": "eslint ./src",
     "build:ts": "tsc",
     "build:web": "rollup -c rollup.config.js",
+    "fmt": "prettier src --write --loglevel warn",
+    "lint": "eslint src",
     "test": "jest"
   },
   "repository": {
@@ -32,9 +33,9 @@
     "@babel/runtime": "^7.14.0",
     "@types/jest": "^27.0.1",
     "@types/uuid": "^8.3.4",
-    "@typescript-eslint/eslint-plugin": "^4.32.0",
-    "@typescript-eslint/parser": "^4.32.0",
-    "eslint": "^7.32.0",
+    "@typescript-eslint/eslint-plugin": "^5.33.0",
+    "@typescript-eslint/parser": "^5.33.0",
+    "eslint": "^8.21.0",
     "jest": "^27.0.6",
     "jest-fetch-mock": "3.0.3",
     "jest-localstorage-mock": "^2.4.18",
@@ -59,5 +60,27 @@
   "overrides": {
     "node-fetch": "^2.6.7",
     "serialize-javascript": "^3.1.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "rules": {
+      "@typescript-eslint/no-explicit-any": "off"
+    }
   }
 }

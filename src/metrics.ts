@@ -6,7 +6,7 @@ export interface MetricsOptions {
     url: string;
     clientKey: string;
     fetch: any;
-    headerName: string
+    headerName: string;
 }
 
 interface Bucket {
@@ -30,7 +30,7 @@ export default class Metrics {
     private clientKey: string;
     private timer: any;
     private fetch: any;
-    private headerName: string
+    private headerName: string;
 
     constructor({
         appName,
@@ -39,7 +39,7 @@ export default class Metrics {
         url,
         clientKey,
         fetch,
-        headerName
+        headerName,
     }: MetricsOptions) {
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
@@ -48,7 +48,7 @@ export default class Metrics {
         this.clientKey = clientKey;
         this.bucket = this.createEmptyBucket();
         this.fetch = fetch;
-        this.headerName = headerName 
+        this.headerName = headerName;
     }
 
     public start() {

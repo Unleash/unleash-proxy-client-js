@@ -10,7 +10,7 @@ function getTypeSafeRequest(
     callIndex: number | undefined = 0
 ): RequestInit {
     const mockedCall = fetchedMock.mock.calls[callIndex];
-    const [_, mockedReq] = mockedCall;
+    const [, mockedReq] = mockedCall;
     const typeSafeRequest = mockedReq ?? {};
 
     return typeSafeRequest;

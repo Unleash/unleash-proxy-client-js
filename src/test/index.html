@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8' />
+    <title>unleash-proxy-client-js manual test</title>
+    <script src='../../build/main.min.js' type='text/javascript'></script>
+    <script type='module'>
+        const client = new unleash.UnleashClient({
+            url: 'http://localhost:3000/proxy',
+            clientKey: 'a',
+            appName: 'a',
+            refreshInterval: 1,
+            metricsInterval: 1,
+            disableMetrics: false
+        });
+
+        client.start();
+        client.on('initialized', () => console.log('initialized'));
+        client.on('error', (error) => console.log('error', error));
+        client.on('ready', () => console.log('ready'));
+        client.on('impression', () => console.log('impression'));
+        client.on('update', () => console.log('update', client.isEnabled('a')));
+    </script>
+</head>
+<body>
+</body>
+</html>

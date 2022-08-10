@@ -164,6 +164,7 @@ export class UnleashClient extends TinyEmitter {
         this.bootstrapOverride = bootstrapOverride;
 
         this.metrics = new Metrics({
+            onError: this.emit.bind(this, EVENTS.ERROR),
             appName,
             metricsInterval,
             disableMetrics,

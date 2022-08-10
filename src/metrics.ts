@@ -1,5 +1,7 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
+
 export interface MetricsOptions {
+    onError: OnError;
     appName: string;
     metricsInterval: number;
     disableMetrics?: boolean;
@@ -21,7 +23,10 @@ interface Payload {
     instanceId: string;
 }
 
+type OnError = (error: unknown) => void;
+
 export default class Metrics {
+    private onError: OnError;
     private bucket: Bucket;
     private appName: string;
     private metricsInterval: number;
@@ -33,6 +38,7 @@ export default class Metrics {
     private headerName: string;
 
     constructor({
+        onError,
         appName,
         metricsInterval,
         disableMetrics = false,
@@ -41,6 +47,7 @@ export default class Metrics {
         fetch,
         headerName,
     }: MetricsOptions) {
+        this.onError = onError;
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
         this.appName = appName;
@@ -93,16 +100,21 @@ export default class Metrics {
             return;
         }
 
-        await this.fetch(url, {
-            cache: 'no-cache',
-            method: 'POST',
-            headers: {
-                [this.headerName]: this.clientKey,
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
+        try {
+            await this.fetch(url, {
+                cache: 'no-cache',
+                method: 'POST',
+                headers: {
+                    [this.headerName]: this.clientKey,
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+        } catch (e) {
+            console.error('Unleash: unable to send feature metrics', e);
+            this.onError(e);
+        }
     }
 
     public count(name: string, enabled: boolean): boolean {

@@ -1,6 +1,6 @@
 
 # Get the main field from package.json
-FILE=$(cat ./package.json | grep main | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
+FILE=$(grep '"main"' ./package.json | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[[:space:]]')
 
 # test the path to see if the file exists
 if test -f "$FILE"; then

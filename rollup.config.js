@@ -11,7 +11,7 @@ export default {
   output: [
     {
      file: './build/main.min.js',
-     format: 'iife',
+     format: 'umd',
      name: 'unleash' // the global which can be used in a browser
     }
    ],

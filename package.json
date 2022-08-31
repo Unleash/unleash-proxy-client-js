@@ -4,6 +4,7 @@
   "description": "A browser client that can be used together with the unleash-proxy.",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
+  "browser": "./build/main.min.js",
   "files": [
     "build",
     "examples",

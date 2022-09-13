@@ -530,6 +530,24 @@ test('Should publish error when fetch fails', (done) => {
     });
 });
 
+test.each([400, 401, 403, 404, 429, 500, 502, 503])('Should publish error when fetch receives a %d error', async (errorCode) => {
+    expect.assertions(1);
+    jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
+    fetchMock.mockResponseOnce("{}", { status: errorCode});
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    client.on(EVENTS.ERROR, (e: any) => {
+        expect(e).toStrictEqual({ type: 'HttpError', code: errorCode});
+
+    });
+    await client.start();
+})
+
 test('Should publish update when state changes after refreshInterval', async () => {
     expect.assertions(1);
     fetchMock.mockResponses(

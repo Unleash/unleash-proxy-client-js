@@ -3,11 +3,11 @@ module.exports = {
       "<rootDir>/src"
     ],
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": ["@swc/jest"],
     },
     "automock": false,
     "setupFiles": [
-      "./setupJest.js", 
+      "./setupJest.js",
       "jest-localstorage-mock"
     ],
     "testEnvironment": "jsdom"

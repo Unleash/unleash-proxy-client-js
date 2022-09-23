@@ -368,9 +368,14 @@ export class UnleashClient extends TinyEmitter {
                         this.emit(EVENTS.READY);
                         this.readyEventEmitted = true;
                     }
-                } else if (!response.ok) {
-                    console.error('Unleash: Fetching feature toggles did not have an ok response');
-                    this.emit(EVENTS.ERROR, { type: 'HttpError', code: response.status })
+                } else if (!response.ok && response.status !== 304) {
+                    console.error(
+                        'Unleash: Fetching feature toggles did not have an ok response'
+                    );
+                    this.emit(EVENTS.ERROR, {
+                        type: 'HttpError',
+                        code: response.status,
+                    });
                 }
             } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);

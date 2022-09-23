@@ -104,7 +104,7 @@ The Unleash SDK takes the following options:
 | environment       | no | 'default' | Identify the current environment. Will be part of the Unleash Context                                                                   | 
 | fetch             | no | window.fetch | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch`                    | 
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 
-| bootstrapOverride | no| `true` | Should the boostrap automatically override cached data in the local-storage. Will only be used if boostrap is not an empty array.     | 
+| bootstrapOverride | no| `true` | Should the bootstrap automatically override cached data in the local-storage. Will only be used if bootstrap is not an empty array.     | 
 | headerName        | no| `Authorization` | Provides possiblity to specify custom header that is passed to Unleash / Unleash Proxy with the `clientKey` | 
 | customHeaders     | no| `{}` | Additional headers to use when making HTTP requests to the Unleash proxy. In case of name collisions with the default headers, the `customHeaders` value will be used. | 
 
@@ -123,7 +123,7 @@ unleash.on('update', () => {
 
 #### Available events:
 
-- **error** - emitted when an error occurs on init, or when fetch function fails. The error object is sent as payload.
+- **error** - emitted when an error occurs on init, or when fetch function fails, or when fetch receives a non-ok response object. The error object is sent as payload.
 - **initialized** - emitted after the SDK has read local cached data in the storageProvider. 
 - **ready** - emitted after the SDK has successfully started and performed the initial fetch towards the Unleash Proxy. 
 - **update** - emitted every time the Unleash Proxy return a new feature toggle configuration. The SDK will emit this event as part of the initial fetch from the SDK.  

@@ -818,6 +818,36 @@ test('Should update context fields on request', async () => {
     expect(url.searchParams.get('environment')).toEqual('prod');
 });
 
+test('Should not replace sessionId when updating context', async () => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 304 }]
+    );
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        environment: 'prod',
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    const context = client.getContext();
+    await client.updateContext({
+        userId: '123',
+        remoteAddress: 'address',
+        properties: {
+            property1: 'property1',
+            property2: 'property2',
+        },
+    });
+
+    jest.advanceTimersByTime(1001);
+
+    const url = new URL(getTypeSafeRequestUrl(fetchMock));
+
+    expect(url.searchParams.get('sessionId')).toEqual(context.sessionId?.toString());
+});
+
 test('Should not add property fields when properties is an empty object', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],

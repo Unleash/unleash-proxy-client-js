@@ -230,6 +230,7 @@ export class UnleashClient extends TinyEmitter {
         const staticContext = {
             environment: this.context.environment,
             appName: this.context.appName,
+            sessionId: this.context.sessionId,
         };
         this.context = { ...staticContext, ...context };
         if (this.timerRef) {

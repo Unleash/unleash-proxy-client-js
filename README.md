@@ -107,7 +107,7 @@ The Unleash SDK takes the following options:
 | bootstrapOverride | no| `true` | Should the bootstrap automatically override cached data in the local-storage. Will only be used if bootstrap is not an empty array.     | 
 | headerName        | no| `Authorization` | Provides possiblity to specify custom header that is passed to Unleash / Unleash Proxy with the `clientKey` | 
 | customHeaders     | no| `{}` | Additional headers to use when making HTTP requests to the Unleash proxy. In case of name collisions with the default headers, the `customHeaders` value will be used. | 
-| impressionDataAll | no| `false` | Allows you to trigger "impression" events for all `getToggle` and `getVariant` invocations. This is particular useful for "disabled" feature toggles which are not visible to frontend SDKs. | 
+| impressionDataAll | no| `false` | Allows you to trigger "impression" events for **all** `getToggle` and `getVariant` invocations. This is particularly useful for "disabled" feature toggles that are not visible to frontend SDKs. | 
 
 ### Listen for updates via the EventEmitter
 

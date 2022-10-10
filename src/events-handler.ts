@@ -10,6 +10,7 @@ class EventsHandler {
         context: IContext,
         enabled: boolean,
         featureName: string,
+        impressionData: boolean,
         eventType: string,
         variant?: string
     ) {
@@ -17,6 +18,7 @@ class EventsHandler {
             context,
             enabled,
             featureName,
+            impressionData,
             eventType
         );
 
@@ -33,6 +35,7 @@ class EventsHandler {
         context: IContext,
         enabled: boolean,
         featureName: string,
+        impressionData: boolean,
         eventType: string
     ) {
         return {

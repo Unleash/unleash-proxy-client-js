@@ -38,6 +38,7 @@ interface IConfig extends IStaticContext {
     bootstrapOverride?: boolean;
     headerName?: string;
     customHeaders?: Record<string, string>;
+    impressionDataAll?: boolean;
 }
 
 interface IVariant {
@@ -88,6 +89,7 @@ export const resolveFetch = () => {
 
 export class UnleashClient extends TinyEmitter {
     private toggles: IToggle[] = [];
+    private impressionDataAll: boolean;
     private context: IContext;
     private timerRef?: any;
     private storage: IStorageProvider;
@@ -121,6 +123,7 @@ export class UnleashClient extends TinyEmitter {
         bootstrapOverride = true,
         headerName = 'Authorization',
         customHeaders = {},
+        impressionDataAll = false,
     }: IConfig) {
         super();
         // Validations
@@ -134,6 +137,7 @@ export class UnleashClient extends TinyEmitter {
             throw new Error('appName is required.');
         }
         this.eventsHandler = new EventsHandler();
+        this.impressionDataAll = impressionDataAll;
         this.toggles = bootstrap && bootstrap.length > 0 ? bootstrap : [];
         this.url = url instanceof URL ? url : new URL(url);
         this.clientKey = clientKey;
@@ -184,11 +188,12 @@ export class UnleashClient extends TinyEmitter {
         const enabled = toggle ? toggle.enabled : false;
         this.metrics.count(toggleName, enabled);
 
-        if (toggle?.impressionData) {
+        if (toggle?.impressionData || this.impressionDataAll) {
             const event = this.eventsHandler.createImpressionEvent(
                 this.context,
                 enabled,
                 toggleName,
+                toggle?.impressionData || false,
                 IMPRESSION_EVENTS.IS_ENABLED
             );
             this.emit(EVENTS.IMPRESSION, event);
@@ -199,24 +204,22 @@ export class UnleashClient extends TinyEmitter {
 
     public getVariant(toggleName: string): IVariant {
         const toggle = this.toggles.find((t) => t.name === toggleName);
-        if (toggle) {
-            this.metrics.count(toggleName, true);
-            if (toggle.impressionData) {
-                const event = this.eventsHandler.createImpressionEvent(
-                    this.context,
-                    toggle.enabled,
-                    toggleName,
-                    IMPRESSION_EVENTS.GET_VARIANT,
-                    toggle.variant.name
-                );
-                this.emit(EVENTS.IMPRESSION, event);
-            }
-            return toggle.variant;
-        } else {
-            this.metrics.count(toggleName, false);
-
-            return defaultVariant;
+        const enabled = toggle?.enabled || false;
+        const variant = toggle ? toggle.variant : defaultVariant;
+        
+        this.metrics.count(toggleName, true);
+        if (toggle?.impressionData || this.impressionDataAll) {
+            const event = this.eventsHandler.createImpressionEvent(
+                this.context,
+                enabled,
+                toggleName,
+                toggle?.impressionData || false,
+                IMPRESSION_EVENTS.GET_VARIANT,
+                variant.name,
+            );
+            this.emit(EVENTS.IMPRESSION, event);
         }
+        return variant;
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {

@@ -44,6 +44,7 @@ class EventsHandler {
             context,
             enabled,
             featureName,
+            impressionData
         };
     }
 }

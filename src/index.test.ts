@@ -1155,6 +1155,81 @@ test('Should not call isEnabled event when impressionData is false', (done) => {
     });
 });
 
+test('Should call isEnabled event when impressionData is false and impressionDataAll is true', (done) => {
+    const bootstrap = [
+        {
+            name: 'impression',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+            impressionData: false,
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+        impressionDataAll: true,
+    };
+    const client = new UnleashClient(config);
+    client.start();
+
+    client.on(EVENTS.READY, () => {
+        const isEnabled = client.isEnabled('impression');
+        expect(isEnabled).toBe(true);
+    });
+
+    client.on(EVENTS.IMPRESSION, (event: any) => {
+        expect(event.featureName).toBe('impression');
+        expect(event.eventType).toBe('isEnabled');
+        expect(event.impressionData).toBe(undefined);
+        client.stop();
+        done();
+    });
+});
+
+test('Should call isEnabled event when toggle is unknown and impressionDataAll is true', (done) => {
+    const bootstrap = [
+        {
+            name: 'impression',
+            enabled: true,
+            variant: {
+                name: 'disabled',
+                enabled: false,
+            },
+            impressionData: false,
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap,
+        impressionDataAll: true,
+    };
+    const client = new UnleashClient(config);
+    client.start();
+
+    client.on(EVENTS.READY, () => {
+        const isEnabled = client.isEnabled('unknown');
+        expect(isEnabled).toBe(true);
+    });
+
+    client.on(EVENTS.IMPRESSION, (event: any) => {
+        expect(event.featureName).toBe('unknown');
+        expect(event.eventType).toBe('isEnabled');
+        expect(event.enabled).toBe(false);
+        expect(event.impressionData).toBe(undefined);
+        client.stop();
+        done();
+    });
+});
+
 test('Should call getVariant event when impressionData is false and impressionDataAll is true', (done) => {
     const bootstrap = [
         {
@@ -1186,7 +1261,7 @@ test('Should call getVariant event when impressionData is false and impressionDa
     client.on(EVENTS.IMPRESSION, (event: any) => {
         expect(event.featureName).toBe('impression-variant');
         expect(event.eventType).toBe('getVariant');
-        expect(event.impressionData).toBe(false);
+        expect(event.impressionData).toBe(undefined);
         client.stop();
         done();
     });

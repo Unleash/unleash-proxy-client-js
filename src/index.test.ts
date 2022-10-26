@@ -1184,11 +1184,16 @@ test('Should call isEnabled event when impressionData is false and impressionDat
     });
 
     client.on(EVENTS.IMPRESSION, (event: any) => {
-        expect(event.featureName).toBe('impression');
-        expect(event.eventType).toBe('isEnabled');
-        expect(event.impressionData).toBe(false);
-        client.stop();
-        done();
+        try {
+            expect(event.featureName).toBe('impression');
+            expect(event.eventType).toBe('isEnabled');
+            expect(event.impressionData).toBe(false);
+            client.stop();
+            done();
+        } catch (e) {
+            client.stop();
+            done(e);
+        }
     });
 });
 
@@ -1259,11 +1264,16 @@ test('Should call getVariant event when impressionData is false and impressionDa
     });
 
     client.on(EVENTS.IMPRESSION, (event: any) => {
-        expect(event.featureName).toBe('impression-variant');
-        expect(event.eventType).toBe('getVariant');
-        expect(event.impressionData).toBe(false);
-        client.stop();
-        done();
+        try {
+            expect(event.featureName).toBe('impression-variant');
+            expect(event.eventType).toBe('getVariant');
+            expect(event.impressionData).toBe(false);
+            client.stop();
+            done();
+        } catch (e) {
+            client.stop();
+            done(e);
+        }
     });
 });
 

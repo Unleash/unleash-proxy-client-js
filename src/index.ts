@@ -194,7 +194,7 @@ export class UnleashClient extends TinyEmitter {
                 enabled,
                 toggleName,
                 IMPRESSION_EVENTS.IS_ENABLED,
-                toggle?.impressionData || undefined,
+                toggle?.impressionData ?? undefined,
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
@@ -214,7 +214,7 @@ export class UnleashClient extends TinyEmitter {
                 enabled,
                 toggleName,
                 IMPRESSION_EVENTS.GET_VARIANT,
-                toggle?.impressionData || undefined,
+                toggle?.impressionData ?? undefined,
                 variant.name,
             );
             this.emit(EVENTS.IMPRESSION, event);

@@ -1023,7 +1023,7 @@ test('Should pass under custom header clientKey', async () => {
     jest.advanceTimersByTime(999);
 });
 
-test('Should call isEnabled event when impressionData is true', (done) => {
+test('Should emit impression events on isEnabled calls when impressionData is true', (done) => {
     const bootstrap = [
         {
             name: 'impression',
@@ -1084,7 +1084,7 @@ test('Should pass custom headers', async () => {
     });
 });
 
-test('Should call getVariant event when impressionData is true', (done) => {
+test('Should emit impression events on getVariant calls when impressionData is true', (done) => {
     const bootstrap = [
         {
             name: 'impression-variant',
@@ -1120,7 +1120,7 @@ test('Should call getVariant event when impressionData is true', (done) => {
     });
 });
 
-test('Should not call isEnabled event when impressionData is false', (done) => {
+test('Should not emit impression events on isEnabled calls when impressionData is false', (done) => {
     const bootstrap = [
         {
             name: 'impression',
@@ -1155,7 +1155,7 @@ test('Should not call isEnabled event when impressionData is false', (done) => {
     });
 });
 
-test('Should call isEnabled event when impressionData is false and impressionDataAll is true', (done) => {
+test('Should emit impression events on isEnabled calls when impressionData is false and impressionDataAll is true', (done) => {
     const bootstrap = [
         {
             name: 'impression',
@@ -1184,15 +1184,20 @@ test('Should call isEnabled event when impressionData is false and impressionDat
     });
 
     client.on(EVENTS.IMPRESSION, (event: any) => {
-        expect(event.featureName).toBe('impression');
-        expect(event.eventType).toBe('isEnabled');
-        expect(event.impressionData).toBe(undefined);
-        client.stop();
-        done();
+        try {
+            expect(event.featureName).toBe('impression');
+            expect(event.eventType).toBe('isEnabled');
+            expect(event.impressionData).toBe(false);
+            client.stop();
+            done();
+        } catch (e) {
+            client.stop();
+            done(e);
+        }
     });
 });
 
-test('Should call isEnabled event when toggle is unknown and impressionDataAll is true', (done) => {
+test('Should emit impression events on isEnabled calls when toggle is unknown and impressionDataAll is true', (done) => {
     const bootstrap = [
         {
             name: 'impression',
@@ -1230,7 +1235,7 @@ test('Should call isEnabled event when toggle is unknown and impressionDataAll i
     });
 });
 
-test('Should call getVariant event when impressionData is false and impressionDataAll is true', (done) => {
+test('Should emit impression events on getVariant calls when impressionData is false and impressionDataAll is true', (done) => {
     const bootstrap = [
         {
             name: 'impression-variant',
@@ -1259,11 +1264,16 @@ test('Should call getVariant event when impressionData is false and impressionDa
     });
 
     client.on(EVENTS.IMPRESSION, (event: any) => {
-        expect(event.featureName).toBe('impression-variant');
-        expect(event.eventType).toBe('getVariant');
-        expect(event.impressionData).toBe(undefined);
-        client.stop();
-        done();
+        try {
+            expect(event.featureName).toBe('impression-variant');
+            expect(event.eventType).toBe('getVariant');
+            expect(event.impressionData).toBe(false);
+            client.stop();
+            done();
+        } catch (e) {
+            client.stop();
+            done(e);
+        }
     });
 });
 

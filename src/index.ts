@@ -266,6 +266,7 @@ export class UnleashClient extends TinyEmitter {
         this.context = { sessionId, ...this.context };
 
         this.toggles = (await this.storage.get(storeKey)) || [];
+        this.etag = (await this.storage.get('etag')) || '';
 
         if (
             this.bootstrap &&
@@ -330,10 +331,14 @@ export class UnleashClient extends TinyEmitter {
         return headers;
     }
 
-    private async storeToggles(toggles: IToggle[]): Promise<void> {
+    private async storeToggles(toggles: IToggle[], etag?: string): Promise<void> {
         this.toggles = toggles;
         this.emit(EVENTS.UPDATE);
         await this.storage.save(storeKey, toggles);
+        if(etag) {
+            this.etag = etag;
+            await this.storage.save('etag', etag);
+        }
     }
 
     private async fetchToggles() {
@@ -351,10 +356,16 @@ export class UnleashClient extends TinyEmitter {
                     headers: this.getHeaders(),
                     body,
                 });
+
                 if (response.ok && response.status !== 304) {
-                    this.etag = response.headers.get('ETag') || '';
+                    const etag = response.headers.get('ETag');
                     const data = await response.json();
-                    await this.storeToggles(data.toggles);
+                    
+                    if(etag && etag !== this.etag) {
+                        await this.storeToggles(data.toggles, etag);
+                    } else if(!etag) {
+                        await this.storeToggles(data.toggles);
+                    }
 
                     if (!this.bootstrap && !this.readyEventEmitted) {
                         this.emit(EVENTS.READY);

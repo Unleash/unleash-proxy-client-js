@@ -4,7 +4,7 @@ import type IStorageProvider from './storage-provider';
 import InMemoryStorageProvider from './storage-provider-inmemory';
 import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
-import { notNullOrUndefined } from './util';
+import { notNullOrUndefined, urlWithContextAsQuery } from './util';
 
 const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
 
@@ -339,41 +339,17 @@ export class UnleashClient extends TinyEmitter {
     private async fetchToggles() {
         if (this.fetch) {
             try {
+                const isPOST = this.usePOSTrequests;
 
-                let url = this.url.toString();
-                if(!this.usePOSTrequests) {
-                    const context = this.context;
-                    const urlWithQuery = new URL(this.url.toString());
-                    // Add context information to url search params. If the properties
-                    // object is included in the context, flatten it into the search params
-                    // e.g. /?...&property.param1=param1Value&property.param2=param2Value
-                    Object.entries(context)
-                        .filter(notNullOrUndefined)
-                        .forEach(([contextKey, contextValue]) => {
-                            if (contextKey === 'properties' && contextValue) {
-                                Object.entries<string>(contextValue)
-                                    .filter(notNullOrUndefined)
-                                    .forEach(([propertyKey, propertyValue]) =>
-                                        urlWithQuery.searchParams.append(
-                                            `properties[${propertyKey}]`,
-                                            propertyValue
-                                        )
-                                    );
-                            } else {
-                                urlWithQuery.searchParams.append(
-                                    contextKey,
-                                    contextValue
-                                );
-                            }
-                        });
-                    url = urlWithQuery.toString();
-                }
+                const url = isPOST ? this.url : urlWithContextAsQuery(this.url, this.context);
+                const method = isPOST ? 'POST' : 'GET';
+                const body = isPOST ? JSON.stringify({context: this.context}) : undefined;
                 
-                const response = await this.fetch(url, {
-                    method: this.usePOSTrequests ? 'POST' : 'GET',
+                const response = await this.fetch(url.toString(), {
+                    method,
                     cache: 'no-cache',
                     headers: this.getHeaders(),
-                    body: this.usePOSTrequests ? JSON.stringify({context: this.context}) : undefined,
+                    body,
                 });
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';

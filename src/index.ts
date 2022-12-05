@@ -4,7 +4,7 @@ import type IStorageProvider from './storage-provider';
 import InMemoryStorageProvider from './storage-provider-inmemory';
 import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
-import { notNullOrUndefined } from './util';
+import { notNullOrUndefined, urlWithContextAsQuery } from './util';
 
 const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
 
@@ -39,6 +39,7 @@ interface IConfig extends IStaticContext {
     headerName?: string;
     customHeaders?: Record<string, string>;
     impressionDataAll?: boolean;
+    usePOSTrequests?: boolean;
 }
 
 interface IVariant {
@@ -106,6 +107,7 @@ export class UnleashClient extends TinyEmitter {
     private eventsHandler: EventsHandler;
     private customHeaders: Record<string, string>;
     private readyEventEmitted = false;
+    private usePOSTrequests = false;
 
     constructor({
         storageProvider,
@@ -124,6 +126,7 @@ export class UnleashClient extends TinyEmitter {
         headerName = 'Authorization',
         customHeaders = {},
         impressionDataAll = false,
+        usePOSTrequests = false,
     }: IConfig) {
         super();
         // Validations
@@ -146,6 +149,7 @@ export class UnleashClient extends TinyEmitter {
         this.storage = storageProvider || new LocalStorageProvider();
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
+        this.usePOSTrequests = usePOSTrequests;
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
@@ -335,33 +339,17 @@ export class UnleashClient extends TinyEmitter {
     private async fetchToggles() {
         if (this.fetch) {
             try {
-                const context = this.context;
-                const urlWithQuery = new URL(this.url.toString());
-                // Add context information to url search params. If the properties
-                // object is included in the context, flatten it into the search params
-                // e.g. /?...&property.param1=param1Value&property.param2=param2Value
-                Object.entries(context)
-                    .filter(notNullOrUndefined)
-                    .forEach(([contextKey, contextValue]) => {
-                        if (contextKey === 'properties' && contextValue) {
-                            Object.entries<string>(contextValue)
-                                .filter(notNullOrUndefined)
-                                .forEach(([propertyKey, propertyValue]) =>
-                                    urlWithQuery.searchParams.append(
-                                        `properties[${propertyKey}]`,
-                                        propertyValue
-                                    )
-                                );
-                        } else {
-                            urlWithQuery.searchParams.append(
-                                contextKey,
-                                contextValue
-                            );
-                        }
-                    });
-                const response = await this.fetch(urlWithQuery.toString(), {
+                const isPOST = this.usePOSTrequests;
+
+                const url = isPOST ? this.url : urlWithContextAsQuery(this.url, this.context);
+                const method = isPOST ? 'POST' : 'GET';
+                const body = isPOST ? JSON.stringify({context: this.context}) : undefined;
+                
+                const response = await this.fetch(url.toString(), {
+                    method,
                     cache: 'no-cache',
                     headers: this.getHeaders(),
+                    body,
                 });
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';

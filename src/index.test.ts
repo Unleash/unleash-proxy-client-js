@@ -38,6 +38,40 @@ test('Should perform an initial fetch', async () => {
     expect(isEnabled).toBe(true);
 });
 
+test('Should perform an initial fetch as POST', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'webAsPOST',
+        usePOSTrequests: true,
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    
+    const request = getTypeSafeRequest(fetchMock, 0);
+    const body = JSON.parse(request.body as string);
+
+    expect(request.method).toBe('POST');
+    expect(body.context.appName).toBe('webAsPOST');
+});
+
+test('Should perform an initial fetch as GET', async () => {
+    fetchMock.mockResponseOnce(JSON.stringify(data));
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'webAsGET',
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    
+    const request = getTypeSafeRequest(fetchMock, 0);
+
+    expect(request.method).toBe('GET');
+});
+
+
 test('Should have correct variant', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
     const config: IConfig = {

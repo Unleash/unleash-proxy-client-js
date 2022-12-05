@@ -194,7 +194,7 @@ export class UnleashClient extends TinyEmitter {
                 enabled,
                 toggleName,
                 IMPRESSION_EVENTS.IS_ENABLED,
-                toggle?.impressionData ?? undefined,
+                toggle?.impressionData ?? undefined
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
@@ -206,7 +206,7 @@ export class UnleashClient extends TinyEmitter {
         const toggle = this.toggles.find((t) => t.name === toggleName);
         const enabled = toggle?.enabled || false;
         const variant = toggle ? toggle.variant : defaultVariant;
-        
+
         this.metrics.count(toggleName, true);
         if (toggle?.impressionData || this.impressionDataAll) {
             const event = this.eventsHandler.createImpressionEvent(
@@ -215,7 +215,7 @@ export class UnleashClient extends TinyEmitter {
                 toggleName,
                 IMPRESSION_EVENTS.GET_VARIANT,
                 toggle?.impressionData ?? undefined,
-                variant.name,
+                variant.name
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
@@ -241,11 +241,11 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
-    public getContext() {
+    public getContext(): IContext {
         return { ...this.context };
     }
 
-    public setContextField(field: string, value: string) {
+    public setContextField(field: string, value: string): void {
         if (DEFINED_FIELDS.includes(field)) {
             this.context = { ...this.context, [field]: value };
         } else {

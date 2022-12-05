@@ -341,10 +341,14 @@ export class UnleashClient extends TinyEmitter {
             try {
                 const isPOST = this.usePOSTrequests;
 
-                const url = isPOST ? this.url : urlWithContextAsQuery(this.url, this.context);
+                const url = isPOST
+                    ? this.url
+                    : urlWithContextAsQuery(this.url, this.context);
                 const method = isPOST ? 'POST' : 'GET';
-                const body = isPOST ? JSON.stringify({context: this.context}) : undefined;
-                
+                const body = isPOST
+                    ? JSON.stringify({ context: this.context })
+                    : undefined;
+
                 const response = await this.fetch(url.toString(), {
                     method,
                     cache: 'no-cache',

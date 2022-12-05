@@ -1,7 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import terser from '@rollup/plugin-terser';
 
 import nodePolyfills from 'rollup-plugin-node-polyfills';
 
@@ -23,6 +22,7 @@ export default {
             include: 'node_modules/**',
             extensions: ['.js'],
             ignoreGlobal: false,
+            sourcemap: true,
         }),
         resolve({ sourcemap: true }),
         nodePolyfills({ sourcemap: true }),
@@ -32,16 +32,11 @@ export default {
                 lib: ['es5', 'dom'],
                 target: 'es5',
                 module: 'esnext',
-                esModuleInterop: true,
-                sourceRoot: '/src/',
             },
             inlineSourceMap: true,
             inlineSources: true,
             declaration: false,
             declarationMap: false,
-        }),
-        terser({
-            sourceMap: true,
         }),
     ],
 };

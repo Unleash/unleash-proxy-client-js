@@ -1,7 +1,7 @@
 import typescript from '@rollup/plugin-typescript';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
-import { uglify } from 'rollup-plugin-uglify';
+import terser from '@rollup/plugin-terser';
 
 import nodePolyfills from 'rollup-plugin-node-polyfills';
 
@@ -32,10 +32,16 @@ export default {
                 lib: ['es5', 'dom'],
                 target: 'es5',
                 module: 'esnext',
+                esModuleInterop: true,
+                sourceRoot: '/src/',
             },
+            inlineSourceMap: true,
+            inlineSources: true,
             declaration: false,
             declarationMap: false,
         }),
-        uglify(),
+        terser({
+            sourceMap: true,
+        }),
     ],
 };

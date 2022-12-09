@@ -18,6 +18,7 @@ export default {
   plugins: [
     nodePolyfills(),
     resolve({
+        browser: true
     }),
     commonjs({ // rollup-plugin-commonjs
         include: 'node_modules/**'

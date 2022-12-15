@@ -865,6 +865,7 @@ test('Updating context should wait on asynchronous start', async () => {
         fetch: fetchMock
     };
     const client = new UnleashClient(config);
+
     client.start();
     await client.updateContext({
         userId: '123'

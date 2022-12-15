@@ -862,7 +862,6 @@ test('Updating context should wait on asynchronous start', async () => {
         clientKey: '12',
         appName: 'web',
         environment: 'prod',
-        fetch: fetchMock
     };
     const client = new UnleashClient(config);
 

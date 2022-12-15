@@ -48,7 +48,7 @@ test('Should perform an initial fetch as POST', async () => {
     };
     const client = new UnleashClient(config);
     await client.start();
-    
+
     const request = getTypeSafeRequest(fetchMock, 0);
     const body = JSON.parse(request.body as string);
 
@@ -65,7 +65,7 @@ test('Should perform an initial fetch as GET', async () => {
     };
     const client = new UnleashClient(config);
     await client.start();
-    
+
     const request = getTypeSafeRequest(fetchMock, 0);
 
     expect(request.method).toBe('GET');
@@ -850,6 +850,27 @@ test('Should update context fields on request', async () => {
     expect(url.searchParams.get('properties[property2]')).toEqual('property2');
     expect(url.searchParams.get('appName')).toEqual('web');
     expect(url.searchParams.get('environment')).toEqual('prod');
+});
+
+test('Updating context should wait on asynchronous start', async () => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 200 }]
+    );
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        environment: 'prod',
+        fetch: fetchMock
+    };
+    const client = new UnleashClient(config);
+    client.start();
+    await client.updateContext({
+        userId: '123'
+    });
+
+    expect(fetchMock).toBeCalledTimes(2);
 });
 
 test('Should not replace sessionId when updating context', async () => {

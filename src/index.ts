@@ -245,7 +245,7 @@ export class UnleashClient extends TinyEmitter {
         }
         else {
             await new Promise(resolve => {
-                this.on(EVENTS.READY, () => {
+                this.once(EVENTS.READY, () => {
                     this.fetchToggles().then(resolve);
                 });
             });

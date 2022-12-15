@@ -240,14 +240,19 @@ export class UnleashClient extends TinyEmitter {
             sessionId: this.context.sessionId,
         };
         this.context = { ...staticContext, ...context };
+
         if (this.timerRef) {
             await this.fetchToggles();
         }
         else {
-            await new Promise(resolve => {
-                this.once(EVENTS.READY, () => {
-                    this.fetchToggles().then(resolve);
-                });
+            await new Promise<void>(resolve => {
+                const listener = () => {
+                    this.fetchToggles().then(() => {
+                        this.off(EVENTS.READY, listener);
+                        resolve();
+                    });
+                };
+                this.once(EVENTS.READY, listener);
             });
         }
     }

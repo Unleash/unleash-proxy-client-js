@@ -198,7 +198,7 @@ export class UnleashClient extends TinyEmitter {
                 enabled,
                 toggleName,
                 IMPRESSION_EVENTS.IS_ENABLED,
-                toggle?.impressionData ?? undefined,
+                toggle?.impressionData ?? undefined
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
@@ -211,7 +211,7 @@ export class UnleashClient extends TinyEmitter {
         const enabled = toggle?.enabled || false;
         const variant = toggle ? toggle.variant : defaultVariant;
 
-        this.metrics.count(toggleName, true);
+        this.metrics.count(toggleName, enabled);
         if (toggle?.impressionData || this.impressionDataAll) {
             const event = this.eventsHandler.createImpressionEvent(
                 this.context,
@@ -219,7 +219,7 @@ export class UnleashClient extends TinyEmitter {
                 toggleName,
                 IMPRESSION_EVENTS.GET_VARIANT,
                 toggle?.impressionData ?? undefined,
-                variant.name,
+                variant.name
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
@@ -243,9 +243,8 @@ export class UnleashClient extends TinyEmitter {
 
         if (this.timerRef) {
             await this.fetchToggles();
-        }
-        else {
-            await new Promise<void>(resolve => {
+        } else {
+            await new Promise<void>((resolve) => {
                 const listener = () => {
                     this.fetchToggles().then(() => {
                         this.off(EVENTS.READY, listener);
@@ -353,9 +352,13 @@ export class UnleashClient extends TinyEmitter {
             try {
                 const isPOST = this.usePOSTrequests;
 
-                const url = isPOST ? this.url : urlWithContextAsQuery(this.url, this.context);
+                const url = isPOST
+                    ? this.url
+                    : urlWithContextAsQuery(this.url, this.context);
                 const method = isPOST ? 'POST' : 'GET';
-                const body = isPOST ? JSON.stringify({context: this.context}) : undefined;
+                const body = isPOST
+                    ? JSON.stringify({ context: this.context })
+                    : undefined;
 
                 const response = await this.fetch(url.toString(), {
                     method,

@@ -1,6 +1,6 @@
 import InMemoryStorageProvider from './storage-provider-inmemory';
 
-describe('ImMemoryStorageProvider', () => {
+describe('InMemoryStorageProvider', () => {
     it('should store and retrieve arbitrary values by key', async () => {
         const store = new InMemoryStorageProvider();
 

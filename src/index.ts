@@ -76,7 +76,7 @@ const storeKey = 'repo';
 
 export const resolveFetch = () => {
     try {
-        if ('fetch' in window) {
+        if (typeof window !== 'undefined' && 'fetch' in window) {
             return fetch.bind(window);
         } else if ('fetch' in globalThis) {
             return fetch.bind(globalThis);
@@ -146,7 +146,11 @@ export class UnleashClient extends TinyEmitter {
         this.clientKey = clientKey;
         this.headerName = headerName;
         this.customHeaders = customHeaders;
-        this.storage = storageProvider || new LocalStorageProvider();
+        this.storage =
+            storageProvider ||
+            (typeof window !== 'undefined'
+                ? new LocalStorageProvider()
+                : new InMemoryStorageProvider());
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;

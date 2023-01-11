@@ -96,13 +96,13 @@ The Unleash SDK takes the following options:
 | url               | yes | n/a | The Unleash Proxy URL to connect to. E.g.: `https://examples.com/proxy`                                                                         |
 | clientKey         | yes | n/a | The Unleash Proxy Secret to be used                                                                                                             | 
 | appName           | yes | n/a | The name of the application using this SDK. Will be used as part of the metrics sent to Unleash Proxy. Will also be part of the Unleash Context. | 
-| refreshInterval   | no | 30 | How often, in seconds, the SDK should check for updated toggle configuration. If set to 0 will disable checking for updates                 |
-| disableRefresh    | no | false | If set to true, the client will not check for updated toggle configuration                                                                |
-| metricsInterval   | no | 60 | How often, in seconds, the SDK should send usage metrics back to Unleash Proxy                                                              | 
-| disableMetrics    | no | false | Set this option to `true` if you want to disable usage metrics                                                                           |
+| refreshInterval   | no | `30` | How often, in seconds, the SDK should check for updated toggle configuration. If set to 0 will disable checking for updates                 |
+| disableRefresh    | no | `false` | If set to true, the client will not check for updated toggle configuration                                                                |
+| metricsInterval   | no | `60` | How often, in seconds, the SDK should send usage metrics back to Unleash Proxy                                                              | 
+| disableMetrics    | no | `false` | Set this option to `true` if you want to disable usage metrics                                                                           |
 | storageProvider   | no | `LocalStorageProvider` | Allows you to inject a custom storeProvider                                                                              |
-| environment       | no | 'default' | Identify the current environment. Will be part of the Unleash Context                                                                   | 
-| fetch             | no | window.fetch | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch`                    | 
+| environment       | no | `default` | Identify the current environment. Will be part of the Unleash Context                                                                   | 
+| fetch             | no | `window.fetch` or global `fetch` | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch`                    | 
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 
 | bootstrapOverride | no| `true` | Should the bootstrap automatically override cached data in the local-storage. Will only be used if bootstrap is not an empty array.     | 
 | headerName        | no| `Authorization` | Provides possiblity to specify custom header that is passed to Unleash / Unleash Proxy with the `clientKey` | 

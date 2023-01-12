@@ -1,6 +1,6 @@
 import type IStorageProvider from './storage-provider';
 
-export default class ImMemoryStorageProvider implements IStorageProvider {
+export default class InMemoryStorageProvider implements IStorageProvider {
     private store = new Map();
 
     public async save(name: string, data: any) {

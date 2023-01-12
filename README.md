@@ -100,7 +100,7 @@ The Unleash SDK takes the following options:
 | disableRefresh    | no | `false` | If set to true, the client will not check for updated toggle configuration                                                                |
 | metricsInterval   | no | `60` | How often, in seconds, the SDK should send usage metrics back to Unleash Proxy                                                              | 
 | disableMetrics    | no | `false` | Set this option to `true` if you want to disable usage metrics                                                                           |
-| storageProvider   | no | `LocalStorageProvider` | Allows you to inject a custom storeProvider                                                                              |
+| storageProvider   | no | `LocalStorageProvider` in browser, `InMemoryStorageProvider` otherwise | Allows you to inject a custom storeProvider                                                                              |
 | environment       | no | `default` | Identify the current environment. Will be part of the Unleash Context                                                                   | 
 | fetch             | no | `window.fetch` or global `fetch` | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch`                    | 
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 

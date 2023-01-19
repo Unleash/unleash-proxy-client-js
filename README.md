@@ -1,8 +1,6 @@
 # Unleash Proxy Client for the browser (JS)
 
-This is a tiny Unleash Client SDK you can use together with the 
-[Unleash Proxy](https://docs.getunleash.io/sdks/unleash-proxy). 
-This makes it super simple to use Unleash from any single page app. 
+The JavaScript proxy client is a tiny Unleash client written in JavaScript without any external dependencies (except from browser APIs). This client stores toggles relevant for the current user in `localStorage` and synchronizes with Unleash (the [Unleash proxy](https://docs.getunleash.io/reference/unleash-proxy) _or_ the [Unleash front-end API](https://docs.getunleash.io/reference/front-end-api)) in the background. Because toggles are stored in the user's browser, the client can use them to bootstrap itself the next time the user visits the same web page.
 
 This client expect `fetch` to be available. If you need to support older
 browsers you should probably use the [fetch polyfill](https://github.com/github/fetch). 
@@ -18,73 +16,91 @@ This package is not tied to any framework, but can be used together most popular
 - [Vue.js](https://vuejs.org/)
 - ...and probably your favorite! 
 
-## How to use the client as a module
+## How to use the client
 
-**Step 1: Unleash Proxy**
-
-Before you can use this Unleash SDK you need set up a Unleash Proxy instance. [Read more about the Unleash Proxy](https://docs.getunleash.io/sdks/unleash-proxy).
-
-
-**Step 2: Install**
+### Step 1: Installation
 
 ```js
-npm install unleash-proxy-client --save
+npm install unleash-proxy-client
 ```
 
-**Step 3: Initialize the SDK**
+### Step 2: Initialize the SDK
 
-You need to have a Unleash-hosted instance, and the proxy need to be enabled. In addition you will need a proxy-specific `clientKey` in order to connect  to the Unleash-hosted Proxy.
+---
+
+💡 **TIP**: As a client-side SDK, this SDK requires you to connect to either an Unleash proxy or to the Unleash front-end API. Refer to the [connection options section](#connection-options) for more information.
+
+---
+
+Configure the client according to your needs. The following example provides only the required options. Refer to [the section on available options](#available-options) for the full list.
 
 ```js
-import { UnleashClient } from 'unleash-proxy-client';
+import { UnleashClient } from 'unleash-proxy-client';
 
-// See all options in separate section.
 const unleash = new UnleashClient({
-    url: 'https://eu.unleash-hosted.com/hosted/proxy',
-    clientKey: 'your-proxy-key',
-    appName: 'my-webapp'
+    url: 'https://<your-proxy-instance>/proxy',
+    clientKey: 'your-client-key',
+    appName: 'my-webapp',
 });
 
+// Start the background polling
 unleash.start();
 ```
 
-**Step 4: Listen for when the client is ready**
+#### Connection options
 
-You shouldn't start working with the client immediately. It's recommended to wait for `ready` or `initialized` event:
+To connect this SDK to the [Unleash proxy](https://docs.getunleash.io/reference/unleash-proxy), use the proxy's URL and a [proxy client key](https://docs.getunleash.io/reference/api-tokens-and-client-keys#proxy-client-keys). The [_configuration_ section of the Unleash proxy docs](https://docs.getunleash.io/reference/unleash-proxy#configuration) contains more info on how to configure client keys for your proxy.
+
+To connect this SDK to your Unleash instance's [front-end API](https://docs.getunleash.io/reference/front-end-api), use the URL to your Unleash instance's front-end API (`<unleash-url>/api/frontend`) as the `url` parameter. For the `clientKey` parameter, use a `FRONTEND` token generated from your Unleash instance. Refer to the [_how to create API tokens_](https://docs.getunleash.io/how-to/how-to-create-api-tokens) guide for the necessary steps.
+
+### Step 3: Let the client synchronize
+
+You should wait for the client's `ready` or `initialized` events before you start working with it. Before it's ready, the client might not report the correct state for your features.
 
 ```js
 unleash.on('ready', () => {
-  if (unleash.isEnabled('proxy.demo')) {
-    console.log('proxy.demo is enabled');
-  } else {
-    console.log('proxy.demo is disabled');
-  }
-})
+    if (unleash.isEnabled('proxy.demo')) {
+        console.log('proxy.demo is enabled');
+    } else {
+        console.log('proxy.demo is disabled');
+    }
+});
 ```
 
-The difference between the events is [explained below](#available-events).
+The difference between the events is described in the [section on available events](#available-events).
 
-**Step 5: Start polling the Unleash Proxy**
+### Step 4: Check feature toggle states
+
+Once the client is ready, you can start checking features in your application. Use the `isEnabled` method to check the state of any feature you want:
 
 ```js
-// Used to set the context fields, shared with the Unleash Proxy. This 
-// method will replace the entire (mutable part) of the Unleash Context.
-unleash.updateContext({userId: '1233'});
-
-// Used to update a single field on the Unleash Context.
-unleash.setContextField('userId', '4141');
-
-// Send the initial fetch towards the Unleash Proxy and starts the background polling
-unleash.start();
+unleash.isEnabled('proxy.demo');
 ```
 
-**Step 6: Get toggle variant**
+You can use the `getVariant` method to get the variant of an **enabled feature that has variants**. If the feature is disabled or if it has no variants, then you will get back the [**disabled variant**](https://docs.getunleash.io/reference/feature-toggle-variants#the-disabled-variant)
 
 ```js
 const variant = unleash.getVariant('proxy.demo');
-if(variant.name === 'blue') {
- // something with variant blue...
+if (variant.name === 'blue') {
+    // something with variant blue...
 }
+```
+
+#### Updating the Unleash context
+
+The [Unleash context](https://docs.getunleash.io/reference/unleash-context) is used to evaluate features against attributes of a the current user. To update and configure the Unleash context in this SDK, use the `updateContext` and `setContextField` methods.
+
+The context you set in your app will be passed along to the Unleash proxy or the front-end API as query parameters for feature evaluation.
+
+The `updateContext` method will replace the entire
+(mutable part) of the Unleash context with the data that you pass in.
+
+The `setContextField` method only acts on the property that you choose. It does not affect any other properties of the Unleash context.
+
+```js
+unleash.updateContext({ userId: '1233' });
+
+unleash.setContextField('userId', '4141');
 ```
 
 ### Available options

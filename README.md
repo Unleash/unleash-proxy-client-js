@@ -1,6 +1,6 @@
 # Unleash Proxy Client for the browser (JS)
 
-The JavaScript proxy client is a tiny Unleash client written in JavaScript without any external dependencies (except from browser APIs). This client stores toggles relevant for the current user in `localStorage` and synchronizes with Unleash (the [Unleash proxy](https://docs.getunleash.io/reference/unleash-proxy) _or_ the [Unleash front-end API](https://docs.getunleash.io/reference/front-end-api)) in the background. Because toggles are stored in the user's browser, the client can use them to bootstrap itself the next time the user visits the same web page.
+The JavaScript proxy client is a tiny Unleash client written in JavaScript without any external dependencies (except from browser APIs). This client stores toggles relevant for the current user in `localStorage` and synchronizes with Unleash (the [Unleash front-end API](https://docs.getunleash.io/reference/front-end-api) _or_ the [Unleash proxy](https://docs.getunleash.io/reference/unleash-proxy)) in the background. Because toggles are stored in the user's browser, the client can use them to bootstrap itself the next time the user visits the same web page.
 
 This client expect `fetch` to be available. If you need to support older
 browsers you should probably use the [fetch polyfill](https://github.com/github/fetch). 
@@ -38,8 +38,8 @@ Configure the client according to your needs. The following example provides onl
 import { UnleashClient } from 'unleash-proxy-client';
 
 const unleash = new UnleashClient({
-    url: 'https://<your-proxy-instance>/proxy',
-    clientKey: 'your-client-key',
+    url: 'https://<your-unleash-instance>/api/frontend',
+    clientKey: '<your-client-side-token>',
     appName: 'my-webapp',
 });
 
@@ -49,9 +49,9 @@ unleash.start();
 
 #### Connection options
 
-To connect this SDK to the [Unleash proxy](https://docs.getunleash.io/reference/unleash-proxy), use the proxy's URL and a [proxy client key](https://docs.getunleash.io/reference/api-tokens-and-client-keys#proxy-client-keys). The [_configuration_ section of the Unleash proxy docs](https://docs.getunleash.io/reference/unleash-proxy#configuration) contains more info on how to configure client keys for your proxy.
-
 To connect this SDK to your Unleash instance's [front-end API](https://docs.getunleash.io/reference/front-end-api), use the URL to your Unleash instance's front-end API (`<unleash-url>/api/frontend`) as the `url` parameter. For the `clientKey` parameter, use a `FRONTEND` token generated from your Unleash instance. Refer to the [_how to create API tokens_](https://docs.getunleash.io/how-to/how-to-create-api-tokens) guide for the necessary steps.
+
+To connect this SDK to the [Unleash proxy](https://docs.getunleash.io/reference/unleash-proxy), use the proxy's URL and a [proxy client key](https://docs.getunleash.io/reference/api-tokens-and-client-keys#proxy-client-keys). The [_configuration_ section of the Unleash proxy docs](https://docs.getunleash.io/reference/unleash-proxy#configuration) contains more info on how to configure client keys for your proxy.
 
 ### Step 3: Let the client synchronize
 

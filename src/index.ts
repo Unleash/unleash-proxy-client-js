@@ -108,6 +108,7 @@ export class UnleashClient extends TinyEmitter {
     private customHeaders: Record<string, string>;
     private readyEventEmitted = false;
     private usePOSTrequests = false;
+    private started = false;
 
     constructor({
         storageProvider,
@@ -247,7 +248,7 @@ export class UnleashClient extends TinyEmitter {
 
         if (this.timerRef) {
             await this.fetchToggles();
-        } else {
+        } else if(this.started) {
             await new Promise<void>((resolve) => {
                 const listener = () => {
                     this.fetchToggles().then(() => {
@@ -294,6 +295,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public async start(): Promise<void> {
+        this.started = true;
         if (this.timerRef) {
             console.error(
                 'Unleash SDK has already started, if you want to restart the SDK you should call client.stop() before starting again.'

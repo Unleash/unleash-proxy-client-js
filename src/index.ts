@@ -89,6 +89,7 @@ export const resolveFetch = () => {
 };
 
 export class UnleashClient extends TinyEmitter {
+    bootstrapped = false;
     private toggles: IToggle[] = [];
     private impressionDataAll: boolean;
     private context: IContext;
@@ -155,15 +156,6 @@ export class UnleashClient extends TinyEmitter {
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
-        this.ready = new Promise((resolve) => {
-            this.init()
-                .then(resolve)
-                .catch((error) => {
-                    console.error(error);
-                    this.emit(EVENTS.ERROR, error);
-                    resolve();
-                });
-        });
 
         if (!fetch) {
             console.error(
@@ -175,6 +167,20 @@ export class UnleashClient extends TinyEmitter {
         this.bootstrap =
             bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
+        if (this.bootstrap && this.bootstrapOverride) {
+            this.toggles = this.bootstrap;
+            this.bootstrapped = true;
+        }
+
+        this.ready = new Promise((resolve) => {
+            this.init()
+                .then(resolve)
+                .catch((error) => {
+                    console.error(error);
+                    this.emit(EVENTS.ERROR, error);
+                    resolve();
+                });
+        });
 
         this.metrics = new Metrics({
             onError: this.emit.bind(this, EVENTS.ERROR),
@@ -248,7 +254,7 @@ export class UnleashClient extends TinyEmitter {
 
         if (this.timerRef) {
             await this.fetchToggles();
-        } else if(this.started) {
+        } else if (this.started) {
             await new Promise<void>((resolve) => {
                 const listener = () => {
                     this.fetchToggles().then(() => {
@@ -290,6 +296,7 @@ export class UnleashClient extends TinyEmitter {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
             this.emit(EVENTS.READY);
+            this.bootstrapped = true;
         }
         this.emit(EVENTS.INIT);
     }

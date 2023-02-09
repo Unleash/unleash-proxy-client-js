@@ -89,7 +89,6 @@ export const resolveFetch = () => {
 };
 
 export class UnleashClient extends TinyEmitter {
-    public readyEventEmitted = false;
     private toggles: IToggle[] = [];
     private impressionDataAll: boolean;
     private context: IContext;
@@ -107,6 +106,7 @@ export class UnleashClient extends TinyEmitter {
     private headerName: string;
     private eventsHandler: EventsHandler;
     private customHeaders: Record<string, string>;
+    private readyEventEmitted = false;
     private usePOSTrequests = false;
     private started = false;
 
@@ -155,17 +155,6 @@ export class UnleashClient extends TinyEmitter {
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
-        this.fetch = fetch;
-        this.bootstrap =
-            bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
-        this.bootstrapOverride = bootstrapOverride;
-
-        if (!fetch) {
-            console.error(
-                'Unleash: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.'
-            );
-        }
-
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
@@ -175,6 +164,17 @@ export class UnleashClient extends TinyEmitter {
                     resolve();
                 });
         });
+
+        if (!fetch) {
+            console.error(
+                'Unleash: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.'
+            );
+        }
+
+        this.fetch = fetch;
+        this.bootstrap =
+            bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
+        this.bootstrapOverride = bootstrapOverride;
 
         this.metrics = new Metrics({
             onError: this.emit.bind(this, EVENTS.ERROR),
@@ -248,7 +248,7 @@ export class UnleashClient extends TinyEmitter {
 
         if (this.timerRef) {
             await this.fetchToggles();
-        } else if (this.started) {
+        } else if(this.started) {
             await new Promise<void>((resolve) => {
                 const listener = () => {
                     this.fetchToggles().then(() => {
@@ -278,24 +278,19 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private async init(): Promise<void> {
-        if (this.bootstrapOverride && this.bootstrap) {
-            this.toggles = this.bootstrap;
-            this.emit(EVENTS.READY);
-            this.readyEventEmitted = true;
-            await this.storage.save(storeKey, this.bootstrap);
-        } else {
-            this.toggles =
-                (await this.storage.get(storeKey)) || this.bootstrap || [];
-
-            if (this.bootstrap) {
-                this.emit(EVENTS.READY);
-                this.readyEventEmitted = true;
-            }
-        }
-
         const sessionId = await this.resolveSessionId();
         this.context = { sessionId, ...this.context };
 
+        this.toggles = (await this.storage.get(storeKey)) || [];
+
+        if (
+            this.bootstrap &&
+            (this.bootstrapOverride || this.toggles.length === 0)
+        ) {
+            await this.storage.save(storeKey, this.bootstrap);
+            this.toggles = this.bootstrap;
+            this.emit(EVENTS.READY);
+        }
         this.emit(EVENTS.INIT);
     }
 

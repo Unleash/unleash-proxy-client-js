@@ -1407,3 +1407,19 @@ test('Should be able to configure UnleashClient with a URL instance', () => {
     const client = new UnleashClient(config);
     expect(client).toHaveProperty('url', url);
 });
+
+test("Should update toggles even when refresh interval is set to '0'", async () => {
+    fetchMock.mockResponse(JSON.stringify(data));
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        refreshInterval: 0,
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await client.updateContext({ userId: '123' });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+});

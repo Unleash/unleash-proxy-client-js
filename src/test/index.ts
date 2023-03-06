@@ -6,14 +6,14 @@ import type { FetchMock } from 'jest-fetch-mock';
  * @param callIndex - index of call in given `fetcheMock`
  */
 function getTypeSafeRequest(
-    fetchedMock: FetchMock,
-    callIndex: number | undefined = 0
+  fetchedMock: FetchMock,
+  callIndex: number | undefined = 0
 ): RequestInit {
-    const mockedCall = fetchedMock.mock.calls[callIndex];
-    const [, mockedReq] = mockedCall;
-    const typeSafeRequest = mockedReq ?? {};
+  const mockedCall = fetchedMock.mock.calls[callIndex];
+  const [, mockedReq] = mockedCall;
+  const typeSafeRequest = mockedReq ?? {};
 
-    return typeSafeRequest;
+  return typeSafeRequest;
 }
 
 /**
@@ -22,13 +22,13 @@ function getTypeSafeRequest(
  * @param callIndex - index of call in given `fetcheMock`
  */
 function getTypeSafeRequestUrl(
-    fetchedMock: FetchMock,
-    callIndex: number | undefined = 0
+  fetchedMock: FetchMock,
+  callIndex: number | undefined = 0
 ): string {
-    const mockedCall = fetchedMock.mock.calls[callIndex];
-    const [url] = mockedCall;
+  const mockedCall = fetchedMock.mock.calls[callIndex];
+  const [url] = mockedCall;
 
-    return url as string;
+  return url as string;
 }
 
 /**
@@ -36,9 +36,9 @@ function getTypeSafeRequestUrl(
  * its body with passed type.
  */
 function parseRequestBodyWithType<T>(requestBody: RequestInit): T {
-    const body = JSON.parse(`${requestBody.body}`) as T;
+  const body = JSON.parse(`${requestBody.body}`) as T;
 
-    return body;
+  return body;
 }
 
 export { getTypeSafeRequest, getTypeSafeRequestUrl, parseRequestBodyWithType };

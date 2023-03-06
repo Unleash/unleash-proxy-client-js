@@ -10,13 +10,9 @@
     "src"
   ],
   "scripts": {
-    "preversion": "rm -rf build && npm run build",
-    "prepare": "npm run build && ./scripts/check-release.sh",
-    "build": "npm run build:ts && npm run build:web",
-    "build:ts": "tsc",
-    "build:web": "rollup -c rollup.config.mjs",
-    "fmt": "prettier src --write --loglevel warn",
-    "lint": "eslint src",
+    "build": "rm -rf build && tsc && rollup -c rollup.config.mjs",
+    "format": "prettier src --write --loglevel warn",
+    "lint": "prettier src --check && eslint src",
     "test": "jest"
   },
   "repository": {

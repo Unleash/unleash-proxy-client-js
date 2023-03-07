@@ -3,7 +3,7 @@ import { urlWithContextAsQuery } from './util';
 test('should not add paramters to URL', async () => {
     const someUrl = new URL('https://test.com');
 
-    //@ts-ignore on purpose for testing!
+    // @ts-expect-error for testing purpose
     const result = urlWithContextAsQuery(someUrl, {});
 
     expect(result.toString()).toBe('https://test.com/');

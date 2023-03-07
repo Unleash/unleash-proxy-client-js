@@ -19,7 +19,6 @@ jobs:
         id: setup-git-checkout
         with:
           fetch-depth: 25
-          cache: 'yarn'
 
       - uses: actions/setup-node@v3
         id: setup-node

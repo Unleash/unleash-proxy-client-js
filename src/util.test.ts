@@ -36,3 +36,23 @@ test('should add context properties as query params', async () => {
     );
 });
 
+test('should exclude context properties that are null or undefined', async () => {
+    const someUrl = new URL('https://test.com');
+
+    const result = urlWithContextAsQuery(someUrl, {
+        appName: 'test',
+        userId: undefined,
+        properties: {
+            custom1: 'test',
+            custom2: 'test2',
+            //@ts-expect-error null is not a string
+            custom3: null,
+            //@ts-expect-error undefined is not a string
+            custom4: undefined,
+        },
+    });
+
+    expect(result.toString()).toBe(
+        'https://test.com/?appName=test&properties%5Bcustom1%5D=test&properties%5Bcustom2%5D=test2'
+    );
+});

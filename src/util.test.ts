@@ -45,9 +45,10 @@ test('should exclude context properties that are null or undefined', async () =>
         properties: {
             custom1: 'test',
             custom2: 'test2',
-            //@ts-expect-error null is not a string
+            //@ts-expect-error this shouldn't be allowed if you're using TS, but
+            //you could probably force it
             custom3: null,
-            //@ts-expect-error undefined is not a string
+            //@ts-expect-error same as the null property above
             custom4: undefined,
         },
     });

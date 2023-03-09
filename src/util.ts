@@ -1,7 +1,7 @@
 import { IContext } from '.';
 
 export const notNullOrUndefined = ([, value]: [string, string]) =>
-    value !== undefined && value !== null && value !== "undefined" && value !== "null";
+    value !== undefined && value !== null;
 
 
 export const urlWithContextAsQuery = (url: URL, context: IContext) => {

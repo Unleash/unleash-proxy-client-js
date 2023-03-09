@@ -71,7 +71,6 @@ test('Should perform an initial fetch as GET', async () => {
     expect(request.method).toBe('GET');
 });
 
-
 test('Should have correct variant', async () => {
     fetchMock.mockResponseOnce(JSON.stringify(data));
     const config: IConfig = {
@@ -564,23 +563,25 @@ test('Should publish error when fetch fails', (done) => {
     });
 });
 
-test.each([400, 401, 403, 404, 429, 500, 502, 503])('Should publish error when fetch receives a %d error', async (errorCode) => {
-    expect.assertions(1);
-    jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
-    fetchMock.mockResponseOnce("{}", { status: errorCode});
+test.each([400, 401, 403, 404, 429, 500, 502, 503])(
+    'Should publish error when fetch receives a %d error',
+    async (errorCode) => {
+        expect.assertions(1);
+        jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
+        fetchMock.mockResponseOnce('{}', { status: errorCode });
 
-    const config: IConfig = {
-        url: 'http://localhost/test',
-        clientKey: '12',
-        appName: 'web',
-    };
-    const client = new UnleashClient(config);
-    client.on(EVENTS.ERROR, (e: any) => {
-        expect(e).toStrictEqual({ type: 'HttpError', code: errorCode});
-
-    });
-    await client.start();
-})
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+        };
+        const client = new UnleashClient(config);
+        client.on(EVENTS.ERROR, (e: any) => {
+            expect(e).toStrictEqual({ type: 'HttpError', code: errorCode });
+        });
+        await client.start();
+    }
+);
 
 test('Should publish update when state changes after refreshInterval', async () => {
     expect.assertions(1);
@@ -852,7 +853,6 @@ test('Should update context fields with await', async () => {
     expect(url.searchParams.get('environment')).toEqual('prod');
 });
 
-
 test('Should update context fields on request', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
@@ -905,7 +905,7 @@ test('Updating context should wait on asynchronous start', async () => {
 
     client.start();
     await client.updateContext({
-        userId: '123'
+        userId: '123',
     });
 
     expect(fetchMock).toBeCalledTimes(2);
@@ -938,7 +938,9 @@ test('Should not replace sessionId when updating context', async () => {
 
     const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
-    expect(url.searchParams.get('sessionId')).toEqual(context.sessionId?.toString());
+    expect(url.searchParams.get('sessionId')).toEqual(
+        context.sessionId?.toString()
+    );
 });
 
 test('Should not add property fields when properties is an empty object', async () => {

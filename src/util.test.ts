@@ -3,14 +3,14 @@ import {urlWithContextAsQuery} from './util';
 test('should not add paramters to URL', async () => {
     const someUrl = new URL("https://test.com");
 
-    //@ts-ignore on purpose for testing!
+    //@ts-expect-error on purpose for testing!
     const result = urlWithContextAsQuery(someUrl, {});
 
     expect(result.toString()).toBe('https://test.com/');
 });
 
+test('should add context as query params', async () => {
 
-test('should not add context as query params', async () => {
     const someUrl = new URL("https://test.com");
 
     const result = urlWithContextAsQuery(someUrl, {appName: 'test', userId: '1234A'});
@@ -18,8 +18,8 @@ test('should not add context as query params', async () => {
     expect(result.toString()).toBe('https://test.com/?appName=test&userId=1234A');
 });
 
+test('should add context properties as query params', async () => {
 
-test('should not add context properties as query params', async () => {
     const someUrl = new URL("https://test.com");
 
     const result = urlWithContextAsQuery(someUrl, {appName: 'test', userId: '1234A', properties: { custom1: 'test', custom2: "test2"}});

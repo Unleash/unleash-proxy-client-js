@@ -1423,3 +1423,25 @@ test("Should update toggles even when refresh interval is set to '0'", async () 
     await client.updateContext({ userId: '123' });
     expect(fetchMock).toHaveBeenCalledTimes(2);
 });
+
+test.each([null, undefined])(
+    'Setting a context field to %s should clear it from the context',
+    async () => {
+        fetchMock.mockResponse(JSON.stringify(data));
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+        };
+        const client = new UnleashClient(config);
+        await client.start();
+
+        await client.updateContext({ userId: '123' });
+        expect(client.getContext().userId).toEqual('123');
+
+        const userId = undefined;
+        await client.updateContext({ userId });
+
+        expect(client.getContext().userId).toBeUndefined();
+    }
+);

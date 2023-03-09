@@ -57,3 +57,23 @@ test('should exclude context properties that are null or undefined', async () =>
         'https://test.com/?appName=test&properties%5Bcustom1%5D=test&properties%5Bcustom2%5D=test2'
     );
 });
+
+test('should exclude context properties that are wrapped strings of null or undefined', async () => {
+    const someUrl = new URL('https://test.com');
+
+    const result = urlWithContextAsQuery(someUrl, {
+        appName: 'test',
+        userId: undefined,
+        properties: {
+            custom1: 'test',
+            custom2: 'test2',
+            custom3: "null",
+            custom4: "undefined",
+        },
+    });
+
+    expect(result.toString()).toBe(
+        'https://test.com/?appName=test&properties%5Bcustom1%5D=test&properties%5Bcustom2%5D=test2'
+    );
+});
+

@@ -246,9 +246,9 @@ export class UnleashClient extends TinyEmitter {
         };
         this.context = { ...staticContext, ...context };
 
-        if (this.timerRef) {
+        if (this.timerRef || this.readyEventEmitted) {
             await this.fetchToggles();
-        } else if(this.started) {
+        } else if (this.started) {
             await new Promise<void>((resolve) => {
                 const listener = () => {
                     this.fetchToggles().then(() => {

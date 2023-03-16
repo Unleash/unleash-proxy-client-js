@@ -189,7 +189,8 @@ describe('Custom headers for metrics', () => {
             Authorization: null,
         };
 
-        // @ts-expect-error this shouldn't be allowed in ts
+        // @ts-expect-error this shouldn't be allowed in TS, but there's
+        // nothing stopping you from doing it in JS.
         const requestBody = await runMetrics(customHeaders);
         expect(requestBody.headers).not.toMatchObject(customHeaders);
     });
@@ -201,7 +202,8 @@ describe('Custom headers for metrics', () => {
                 'invalid-header': emptyValue,
             };
 
-            // @ts-expect-error this shouldn't be allowed in ts
+            // @ts-expect-error this shouldn't be allowed in TS, but there's
+            // nothing stopping you from doing it in JS.
             const requestBody = await runMetrics(customHeaders);
 
             expect(requestBody.headers).not.toMatchObject(customHeaders);

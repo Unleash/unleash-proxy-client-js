@@ -1,5 +1,7 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 
+import { notNullOrUndefined } from './util';
+
 export interface MetricsOptions {
     onError: OnError;
     appName: string;
@@ -9,6 +11,7 @@ export interface MetricsOptions {
     clientKey: string;
     fetch: any;
     headerName: string;
+    customHeaders?: Record<string, string>;
 }
 
 interface Bucket {
@@ -36,6 +39,7 @@ export default class Metrics {
     private timer: any;
     private fetch: any;
     private headerName: string;
+    private customHeaders: Record<string, string>;
 
     constructor({
         onError,
@@ -46,6 +50,7 @@ export default class Metrics {
         clientKey,
         fetch,
         headerName,
+        customHeaders = {},
     }: MetricsOptions) {
         this.onError = onError;
         this.disabled = disableMetrics;
@@ -56,6 +61,7 @@ export default class Metrics {
         this.bucket = this.createEmptyBucket();
         this.fetch = fetch;
         this.headerName = headerName;
+        this.customHeaders = customHeaders;
     }
 
     public start() {
@@ -90,6 +96,20 @@ export default class Metrics {
         };
     }
 
+    private getHeaders() {
+        const headers = {
+            [this.headerName]: this.clientKey,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        };
+
+        Object.entries(this.customHeaders)
+            .filter(notNullOrUndefined)
+            .forEach(([name, value]) => (headers[name] = value));
+
+        return headers;
+    }
+
     public async sendMetrics(): Promise<void> {
         /* istanbul ignore next if */
 
@@ -104,11 +124,7 @@ export default class Metrics {
             await this.fetch(url, {
                 cache: 'no-cache',
                 method: 'POST',
-                headers: {
-                    [this.headerName]: this.clientKey,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
+                headers: this.getHeaders(),
                 body: JSON.stringify(payload),
             });
         } catch (e) {

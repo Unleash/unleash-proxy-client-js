@@ -146,8 +146,8 @@ test('should send metrics based on timer interval', async () => {
     expect(fetchMock.mock.calls.length).toEqual(3);
 });
 
-test('Custom headers for metrics', () => {
-    const runMetrics = async (customHeaders) => {
+describe('Custom headers for metrics', () => {
+    const runMetrics = async (customHeaders: Record<string, string>) => {
         const metrics = new Metrics({
             onError: console.error,
             appName: 'test',
@@ -172,9 +172,7 @@ test('Custom headers for metrics', () => {
         };
 
         const requestBody = await runMetrics(customHeaders);
-        expect(requestBody.headers?.['x-custom-header']).toEqual(
-            customHeaders['x-custom-header']
-        );
+        expect(requestBody.headers).toMatchObject(customHeaders);
     });
 
     test('Custom headers should override preset headers', async () => {
@@ -183,10 +181,7 @@ test('Custom headers for metrics', () => {
         };
 
         const requestBody = await runMetrics(customHeaders);
-
-        expect(requestBody.headers?.['Authorization']).toEqual(
-            customHeaders['Authorization']
-        );
+        expect(requestBody.headers).toMatchObject(customHeaders);
     });
 
     test('Empty custom headers do not override preset headers on collision', async () => {
@@ -194,22 +189,22 @@ test('Custom headers for metrics', () => {
             Authorization: null,
         };
 
+        // @ts-expect-error this shouldn't be allowed in ts
         const requestBody = await runMetrics(customHeaders);
-
-        expect(requestBody.headers?.['Authorization']).not.toBeUndefined();
+        expect(requestBody.headers).not.toMatchObject(customHeaders);
     });
 
-    test.each(['', null, undefined])(
-        'Custom headers that are %s should not be sent',
+    test.each([null, undefined])(
+        'Custom headers that are "%s" should not be sent',
         async (emptyValue) => {
             const customHeaders = {
                 'invalid-header': emptyValue,
             };
 
+            // @ts-expect-error this shouldn't be allowed in ts
             const requestBody = await runMetrics(customHeaders);
 
-            //ts-expect-error invalid-header isn't  a standard header.
-            expect(requestBody.headers?.['invalid-header']).toBeUndefined();
+            expect(requestBody.headers).not.toMatchObject(customHeaders);
         }
     );
 });

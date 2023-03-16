@@ -1172,9 +1172,20 @@ test('Should pass custom headers', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const request = getTypeSafeRequest(fetchMock);
+    const featureRequest = getTypeSafeRequest(fetchMock, 0);
 
-    expect(request.headers).toMatchObject({
+    expect(featureRequest.headers).toMatchObject({
+        customheader1: 'header1val',
+        customheader2: 'header2val',
+    });
+
+    const _ = client.isEnabled('count-metrics');
+    jest.advanceTimersByTime(2001);
+
+    const metricsRequest = getTypeSafeRequest(fetchMock, 1);
+
+    expect(metricsRequest.headers).toMatchObject({
+        customheader1: 'header1val',
         customheader2: 'header2val',
     });
 });

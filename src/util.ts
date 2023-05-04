@@ -3,7 +3,6 @@ import { IContext } from '.';
 export const notNullOrUndefined = ([, value]: [string, string]) =>
     value !== undefined && value !== null;
 
-
 export const urlWithContextAsQuery = (url: URL, context: IContext) => {
     const urlWithQuery = new URL(url.toString());
     // Add context information to url search params. If the properties
@@ -22,11 +21,8 @@ export const urlWithContextAsQuery = (url: URL, context: IContext) => {
                         )
                     );
             } else {
-                urlWithQuery.searchParams.append(
-                    contextKey,
-                    contextValue
-                );
+                urlWithQuery.searchParams.append(contextKey, contextValue);
             }
         });
     return urlWithQuery;
-}
+};

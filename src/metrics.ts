@@ -4,6 +4,7 @@ import { notNullOrUndefined } from './util';
 
 export interface MetricsOptions {
     onError: OnError;
+    onSent?: OnSent;
     appName: string;
     metricsInterval: number;
     disableMetrics?: boolean;
@@ -14,10 +15,16 @@ export interface MetricsOptions {
     customHeaders?: Record<string, string>;
 }
 
+interface VariantBucket {
+    [s: string]: number;
+}
+
 interface Bucket {
     start: Date;
     stop: Date | null;
-    toggles: { [s: string]: { yes: number; no: number } };
+    toggles: {
+        [s: string]: { yes: number; no: number; variants: VariantBucket };
+    };
 }
 
 interface Payload {
@@ -27,9 +34,13 @@ interface Payload {
 }
 
 type OnError = (error: unknown) => void;
+type OnSent = (payload: Payload) => void;
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const doNothing = () => {};
 
 export default class Metrics {
     private onError: OnError;
+    private onSent: OnSent;
     private bucket: Bucket;
     private appName: string;
     private metricsInterval: number;
@@ -43,6 +54,7 @@ export default class Metrics {
 
     constructor({
         onError,
+        onSent,
         appName,
         metricsInterval,
         disableMetrics = false,
@@ -53,6 +65,7 @@ export default class Metrics {
         customHeaders = {},
     }: MetricsOptions) {
         this.onError = onError;
+        this.onSent = onSent || doNothing;
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
         this.appName = appName;
@@ -127,6 +140,7 @@ export default class Metrics {
                 headers: this.getHeaders(),
                 body: JSON.stringify(payload),
             });
+            this.onSent(payload);
         } catch (e) {
             console.error('Unleash: unable to send feature metrics', e);
             this.onError(e);
@@ -142,6 +156,19 @@ export default class Metrics {
         return true;
     }
 
+    public countVariant(name: string, variant: string): boolean {
+        if (this.disabled || !this.bucket) {
+            return false;
+        }
+        this.assertBucket(name);
+        if (this.bucket.toggles[name].variants[variant]) {
+            this.bucket.toggles[name].variants[variant] += 1;
+        } else {
+            this.bucket.toggles[name].variants[variant] = 1;
+        }
+        return true;
+    }
+
     private assertBucket(name: string) {
         if (this.disabled || !this.bucket) {
             return false;
@@ -150,6 +177,7 @@ export default class Metrics {
             this.bucket.toggles[name] = {
                 yes: 0,
                 no: 0,
+                variants: {},
             };
         }
     }

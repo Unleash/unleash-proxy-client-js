@@ -46,6 +46,8 @@ test('should send metrics', async () => {
     metrics.count('foo', true);
     metrics.count('foo', false);
     metrics.count('bar', false);
+    metrics.countVariant('foo', 'foo-variant');
+    metrics.countVariant('foo', 'foo-variant');
 
     await metrics.sendMetrics();
 
@@ -60,6 +62,7 @@ test('should send metrics', async () => {
     expect(body.bucket.toggles.foo.no).toEqual(1);
     expect(body.bucket.toggles.bar.yes).toEqual(0);
     expect(body.bucket.toggles.bar.no).toEqual(1);
+    expect(body.bucket.toggles.foo.variants).toEqual({ 'foo-variant': 2 });
 });
 
 test('should send metrics with custom auth header', async () => {

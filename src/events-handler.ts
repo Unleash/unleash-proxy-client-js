@@ -19,7 +19,7 @@ class EventsHandler {
             enabled,
             featureName,
             eventType,
-            impressionData,
+            impressionData
         );
 
         if (variant) {
@@ -36,7 +36,7 @@ class EventsHandler {
         enabled: boolean,
         featureName: string,
         eventType: string,
-        impressionData?: boolean,
+        impressionData?: boolean
     ) {
         return {
             eventType,
@@ -44,7 +44,7 @@ class EventsHandler {
             context,
             enabled,
             featureName,
-            impressionData
+            impressionData,
         };
     }
 }

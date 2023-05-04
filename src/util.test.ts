@@ -57,4 +57,3 @@ test('should exclude context properties that are null or undefined', async () =>
         'https://test.com/?appName=test&properties%5Bcustom1%5D=test&properties%5Bcustom2%5D=test2'
     );
 });
-

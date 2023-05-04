@@ -64,6 +64,7 @@ export const EVENTS = {
     READY: 'ready',
     UPDATE: 'update',
     IMPRESSION: 'impression',
+    SENT: 'sent',
 };
 
 const IMPRESSION_EVENTS = {
@@ -178,6 +179,7 @@ export class UnleashClient extends TinyEmitter {
 
         this.metrics = new Metrics({
             onError: this.emit.bind(this, EVENTS.ERROR),
+            onSent: this.emit.bind(this, EVENTS.SENT),
             appName,
             metricsInterval,
             disableMetrics,
@@ -217,6 +219,9 @@ export class UnleashClient extends TinyEmitter {
         const enabled = toggle?.enabled || false;
         const variant = toggle ? toggle.variant : defaultVariant;
 
+        if (variant.name) {
+            this.metrics.countVariant(toggleName, variant.name);
+        }
         this.metrics.count(toggleName, enabled);
         if (toggle?.impressionData || this.impressionDataAll) {
             const event = this.eventsHandler.createImpressionEvent(

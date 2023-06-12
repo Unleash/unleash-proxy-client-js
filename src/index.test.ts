@@ -2,7 +2,13 @@ import { FetchMock } from 'jest-fetch-mock';
 import 'jest-localstorage-mock';
 import * as data from './test/testdata.json';
 import IStorageProvider from './storage-provider';
-import { EVENTS, IConfig, IMutableContext, UnleashClient } from './index';
+import {
+    EVENTS,
+    IConfig,
+    IMutableContext,
+    IToggle,
+    UnleashClient,
+} from './index';
 import { getTypeSafeRequest, getTypeSafeRequestUrl } from './test';
 
 jest.useFakeTimers();
@@ -110,6 +116,7 @@ test('Should return default variant if not found', async () => {
 test('Should handle error and return false for isEnabled', async () => {
     jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     fetchMock.mockReject();
+
     class Store implements IStorageProvider {
         public async save() {
             return Promise.resolve();
@@ -119,6 +126,7 @@ test('Should handle error and return false for isEnabled', async () => {
             return Promise.resolve([]);
         }
     }
+
     const storageProvider = new Store();
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -136,6 +144,7 @@ test('Should handle error and return false for isEnabled', async () => {
 test('Should read session id from localStorage', async () => {
     const sessionId = '123';
     fetchMock.mockReject();
+
     class Store implements IStorageProvider {
         public async save() {
             return Promise.resolve();
@@ -149,6 +158,7 @@ test('Should read session id from localStorage', async () => {
             }
         }
     }
+
     const storageProvider = new Store();
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -175,6 +185,7 @@ test('Should read toggles from localStorage', async () => {
         },
     ];
     fetchMock.mockReject();
+
     class Store implements IStorageProvider {
         public async save() {
             return Promise.resolve();
@@ -188,6 +199,7 @@ test('Should read toggles from localStorage', async () => {
             }
         }
     }
+
     const storageProvider = new Store();
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -516,6 +528,7 @@ test('Should publish ready when initial fetch completed', (done) => {
 
 test('Should publish error when initial init fails', (done) => {
     const givenError = 'Error';
+
     class Store implements IStorageProvider {
         public async save(): Promise<void> {
             return Promise.reject(givenError);
@@ -1172,9 +1185,20 @@ test('Should pass custom headers', async () => {
 
     jest.advanceTimersByTime(1001);
 
-    const request = getTypeSafeRequest(fetchMock);
+    const featureRequest = getTypeSafeRequest(fetchMock, 0);
 
-    expect(request.headers).toMatchObject({
+    expect(featureRequest.headers).toMatchObject({
+        customheader1: 'header1val',
+        customheader2: 'header2val',
+    });
+
+    const _ = client.isEnabled('count-metrics');
+    jest.advanceTimersByTime(2001);
+
+    const metricsRequest = getTypeSafeRequest(fetchMock, 1);
+
+    expect(metricsRequest.headers).toMatchObject({
+        customheader1: 'header1val',
         customheader2: 'header2val',
     });
 });
@@ -1424,4 +1448,81 @@ test("Should update toggles even when refresh interval is set to '0'", async () 
 
     await client.updateContext({ userId: '123' });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+test.each([null, undefined])(
+    'Setting a context field to %s should clear it from the context',
+    async () => {
+        fetchMock.mockResponse(JSON.stringify(data));
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+        };
+        const client = new UnleashClient(config);
+        await client.start();
+
+        await client.updateContext({ userId: '123' });
+        expect(client.getContext().userId).toEqual('123');
+
+        const userId = undefined;
+        await client.updateContext({ userId });
+
+        expect(client.getContext().userId).toBeUndefined();
+    }
+);
+
+test('Should report metrics', async () => {
+    const toggles: IToggle[] = [
+        {
+            name: 'toggle',
+            enabled: true,
+            variant: {
+                name: 'variant',
+                enabled: true,
+            },
+            impressionData: true,
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        fetch: async () => {
+            return {
+                ok: true,
+                headers: new Map(),
+                async json() {
+                    return { toggles };
+                },
+            };
+        },
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+
+    client.getVariant('toggle');
+    client.getVariant('non-existent-toggle');
+    jest.advanceTimersByTime(2500); // fist metric sent after 2 seconds
+
+    const data = await new Promise((resolve) => {
+        client.on(EVENTS.SENT, (data: any) => {
+            resolve(data);
+        });
+    });
+    expect(data).toMatchObject({
+        appName: 'web',
+        bucket: {
+            toggles: {
+                'non-existent-toggle': {
+                    yes: 0,
+                    no: 1,
+                    variants: { disabled: 1 },
+                },
+                toggle: { yes: 1, no: 0, variants: { variant: 1 } },
+            },
+        },
+    });
+    client.stop();
 });

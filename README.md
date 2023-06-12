@@ -120,9 +120,9 @@ The Unleash SDK takes the following options:
 | fetch             | no | `window.fetch` or global `fetch` | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch`                    | 
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 
 | bootstrapOverride | no| `true` | Should the bootstrap automatically override cached data in the local-storage. Will only be used if bootstrap is not an empty array.     | 
-| headerName        | no| `Authorization` | Provides possiblity to specify custom header that is passed to Unleash / Unleash Proxy with the `clientKey` | 
-| customHeaders     | no| `{}` | Additional headers to use when making HTTP requests to the Unleash proxy. In case of name collisions with the default headers, the `customHeaders` value will be used. | 
-| impressionDataAll | no| `false` | Allows you to trigger "impression" events for **all** `getToggle` and `getVariant` invocations. This is particularly useful for "disabled" feature toggles that are not visible to frontend SDKs. | 
+| headerName        | no| `Authorization` | Which header the SDK should use to authorize with Unleash / Unleash Proxy. The header will be given the `clientKey` as its value. |
+| customHeaders     | no| `{}` | Additional headers to use when making HTTP requests to the Unleash proxy. In case of name collisions with the default headers, the `customHeaders` value will be used if it is not `null` or `undefined`. `customHeaders` values that are `null` or `undefined` will be ignored. |
+| impressionDataAll | no| `false` | Allows you to trigger "impression" events for **all** `getToggle` and `getVariant` invocations. This is particularly useful for "disabled" feature toggles that are not visible to frontend SDKs. |
 | environment | no | `default` | Sets the `environment` option of the [Unleash context](https://docs.getunleash.io/reference/unleash-context). This does **not** affect the SDK's [Unleash environment](https://docs.getunleash.io/reference/environments). |
 
 ### Listen for updates via the EventEmitter

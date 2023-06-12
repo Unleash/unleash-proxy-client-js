@@ -1,7 +1,10 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 
+import { notNullOrUndefined } from './util';
+
 export interface MetricsOptions {
     onError: OnError;
+    onSent?: OnSent;
     appName: string;
     metricsInterval: number;
     disableMetrics?: boolean;
@@ -9,12 +12,19 @@ export interface MetricsOptions {
     clientKey: string;
     fetch: any;
     headerName: string;
+    customHeaders?: Record<string, string>;
+}
+
+interface VariantBucket {
+    [s: string]: number;
 }
 
 interface Bucket {
     start: Date;
     stop: Date | null;
-    toggles: { [s: string]: { yes: number; no: number } };
+    toggles: {
+        [s: string]: { yes: number; no: number; variants: VariantBucket };
+    };
 }
 
 interface Payload {
@@ -24,9 +34,13 @@ interface Payload {
 }
 
 type OnError = (error: unknown) => void;
+type OnSent = (payload: Payload) => void;
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const doNothing = () => {};
 
 export default class Metrics {
     private onError: OnError;
+    private onSent: OnSent;
     private bucket: Bucket;
     private appName: string;
     private metricsInterval: number;
@@ -36,9 +50,11 @@ export default class Metrics {
     private timer: any;
     private fetch: any;
     private headerName: string;
+    private customHeaders: Record<string, string>;
 
     constructor({
         onError,
+        onSent,
         appName,
         metricsInterval,
         disableMetrics = false,
@@ -46,8 +62,10 @@ export default class Metrics {
         clientKey,
         fetch,
         headerName,
+        customHeaders = {},
     }: MetricsOptions) {
         this.onError = onError;
+        this.onSent = onSent || doNothing;
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
         this.appName = appName;
@@ -56,6 +74,7 @@ export default class Metrics {
         this.bucket = this.createEmptyBucket();
         this.fetch = fetch;
         this.headerName = headerName;
+        this.customHeaders = customHeaders;
     }
 
     public start() {
@@ -90,6 +109,20 @@ export default class Metrics {
         };
     }
 
+    private getHeaders() {
+        const headers = {
+            [this.headerName]: this.clientKey,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+        };
+
+        Object.entries(this.customHeaders)
+            .filter(notNullOrUndefined)
+            .forEach(([name, value]) => (headers[name] = value));
+
+        return headers;
+    }
+
     public async sendMetrics(): Promise<void> {
         /* istanbul ignore next if */
 
@@ -104,13 +137,10 @@ export default class Metrics {
             await this.fetch(url, {
                 cache: 'no-cache',
                 method: 'POST',
-                headers: {
-                    [this.headerName]: this.clientKey,
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
+                headers: this.getHeaders(),
                 body: JSON.stringify(payload),
             });
+            this.onSent(payload);
         } catch (e) {
             console.error('Unleash: unable to send feature metrics', e);
             this.onError(e);
@@ -126,6 +156,19 @@ export default class Metrics {
         return true;
     }
 
+    public countVariant(name: string, variant: string): boolean {
+        if (this.disabled || !this.bucket) {
+            return false;
+        }
+        this.assertBucket(name);
+        if (this.bucket.toggles[name].variants[variant]) {
+            this.bucket.toggles[name].variants[variant] += 1;
+        } else {
+            this.bucket.toggles[name].variants[variant] = 1;
+        }
+        return true;
+    }
+
     private assertBucket(name: string) {
         if (this.disabled || !this.bucket) {
             return false;
@@ -134,6 +177,7 @@ export default class Metrics {
             this.bucket.toggles[name] = {
                 yes: 0,
                 no: 0,
+                variants: {},
             };
         }
     }

@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "build": "rm -rf build && tsc && rollup -c rollup.config.mjs",
+    "prepack": "yarn build",
     "format": "prettier src --write --loglevel warn",
     "lint": "prettier src --check && eslint src",
     "test": "jest"

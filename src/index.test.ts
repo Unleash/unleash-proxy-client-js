@@ -1192,7 +1192,7 @@ test('Should pass custom headers', async () => {
         customheader2: 'header2val',
     });
 
-    const _ = client.isEnabled('count-metrics');
+    client.isEnabled('count-metrics');
     jest.advanceTimersByTime(2001);
 
     const metricsRequest = getTypeSafeRequest(fetchMock, 1);

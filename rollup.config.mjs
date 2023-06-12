@@ -11,7 +11,19 @@ export default {
         {
             file: './build/main.min.js',
             format: 'umd',
+            sourcemap: true,
             name: 'unleash', // the global which can be used in a browser
+            plugins: [terser()],
+        },
+        {
+            file: './build/cjs/index.js',
+            sourcemap: true,
+            format: 'cjs',
+        },
+        {
+            file: './build/esm/index.mjs',
+            sourcemap: true,
+            format: 'es',
         },
     ],
     plugins: [
@@ -25,6 +37,5 @@ export default {
         typescript({
             tsconfigOverride: { compilerOptions: { module: 'ES2015' } },
         }),
-        terser(),
     ],
 };

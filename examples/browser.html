@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Unleash JS example</title>
+        <!-- <script src="https://unpkg.com/unleash-proxy-client/build/main.min.js"></script> -->
+        <script src="../build/main.min.js"></script>
+    </head>
+    <body>
+        <h1>Hello</h1>
+        <p>
+            This is an example of how to use the Unleash Proxy Client in a
+            browser.
+        </p>
+        <p>Feature status: <code id="flag">unknown</code>.</p>
+        <script>
+            const client = new unleash.UnleashClient({
+                url: 'https://app.unleash-hosted.com/demo/api/frontend',
+                clientKey:
+                    'demo-app:dev.bf8d2a449a025d1715a28f218dd66a40ef4dcc97b661398f7e05ba67',
+                refreshInterval: 3,
+                appName: 'js-client-example',
+            });
+            client.updateContext({ userId: '123' });
+            client.start();
+
+            setInterval(() => {
+                const enabled = client.isEnabled('demoApp.step1');
+                console.log({ enabled });
+                document.getElementById('flag').innerText = enabled;
+            }, 3_000);
+        </script>
+    </body>
+</html>

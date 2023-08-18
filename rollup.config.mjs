@@ -13,6 +13,11 @@ export default {
             sourcemap: true,
             name: 'unleash', // the global which can be used in a browser
         },
+        {
+            file: './build/main.esm.js',
+            format: 'esm',
+            sourcemap: true,
+        }
     ],
     plugins: [
         typescript({

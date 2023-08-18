@@ -8,7 +8,7 @@
       "import": "./build/main.esm.js",
       "node": "./build/cjs/index.js",
       "require": "./build/cjs/index.js",
-      "default": "./build/main.esm.js"
+      "default": "./build/main.min.js"
     }
   },
   "files": [

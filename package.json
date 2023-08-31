@@ -2,12 +2,16 @@
   "name": "unleash-proxy-client",
   "version": "3.0.0-beta.0",
   "description": "A browser client that can be used together with the unleash-proxy.",
+  "main": "./build/cjs/index.js",
   "types": "./build/cjs/index.d.ts",
+  "browser": "./build/main.min.js",
+  "module": "./build/main.esm.js",
   "exports": {
     ".": {
       "import": "./build/main.esm.js",
       "node": "./build/cjs/index.js",
       "require": "./build/cjs/index.js",
+      "types": "./build/cjs/index.d.ts",
       "default": "./build/main.min.js"
     }
   },

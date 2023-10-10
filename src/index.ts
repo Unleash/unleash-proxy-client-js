@@ -405,6 +405,6 @@ export class UnleashClient extends TinyEmitter {
 }
 
 // export storage providers from root module
-export { IStorageProvider, LocalStorageProvider, InMemoryStorageProvider };
+export { type IStorageProvider, LocalStorageProvider, InMemoryStorageProvider };
 
 export type { IConfig, IContext, IMutableContext, IVariant, IToggle };

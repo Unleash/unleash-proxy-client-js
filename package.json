@@ -1,17 +1,17 @@
 {
   "name": "unleash-proxy-client",
-  "version": "3.0.0",
+  "version": "3.1.0-beta.1",
   "description": "A browser client that can be used together with the unleash-proxy.",
   "type": "module",
-  "main": "./build/cjs/index.js",
+  "main": "./build/index.cjs",
   "types": "./build/cjs/index.d.ts",
   "browser": "./build/main.min.js",
   "module": "./build/main.esm.js",
   "exports": {
     ".": {
       "import": "./build/main.esm.js",
-      "node": "./build/cjs/index.js",
-      "require": "./build/cjs/index.js",
+      "node": "./build/index.cjs",
+      "require": "./build/index.cjs",
       "types": "./build/cjs/index.d.ts",
       "default": "./build/main.min.js"
     }
@@ -22,7 +22,7 @@
     "src"
   ],
   "scripts": {
-    "build": "rm -rf build && tsc && rollup -c rollup.config.mjs",
+    "build": "rm -rf build && rollup -c rollup.config.mjs",
     "prepack": "yarn build",
     "format": "prettier src --write --loglevel warn",
     "lint": "prettier src --check && eslint src",

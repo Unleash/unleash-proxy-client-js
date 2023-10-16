@@ -17,6 +17,11 @@ export default {
             file: './build/main.esm.js',
             format: 'esm',
             sourcemap: true,
+        },
+        {
+            file: './build/index.cjs',
+            format: 'cjs',
+            sourcemap: true,
         }
     ],
     plugins: [

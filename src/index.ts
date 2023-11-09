@@ -45,6 +45,7 @@ interface IConfig extends IStaticContext {
 interface IVariant {
     name: string;
     enabled: boolean;
+    feature_enabled?: boolean;
     payload?: {
         type: string;
         value: string;
@@ -72,7 +73,11 @@ const IMPRESSION_EVENTS = {
     GET_VARIANT: 'getVariant',
 };
 
-const defaultVariant: IVariant = { name: 'disabled', enabled: false };
+const defaultVariant: IVariant = {
+    name: 'disabled',
+    enabled: false,
+    feature_enabled: false,
+};
 const storeKey = 'repo';
 
 export const resolveFetch = () => {
@@ -234,7 +239,7 @@ export class UnleashClient extends TinyEmitter {
             );
             this.emit(EVENTS.IMPRESSION, event);
         }
-        return variant;
+        return { ...variant, feature_enabled: enabled };
     }
 
     public async updateContext(context: IMutableContext): Promise<void> {

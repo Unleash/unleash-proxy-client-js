@@ -268,7 +268,8 @@ const unleash = new UnleashClient({
 	"name": "demoApp.step4",
 	"variant": {
 		"enabled": true,
-		"name": "blue"
+		"name": "blue",
+		"feature_enabled": true,
 	}
   }],
   bootstrapOverride: false

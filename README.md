@@ -269,7 +269,7 @@ const unleash = new UnleashClient({
 	"variant": {
 		"enabled": true,
 		"name": "blue",
-        "feature_enabled": true,
+		"feature_enabled": true,
 	}
   }],
   bootstrapOverride: false

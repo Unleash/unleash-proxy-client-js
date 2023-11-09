@@ -91,6 +91,7 @@ test('Should have correct variant', async () => {
     client.stop();
     expect(variant.name).toBe('green');
     expect(variant.enabled).toBe(true);
+    expect(variant.feature_enabled).toBe(true);
     expect(payload.type).toBe('string');
     expect(payload.value).toBe('some-text');
 });
@@ -109,6 +110,7 @@ test('Should return default variant if not found', async () => {
     client.stop();
     expect(variant.name).toBe('disabled');
     expect(variant.enabled).toBe(false);
+    expect(variant.feature_enabled).toBe(false);
     expect(payload.type).toBe('undef');
     expect(payload.value).toBe('');
 });
@@ -181,6 +183,7 @@ test('Should read toggles from localStorage', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
         },
     ];
@@ -223,6 +226,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -232,6 +236,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -243,6 +248,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -252,6 +258,7 @@ test('Should bootstrap data when bootstrap is provided', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -283,6 +290,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -292,6 +300,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -303,6 +312,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -312,6 +322,7 @@ test('Should set internal toggle state when bootstrap is set, before client is s
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -342,6 +353,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -351,6 +363,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -362,6 +375,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -371,6 +385,7 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -403,6 +418,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -412,6 +428,7 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -444,6 +461,7 @@ test('Should not bootstrap data when bootstrap is []', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
         },
         {
@@ -452,6 +470,7 @@ test('Should not bootstrap data when bootstrap is []', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
         },
     ];
@@ -482,6 +501,7 @@ test('Should publish ready event when bootstrap is provided, before client is st
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -491,6 +511,7 @@ test('Should publish ready event when bootstrap is provided, before client is st
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -1139,6 +1160,7 @@ test('Should emit impression events on isEnabled calls when impressionData is tr
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -1211,6 +1233,7 @@ test('Should emit impression events on getVariant calls when impressionData is t
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -1247,6 +1270,7 @@ test('Should not emit impression events on isEnabled calls when impressionData i
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: false,
         },
@@ -1282,6 +1306,7 @@ test('Should emit impression events on isEnabled calls when impressionData is fa
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: false,
         },
@@ -1324,6 +1349,7 @@ test('Should emit impression events on isEnabled calls when toggle is unknown an
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: false,
         },
@@ -1362,6 +1388,7 @@ test('Should emit impression events on getVariant calls when impressionData is f
             variant: {
                 name: 'disabled',
                 enabled: false,
+                feature_enabled: true,
             },
             impressionData: false,
         },
@@ -1480,6 +1507,7 @@ test('Should report metrics', async () => {
             variant: {
                 name: 'variant',
                 enabled: true,
+                feature_enabled: true,
             },
             impressionData: true,
         },

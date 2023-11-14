@@ -1,0 +1,39 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+
+    steps:
+      - uses: actions/checkout@v3
+        id: setup-git-checkout
+        with:
+          fetch-depth: 25
+
+      - uses: actions/setup-node@v3
+        id: setup-node
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'yarn'
+
+      - name: 📌 Install
+        run: yarn install --frozen-lockfile
+
+      - name: 🔨 Build
+        run: yarn build
+
+      - name: ✨ Lint
+        run: yarn lint
+
+      - name: 🧪 Test
+        run: npm test

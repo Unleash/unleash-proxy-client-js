@@ -55,8 +55,9 @@ test('should send metrics', async () => {
 
     /** Parse request and get its body with casted type */
     const request = getTypeSafeRequest(fetchMock);
-    const body =
-        parseRequestBodyWithType<{ bucket: Metrics['bucket'] }>(request);
+    const body = parseRequestBodyWithType<{ bucket: Metrics['bucket'] }>(
+        request
+    );
 
     expect(body.bucket.toggles.foo.yes).toEqual(2);
     expect(body.bucket.toggles.foo.no).toEqual(1);

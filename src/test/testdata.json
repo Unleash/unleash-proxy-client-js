@@ -10,7 +10,8 @@
           "type": "string",
           "value": "some-text"
         },
-        "enabled": true
+        "enabled": true,
+        "feature_enabled": true
       }
     },
     {
@@ -19,7 +20,8 @@
       "impressionData": true,
       "variant": {
         "name": "disabled",
-        "enabled": false
+        "enabled": false,
+        "feature_enabled": true
       }
     },
     {

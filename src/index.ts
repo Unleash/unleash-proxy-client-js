@@ -192,7 +192,7 @@ export class UnleashClient extends TinyEmitter {
                 'Unleash: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.'
             );
         }
-        if(!createAbortController) {
+        if (!createAbortController) {
             console.error(
                 'Unleash: You must either provide your own "AbortController" implementation or run in an environment where "AbortController" is available.'
             );
@@ -391,8 +391,11 @@ export class UnleashClient extends TinyEmitter {
             if (this.abortController) {
                 this.abortController.abort();
             }
-            this.abortController = this.createAbortController && this.createAbortController();
-            const signal = this.abortController ? this.abortController.signal : undefined;
+            this.abortController =
+                this.createAbortController && this.createAbortController();
+            const signal = this.abortController
+                ? this.abortController.signal
+                : undefined;
 
             try {
                 const isPOST = this.usePOSTrequests;
@@ -410,7 +413,7 @@ export class UnleashClient extends TinyEmitter {
                     cache: 'no-cache',
                     headers: this.getHeaders(),
                     body,
-                    signal
+                    signal,
                 });
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';

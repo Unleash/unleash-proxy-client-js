@@ -34,6 +34,7 @@ interface IConfig extends IStaticContext {
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
     fetch?: any;
+    createAbortController?: () => AbortController;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
     headerName?: string;
@@ -89,6 +90,18 @@ export const resolveFetch = () => {
     return undefined;
 };
 
+const resolveAbortController = () => {
+    try {
+        if (typeof window !== 'undefined' && 'AbortController' in window) {
+            return () => new window.AbortController();
+        } else if ('fetch' in globalThis) {
+            return () => new globalThis.AbortController();
+        }
+    } catch (e) {
+        console.error('Unleash failed to resolve "AbortController" factory', e);
+    }
+};
+
 export class UnleashClient extends TinyEmitter {
     private toggles: IToggle[] = [];
     private impressionDataAll: boolean;
@@ -102,6 +115,8 @@ export class UnleashClient extends TinyEmitter {
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;
+    private createAbortController?: () => AbortController;
+    private abortController?: AbortController | null;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
     private headerName: string;
@@ -123,6 +138,7 @@ export class UnleashClient extends TinyEmitter {
         environment = 'default',
         context,
         fetch = resolveFetch(),
+        createAbortController = resolveAbortController(),
         bootstrap,
         bootstrapOverride = true,
         headerName = 'Authorization',
@@ -171,8 +187,14 @@ export class UnleashClient extends TinyEmitter {
                 'Unleash: You must either provide your own "fetch" implementation or run in an environment where "fetch" is available.'
             );
         }
+        if(!createAbortController) {
+            console.error(
+                'Unleash: You must either provide your own "AbortController" implementation or run in an environment where "AbortController" is available.'
+            );
+        }
 
         this.fetch = fetch;
+        this.createAbortController = createAbortController;
         this.bootstrap =
             bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
@@ -361,6 +383,12 @@ export class UnleashClient extends TinyEmitter {
 
     private async fetchToggles() {
         if (this.fetch) {
+            if (this.abortController) {
+                this.abortController.abort();
+            }
+            this.abortController = this.createAbortController && this.createAbortController();
+            const signal = this.abortController ? this.abortController.signal : undefined;
+
             try {
                 const isPOST = this.usePOSTrequests;
 
@@ -377,6 +405,7 @@ export class UnleashClient extends TinyEmitter {
                     cache: 'no-cache',
                     headers: this.getHeaders(),
                     body,
+                    signal
                 });
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';
@@ -399,6 +428,8 @@ export class UnleashClient extends TinyEmitter {
             } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
                 this.emit(EVENTS.ERROR, e);
+            } finally {
+                this.abortController = null;
             }
         }
     }

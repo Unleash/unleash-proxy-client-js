@@ -597,6 +597,25 @@ test('Should publish error when fetch fails', (done) => {
     });
 });
 
+test('Should abort previous request', async () => {
+    fetchMock.mockResponse(JSON.stringify(data));
+    const abortSpy = jest.spyOn(AbortController.prototype, 'abort');
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    client.updateContext({ userId: '123' }); // abort 1
+    client.updateContext({ userId: '456' }); // abort 2
+    await client.updateContext({ userId: '789' });
+
+    expect(abortSpy).toBeCalledTimes(2);
+    abortSpy.mockRestore();
+});
+
 test.each([400, 401, 403, 404, 429, 500, 502, 503])(
     'Should publish error when fetch receives a %d error',
     async (errorCode) => {

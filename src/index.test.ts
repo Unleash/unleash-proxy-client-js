@@ -1574,7 +1574,7 @@ test('Should report metrics', async () => {
     client.stop();
 });
 
-test('Should emit SUCCESSFUL when networkError is HttpError and status is less than 400', (done) => {
+test('Should emit POST_ERROR_SUCCESS when networkError is HttpError and status is less than 400', (done) => {
     const data = { status: 200 }; // replace with the actual data you want to test
     fetchMock.mockResponseOnce(JSON.stringify(data), { status: 200 });
 

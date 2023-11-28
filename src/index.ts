@@ -109,7 +109,7 @@ export class UnleashClient extends TinyEmitter {
     private customHeaders: Record<string, string>;
     private readyEventEmitted = false;
     private usePOSTrequests = false;
-    private networkError: null | string;
+    private sdkError: null | 'SdkError';
 
     constructor({
         storageProvider,
@@ -157,6 +157,7 @@ export class UnleashClient extends TinyEmitter {
                 .then(resolve)
                 .catch((error) => {
                     console.error(error);
+                    this.sdkError = 'SdkError';
                     this.emit(EVENTS.ERROR, error);
                     resolve();
                 });
@@ -172,7 +173,7 @@ export class UnleashClient extends TinyEmitter {
         this.bootstrap =
             bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
-        this.networkError = null;
+        this.sdkError = null;
 
         this.metrics = new Metrics({
             onError: this.emit.bind(this, EVENTS.ERROR),
@@ -367,8 +368,8 @@ export class UnleashClient extends TinyEmitter {
                     body,
                 });
 
-                if (this.networkError === 'HttpError' && response.status < 400) {
-                    this.networkError = null;
+                if (this.sdkError === 'SdkError' && response.status < 400) {
+                    this.sdkError = null;
                     this.emit(EVENTS.POST_ERROR_SUCCESS);
                 }
 
@@ -385,7 +386,7 @@ export class UnleashClient extends TinyEmitter {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'
                     );
-                    this.networkError = 'HttpError';
+                    this.sdkError = 'SdkError';
                     this.emit(EVENTS.ERROR, {
                         type: 'HttpError',
                         code: response.status,
@@ -393,6 +394,7 @@ export class UnleashClient extends TinyEmitter {
                 }
             } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
+                this.sdkError = 'SdkError'
                 this.emit(EVENTS.ERROR, e);
             }
         }

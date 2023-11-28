@@ -1381,13 +1381,13 @@ test('Should emit SUCCESSFUL when networkError is HttpError and status is less t
     };
 
     const client = new UnleashClient(config);
-    // @ts-ignore - Private method
-    client.networkError = 'HttpError'; // set networkError to 'HttpError'
+    // @ts-ignore - Private method by design, but we want to access it in tests
+    client.sdkError = 'SdkError'; // set networkError to 'HttpError'
     client.start();
 
     client.on(EVENTS.POST_ERROR_SUCCESS, () => {
-        // @ts-ignore - Private method
-        expect(client.networkError).toBe(null);
+        // @ts-ignore - Private method bu desogm. but we want to access it in tests
+        expect(client.sdkError).toBe(null);
         client.stop();
         done();
     });

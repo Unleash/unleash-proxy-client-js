@@ -328,9 +328,10 @@ export class UnleashClient extends TinyEmitter {
         ) {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
-            this.sdkState = 'healthy';
             this.emit(EVENTS.READY);
         }
+        
+        this.sdkState = 'healthy';
         this.emit(EVENTS.INIT);
     }
 
@@ -432,6 +433,10 @@ export class UnleashClient extends TinyEmitter {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
+
+                    if (this.sdkState !== 'healthy') {
+                        this.sdkState = 'healthy';
+                    }
 
                     if (!this.bootstrap && !this.readyEventEmitted) {
                         this.emit(EVENTS.READY);

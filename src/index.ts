@@ -67,7 +67,7 @@ export const EVENTS = {
     UPDATE: 'update',
     IMPRESSION: 'impression',
     SENT: 'sent',
-    POST_ERROR_SUCCESS: 'postErrorSuccess',
+    RECOVERED: 'recovered',
 };
 
 const IMPRESSION_EVENTS = {
@@ -81,6 +81,8 @@ const defaultVariant: IVariant = {
     feature_enabled: false,
 };
 const storeKey = 'repo';
+
+type SdkState = 'initializing' | 'healthy' | 'error'
 
 export const resolveFetch = () => {
     try {
@@ -131,7 +133,7 @@ export class UnleashClient extends TinyEmitter {
     private readyEventEmitted = false;
     private usePOSTrequests = false;
     private started = false;
-    private sdkError: null | 'SdkError';
+    private sdkState: SdkState;
 
     constructor({
         storageProvider,
@@ -179,13 +181,13 @@ export class UnleashClient extends TinyEmitter {
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
-        this.sdkError = null;
+        this.sdkState = 'initializing';
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
                 .catch((error) => {
                     console.error(error);
-                    this.sdkError = 'SdkError';
+                    this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, error);
                     resolve();
                 });
@@ -326,6 +328,7 @@ export class UnleashClient extends TinyEmitter {
         ) {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
+            this.sdkState = 'healthy';
             this.emit(EVENTS.READY);
         }
         this.emit(EVENTS.INIT);
@@ -420,9 +423,9 @@ export class UnleashClient extends TinyEmitter {
                     signal,
                 });
 
-                if (this.sdkError === 'SdkError' && response.status < 400) {
-                    this.sdkError = null;
-                    this.emit(EVENTS.POST_ERROR_SUCCESS);
+                if (this.sdkState === 'error' && response.status < 400) {
+                    this.sdkState = 'healthy';
+                    this.emit(EVENTS.RECOVERED);
                 }
 
                 if (response.ok && response.status !== 304) {
@@ -438,7 +441,7 @@ export class UnleashClient extends TinyEmitter {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'
                     );
-                    this.sdkError = 'SdkError';
+                    this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, {
                         type: 'HttpError',
                         code: response.status,
@@ -446,7 +449,7 @@ export class UnleashClient extends TinyEmitter {
                 }
             } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
-                this.sdkError = 'SdkError';
+                this.sdkState = 'error';
                 this.emit(EVENTS.ERROR, e);
             } finally {
                 this.abortController = null;

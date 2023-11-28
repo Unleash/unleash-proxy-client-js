@@ -1574,7 +1574,7 @@ test('Should report metrics', async () => {
     client.stop();
 });
 
-test('Should emit POST_ERROR_SUCCESS when networkError is HttpError and status is less than 400', (done) => {
+test('Should emit RECOVERED event when sdkStatus is error and status is less than 400', (done) => {
     const data = { status: 200 }; // replace with the actual data you want to test
     fetchMock.mockResponseOnce(JSON.stringify(data), { status: 200 });
 
@@ -1587,13 +1587,13 @@ test('Should emit POST_ERROR_SUCCESS when networkError is HttpError and status i
     const client = new UnleashClient(config);
     // eslint-disable-next-line
     // @ts-ignore - Private method by design, but we want to access it in tests
-    client.sdkError = 'SdkError';
+    client.sdkState = 'error';
     client.start();
 
-    client.on(EVENTS.POST_ERROR_SUCCESS, () => {
+    client.on(EVENTS.RECOVERED, () => {
         // eslint-disable-next-line
         // @ts-ignore - Private method by design. but we want to access it in tests
-        expect(client.sdkError).toBe(null);
+        expect(client.sdkState).toBe('healthy');
         client.stop();
         done();
     });

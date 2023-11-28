@@ -423,7 +423,6 @@ export class UnleashClient extends TinyEmitter {
                     body,
                     signal,
                 });
-
                 if (this.sdkState === 'error' && response.status < 400) {
                     this.sdkState = 'healthy';
                     this.emit(EVENTS.RECOVERED);

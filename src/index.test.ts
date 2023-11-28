@@ -1585,14 +1585,43 @@ test('Should emit RECOVERED event when sdkStatus is error and status is less tha
     };
 
     const client = new UnleashClient(config);
-    // eslint-disable-next-line
-    // @ts-ignore - Private method by design, but we want to access it in tests
-    client.sdkState = 'error';
+
     client.start();
+
+    client.on(EVENTS.INIT, () => {
+        // Set error after the SDK has moved through the sdk states internally
+        // eslint-disable-next-line
+        // @ts-ignore - Private method by design, but we want to access it in tests
+        client.sdkState = 'error';
+    });
+
 
     client.on(EVENTS.RECOVERED, () => {
         // eslint-disable-next-line
         // @ts-ignore - Private method by design. but we want to access it in tests
+        expect(client.sdkState).toBe('healthy');
+        client.stop();
+        done();
+    });
+});
+
+test('Should set sdkState to healthy when client is started', (done) => {
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+
+    const client = new UnleashClient(config);
+    // eslint-disable-next-line
+    // @ts-ignore - Private method by design, but we want to access it in tests
+    expect(client.sdkState).toBe('initializing');
+
+    client.start();
+
+    client.on(EVENTS.INIT, () => {
+        // eslint-disable-next-line
+        // @ts-ignore - Private method by design, but we want to access it in tests
         expect(client.sdkState).toBe('healthy');
         client.stop();
         done();

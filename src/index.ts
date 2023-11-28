@@ -64,6 +64,7 @@ export const EVENTS = {
     READY: 'ready',
     UPDATE: 'update',
     IMPRESSION: 'impression',
+    POST_ERROR_SUCCESS: 'postErrorSuccess'
 };
 
 const IMPRESSION_EVENTS = {
@@ -108,6 +109,7 @@ export class UnleashClient extends TinyEmitter {
     private customHeaders: Record<string, string>;
     private readyEventEmitted = false;
     private usePOSTrequests = false;
+    private networkError: null | string;
 
     constructor({
         storageProvider,
@@ -170,6 +172,7 @@ export class UnleashClient extends TinyEmitter {
         this.bootstrap =
             bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
+        this.networkError = null;
 
         this.metrics = new Metrics({
             onError: this.emit.bind(this, EVENTS.ERROR),
@@ -363,6 +366,12 @@ export class UnleashClient extends TinyEmitter {
                     headers: this.getHeaders(),
                     body,
                 });
+
+                if (this.networkError === 'HttpError' && response.status < 400) {
+                    this.networkError = null;
+                    this.emit(EVENTS.POST_ERROR_SUCCESS);
+                }
+
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
@@ -376,6 +385,7 @@ export class UnleashClient extends TinyEmitter {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'
                     );
+                    this.networkError = 'HttpError';
                     this.emit(EVENTS.ERROR, {
                         type: 'HttpError',
                         code: response.status,

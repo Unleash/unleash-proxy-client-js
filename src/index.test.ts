@@ -1369,3 +1369,26 @@ test('Should be able to configure UnleashClient with a URL instance', () => {
     const client = new UnleashClient(config);
     expect(client).toHaveProperty('url', url);
 });
+
+test('Should emit SUCCESSFUL when networkError is HttpError and status is less than 400', (done) => {
+    const data = { status: 200 }; // replace with the actual data you want to test
+    fetchMock.mockResponseOnce(JSON.stringify(data), { status: 200 });
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+
+    const client = new UnleashClient(config);
+    // @ts-ignore - Private method
+    client.networkError = 'HttpError'; // set networkError to 'HttpError'
+    client.start();
+
+    client.on(EVENTS.POST_ERROR_SUCCESS, () => {
+        // @ts-ignore - Private method
+        expect(client.networkError).toBe(null);
+        client.stop();
+        done();
+    });
+});

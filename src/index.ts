@@ -67,6 +67,7 @@ export const EVENTS = {
     UPDATE: 'update',
     IMPRESSION: 'impression',
     SENT: 'sent',
+    POST_ERROR_SUCCESS: 'postErrorSuccess'
 };
 
 const IMPRESSION_EVENTS = {
@@ -130,6 +131,7 @@ export class UnleashClient extends TinyEmitter {
     private readyEventEmitted = false;
     private usePOSTrequests = false;
     private started = false;
+    private sdkError: null | 'SdkError';
 
     constructor({
         storageProvider,
@@ -177,11 +179,13 @@ export class UnleashClient extends TinyEmitter {
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
+        this.sdkError = null;
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
                 .catch((error) => {
                     console.error(error);
+                    this.sdkError = 'SdkError';
                     this.emit(EVENTS.ERROR, error);
                     resolve();
                 });
@@ -415,6 +419,12 @@ export class UnleashClient extends TinyEmitter {
                     body,
                     signal,
                 });
+
+                if (this.sdkError === 'SdkError' && response.status < 400) {
+                    this.sdkError = null;
+                    this.emit(EVENTS.POST_ERROR_SUCCESS);
+                }
+
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
@@ -428,6 +438,7 @@ export class UnleashClient extends TinyEmitter {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'
                     );
+                    this.sdkError = 'SdkError';
                     this.emit(EVENTS.ERROR, {
                         type: 'HttpError',
                         code: response.status,
@@ -435,6 +446,7 @@ export class UnleashClient extends TinyEmitter {
                 }
             } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
+                this.sdkError = 'SdkError';
                 this.emit(EVENTS.ERROR, e);
             } finally {
                 this.abortController = null;

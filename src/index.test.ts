@@ -1573,3 +1573,26 @@ test('Should report metrics', async () => {
     });
     client.stop();
 });
+
+test('Should emit SUCCESSFUL when networkError is HttpError and status is less than 400', (done) => {
+    const data = { status: 200 }; // replace with the actual data you want to test
+    fetchMock.mockResponseOnce(JSON.stringify(data), { status: 200 });
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+
+    const client = new UnleashClient(config);
+    // @ts-ignore - Private method by design, but we want to access it in tests
+    client.sdkError = 'SdkError'; // set networkError to 'HttpError'
+    client.start();
+
+    client.on(EVENTS.POST_ERROR_SUCCESS, () => {
+        // @ts-ignore - Private method bu desogm. but we want to access it in tests
+        expect(client.sdkError).toBe(null);
+        client.stop();
+        done();
+    });
+});

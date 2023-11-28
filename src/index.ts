@@ -82,7 +82,7 @@ const defaultVariant: IVariant = {
 };
 const storeKey = 'repo';
 
-type SdkState = 'initializing' | 'healthy' | 'error'
+type SdkState = 'initializing' | 'healthy' | 'error';
 
 export const resolveFetch = () => {
     try {
@@ -330,7 +330,7 @@ export class UnleashClient extends TinyEmitter {
             this.toggles = this.bootstrap;
             this.emit(EVENTS.READY);
         }
-        
+
         this.sdkState = 'healthy';
         this.emit(EVENTS.INIT);
     }

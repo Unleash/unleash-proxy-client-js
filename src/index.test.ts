@@ -1595,7 +1595,6 @@ test('Should emit RECOVERED event when sdkStatus is error and status is less tha
         client.sdkState = 'error';
     });
 
-
     client.on(EVENTS.RECOVERED, () => {
         // eslint-disable-next-line
         // @ts-ignore - Private method by design. but we want to access it in tests

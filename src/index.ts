@@ -67,7 +67,7 @@ export const EVENTS = {
     UPDATE: 'update',
     IMPRESSION: 'impression',
     SENT: 'sent',
-    POST_ERROR_SUCCESS: 'postErrorSuccess'
+    POST_ERROR_SUCCESS: 'postErrorSuccess',
 };
 
 const IMPRESSION_EVENTS = {

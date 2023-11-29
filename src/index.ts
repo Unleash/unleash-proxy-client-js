@@ -67,6 +67,7 @@ export const EVENTS = {
     UPDATE: 'update',
     IMPRESSION: 'impression',
     SENT: 'sent',
+    RECOVERED: 'recovered',
 };
 
 const IMPRESSION_EVENTS = {
@@ -80,6 +81,8 @@ const defaultVariant: IVariant = {
     feature_enabled: false,
 };
 const storeKey = 'repo';
+
+type SdkState = 'initializing' | 'healthy' | 'error';
 
 export const resolveFetch = () => {
     try {
@@ -130,6 +133,7 @@ export class UnleashClient extends TinyEmitter {
     private readyEventEmitted = false;
     private usePOSTrequests = false;
     private started = false;
+    private sdkState: SdkState;
 
     constructor({
         storageProvider,
@@ -177,11 +181,13 @@ export class UnleashClient extends TinyEmitter {
         this.refreshInterval = disableRefresh ? 0 : refreshInterval * 1000;
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
+        this.sdkState = 'initializing';
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
                 .catch((error) => {
                     console.error(error);
+                    this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, error);
                     resolve();
                 });
@@ -324,6 +330,8 @@ export class UnleashClient extends TinyEmitter {
             this.toggles = this.bootstrap;
             this.emit(EVENTS.READY);
         }
+
+        this.sdkState = 'healthy';
         this.emit(EVENTS.INIT);
     }
 
@@ -415,10 +423,19 @@ export class UnleashClient extends TinyEmitter {
                     body,
                     signal,
                 });
+                if (this.sdkState === 'error' && response.status < 400) {
+                    this.sdkState = 'healthy';
+                    this.emit(EVENTS.RECOVERED);
+                }
+
                 if (response.ok && response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
+
+                    if (this.sdkState !== 'healthy') {
+                        this.sdkState = 'healthy';
+                    }
 
                     if (!this.bootstrap && !this.readyEventEmitted) {
                         this.emit(EVENTS.READY);
@@ -428,6 +445,7 @@ export class UnleashClient extends TinyEmitter {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'
                     );
+                    this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, {
                         type: 'HttpError',
                         code: response.status,
@@ -435,6 +453,7 @@ export class UnleashClient extends TinyEmitter {
                 }
             } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
+                this.sdkState = 'error';
                 this.emit(EVENTS.ERROR, e);
             } finally {
                 this.abortController = null;

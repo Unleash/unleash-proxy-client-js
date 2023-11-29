@@ -143,6 +143,8 @@ unleash.on('update', () => {
 - **initialized** - emitted after the SDK has read local cached data in the storageProvider. 
 - **ready** - emitted after the SDK has successfully started and performed the initial fetch towards the Unleash Proxy. 
 - **update** - emitted every time the Unleash Proxy return a new feature toggle configuration. The SDK will emit this event as part of the initial fetch from the SDK.  
+- **recovered** - emitted when the SDK has recovered from an error. This event will only be emitted if the SDK has previously emitted an error.
+- **sent** - emitted when the SDK has successfully sent metrics to Unleash.
 
 > PS! Please remember that you should always register your event listeners before your call `unleash.start()`. If you register them after you have started the SDK you risk loosing important events. 
 

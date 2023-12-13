@@ -418,7 +418,6 @@ export class UnleashClient extends TinyEmitter {
 
                 const response = await this.fetch(url.toString(), {
                     method,
-                    cache: 'no-cache',
                     headers: this.getHeaders(),
                     body,
                     signal,

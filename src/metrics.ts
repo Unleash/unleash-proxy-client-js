@@ -135,7 +135,6 @@ export default class Metrics {
 
         try {
             await this.fetch(url, {
-                cache: 'no-cache',
                 method: 'POST',
                 headers: this.getHeaders(),
                 body: JSON.stringify(payload),

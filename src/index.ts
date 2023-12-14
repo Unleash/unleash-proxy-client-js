@@ -379,7 +379,6 @@ export class UnleashClient extends TinyEmitter {
         const headers = {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
-            'Content-Type': 'application/json',
             'If-None-Match': this.etag,
         };
         Object.entries(this.customHeaders)
@@ -417,7 +416,6 @@ export class UnleashClient extends TinyEmitter {
                     : undefined;
 
                 const response = await this.fetch(url.toString(), {
-                    credentials: 'include',
                     method,
                     headers: this.getHeaders(),
                     body,

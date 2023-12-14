@@ -380,6 +380,7 @@ export class UnleashClient extends TinyEmitter {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
             'If-None-Match': this.etag,
+            'Content-Type': 'application/json',
         };
         Object.entries(this.customHeaders)
             .filter(notNullOrUndefined)
@@ -419,6 +420,7 @@ export class UnleashClient extends TinyEmitter {
                     method,
                     headers: this.getHeaders(),
                     body,
+                    referrer: 'origin',
                     signal,
                 });
                 if (this.sdkState === 'error' && response.status < 400) {

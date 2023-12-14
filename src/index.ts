@@ -417,6 +417,7 @@ export class UnleashClient extends TinyEmitter {
                     : undefined;
 
                 const response = await this.fetch(url.toString(), {
+                    credentials: 'include',
                     method,
                     headers: this.getHeaders(),
                     body,

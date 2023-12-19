@@ -365,14 +365,14 @@ export class UnleashClient extends TinyEmitter {
     private async resolveSessionId(): Promise<string> {
         if (this.context.sessionId) {
             return this.context.sessionId;
-        } else {
-            let sessionId = await this.storage.get('sessionId');
-            if (!sessionId) {
-                sessionId = Math.floor(Math.random() * 1_000_000_000);
-                await this.storage.save('sessionId', sessionId);
-            }
-            return sessionId;
         }
+
+        let sessionId = await this.storage.get('sessionId');
+        if (!sessionId) {
+            sessionId = Math.floor(Math.random() * 1_000_000_000);
+            await this.storage.save('sessionId', sessionId);
+        }
+        return sessionId;
     }
 
     private getHeaders() {
@@ -380,8 +380,10 @@ export class UnleashClient extends TinyEmitter {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
             'Content-Type': 'application/json',
-            'If-None-Match': this.etag,
         };
+        if (this.etag) {
+            headers['If-None-Match'] = this.etag;
+        }
         Object.entries(this.customHeaders)
             .filter(notNullOrUndefined)
             .forEach(([name, value]) => (headers[name] = value));

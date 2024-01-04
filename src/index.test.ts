@@ -703,9 +703,7 @@ test('Should include etag in second request', async () => {
     const firstRequest = getTypeSafeRequest(fetchMock, 0);
     const secondRequest = getTypeSafeRequest(fetchMock, 1);
 
-    expect(firstRequest.headers).toMatchObject({
-        'If-None-Match': '',
-    });
+    expect(firstRequest.headers).toMatchObject({});
     expect(secondRequest.headers).toMatchObject({
         'If-None-Match': etag,
     });

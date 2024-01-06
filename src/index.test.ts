@@ -1127,6 +1127,42 @@ test('Should override userId via setContextField', async () => {
     expect(context.userId).toBe(userId);
 });
 
+test('Should allow to remove context defined field via removeContextField', async () => {
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        context: { userId: 'old' },
+    };
+    const client = new UnleashClient(config);
+    client.removeContextField('userId');
+    const context = client.getContext();
+    expect(context.userId).not.toBeDefined();
+});
+
+test('Should allow to remove context property field via removeContextField', async () => {
+    const propertyToDelete = 'property1';
+    const propertyToKeep = 'property2';
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        context: {
+            userId: 'userId',
+            properties: {
+                [propertyToDelete]: 'value1',
+                [propertyToKeep]: 'value2',
+            },
+        },
+    };
+    const client = new UnleashClient(config);
+    client.removeContextField(propertyToDelete);
+    const context = client.getContext();
+    expect(context.userId).toBeDefined();
+    expect(context.properties?.[propertyToDelete]).not.toBeDefined();
+    expect(context.properties?.[propertyToKeep]).toBeDefined();
+});
+
 test('Initializing client twice should show a console warning', async () => {
     console.error = jest.fn();
     const config: IConfig = {

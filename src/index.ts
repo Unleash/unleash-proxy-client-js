@@ -6,7 +6,7 @@ import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
 import { notNullOrUndefined, urlWithContextAsQuery } from './util';
 
-const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
+const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'] as const;
 
 interface IStaticContext {
     appName: string;
@@ -285,6 +285,10 @@ export class UnleashClient extends TinyEmitter {
         };
         this.context = { ...staticContext, ...context };
 
+        await this.updateToggles();
+    }
+
+    private async updateToggles(): Promise<void> {
         if (this.timerRef || this.readyEventEmitted) {
             await this.fetchToggles();
         } else if (this.started) {
@@ -304,16 +308,27 @@ export class UnleashClient extends TinyEmitter {
         return { ...this.context };
     }
 
-    public setContextField(field: string, value: string) {
-        if (DEFINED_FIELDS.includes(field)) {
+    public async setContextField(field: string, value: string): Promise<void> {
+        if (DEFINED_FIELDS.includes(field as (typeof DEFINED_FIELDS)[number])) {
             this.context = { ...this.context, [field]: value };
         } else {
             const properties = { ...this.context.properties, [field]: value };
             this.context = { ...this.context, properties };
         }
-        if (this.timerRef) {
-            this.fetchToggles();
+        await this.updateToggles();
+    }
+
+    public async removeContextField(field: string): Promise<void> {
+        if (DEFINED_FIELDS.includes(field as (typeof DEFINED_FIELDS)[number])) {
+            const context = { ...this.context };
+            delete context[field as (typeof DEFINED_FIELDS)[number]];
+            this.context = context;
+        } else {
+            const properties = { ...this.context.properties };
+            delete properties[field];
+            this.context = { ...this.context, properties };
         }
+        await this.updateToggles();
     }
 
     private async init(): Promise<void> {

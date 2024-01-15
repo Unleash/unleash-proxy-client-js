@@ -1095,7 +1095,6 @@ test('Should setContextField with currentTime', async () => {
     expect(context.currentTime).toBe(currentTime);
 });
 
-
 test('Should setContextField with custom property', async () => {
     const clientId = 'some-client-id-443';
     const config: IConfig = {

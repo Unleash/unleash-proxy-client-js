@@ -1082,6 +1082,19 @@ test('Should setContextField with remoteAddress', async () => {
     expect(context.remoteAddress).toBe(remoteAddress);
 });
 
+test('Should setContextField with currentTime', async () => {
+    const currentTime = '2022-01-22T13:00:00.000Z';
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    client.setContextField('currentTime', currentTime);
+    const context = client.getContext();
+    expect(context.currentTime).toBe(currentTime);
+});
+
 test('Should setContextField with custom property', async () => {
     const clientId = 'some-client-id-443';
     const config: IConfig = {

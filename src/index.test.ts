@@ -91,7 +91,6 @@ test('Should have correct variant', async () => {
     client.stop();
     expect(variant.name).toBe('green');
     expect(variant.enabled).toBe(true);
-    expect(variant.feature_enabled).toBe(true);
     expect(payload.type).toBe('string');
     expect(payload.value).toBe('some-text');
 });
@@ -110,7 +109,6 @@ test('Should return default variant if not found', async () => {
     client.stop();
     expect(variant.name).toBe('disabled');
     expect(variant.enabled).toBe(false);
-    expect(variant.feature_enabled).toBe(false);
     expect(payload.type).toBe('undef');
     expect(payload.value).toBe('');
 });
@@ -183,7 +181,6 @@ test('Should read toggles from localStorage', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
         },
     ];
@@ -226,7 +223,6 @@ test('Should bootstrap data when bootstrap is provided', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -236,7 +232,6 @@ test('Should bootstrap data when bootstrap is provided', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -248,7 +243,6 @@ test('Should bootstrap data when bootstrap is provided', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -258,7 +252,6 @@ test('Should bootstrap data when bootstrap is provided', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -290,7 +283,6 @@ test('Should set internal toggle state when bootstrap is set, before client is s
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -300,7 +292,6 @@ test('Should set internal toggle state when bootstrap is set, before client is s
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -312,7 +303,6 @@ test('Should set internal toggle state when bootstrap is set, before client is s
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -322,7 +312,6 @@ test('Should set internal toggle state when bootstrap is set, before client is s
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -353,7 +342,6 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -363,7 +351,6 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -375,7 +362,6 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -385,7 +371,6 @@ test('Should not bootstrap data when bootstrapOverride is false and localStorage
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -418,7 +403,6 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -428,7 +412,6 @@ test('Should bootstrap when bootstrapOverride is false and local storage is empt
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -461,7 +444,6 @@ test('Should not bootstrap data when bootstrap is []', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
         },
         {
@@ -470,7 +452,6 @@ test('Should not bootstrap data when bootstrap is []', async () => {
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
         },
     ];
@@ -501,7 +482,6 @@ test('Should publish ready event when bootstrap is provided, before client is st
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -511,7 +491,6 @@ test('Should publish ready event when bootstrap is provided, before client is st
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -597,25 +576,6 @@ test('Should publish error when fetch fails', (done) => {
     });
 });
 
-test('Should abort previous request', async () => {
-    fetchMock.mockResponse(JSON.stringify(data));
-    const abortSpy = jest.spyOn(AbortController.prototype, 'abort');
-
-    const config: IConfig = {
-        url: 'http://localhost/test',
-        clientKey: '12',
-        appName: 'web',
-    };
-    const client = new UnleashClient(config);
-    await client.start();
-    client.updateContext({ userId: '123' }); // abort 1
-    client.updateContext({ userId: '456' }); // abort 2
-    await client.updateContext({ userId: '789' });
-
-    expect(abortSpy).toBeCalledTimes(2);
-    abortSpy.mockRestore();
-});
-
 test.each([400, 401, 403, 404, 429, 500, 502, 503])(
     'Should publish error when fetch receives a %d error',
     async (errorCode) => {
@@ -633,14 +593,14 @@ test.each([400, 401, 403, 404, 429, 500, 502, 503])(
             expect(e).toStrictEqual({ type: 'HttpError', code: errorCode });
         });
         await client.start();
-    }
+    },
 );
 
 test('Should publish update when state changes after refreshInterval', async () => {
     expect.assertions(1);
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 200 }]
+        [JSON.stringify(data), { status: 200 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -667,7 +627,7 @@ test('Should publish update when state changes after refreshInterval', async () 
 test(`If refresh is disabled should not fetch`, async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 200 }]
+        [JSON.stringify(data), { status: 200 }],
     );
     const config: IConfig = {
         disableRefresh: true,
@@ -686,7 +646,7 @@ test('Should include etag in second request', async () => {
     const etag = '123a';
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200, headers: { ETag: etag } }],
-        [JSON.stringify(data), { status: 304, headers: { ETag: etag } }]
+        [JSON.stringify(data), { status: 304, headers: { ETag: etag } }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -703,7 +663,9 @@ test('Should include etag in second request', async () => {
     const firstRequest = getTypeSafeRequest(fetchMock, 0);
     const secondRequest = getTypeSafeRequest(fetchMock, 1);
 
-    expect(firstRequest.headers).toMatchObject({});
+    expect(firstRequest.headers).toMatchObject({
+        'If-None-Match': '',
+    });
     expect(secondRequest.headers).toMatchObject({
         'If-None-Match': etag,
     });
@@ -712,7 +674,7 @@ test('Should include etag in second request', async () => {
 test('Should add clientKey as Authorization header', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 200 }]
+        [JSON.stringify(data), { status: 200 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -771,7 +733,7 @@ test('Should stop fetching when stop is called', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 200 }]
+        [JSON.stringify(data), { status: 200 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -797,7 +759,7 @@ test('Should stop fetching when stop is called', async () => {
 test('Should include context fields on request', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 304 }]
+        [JSON.stringify(data), { status: 304 }],
     );
     const context: IMutableContext = {
         userId: '123',
@@ -835,7 +797,7 @@ test('Should include context fields on request', async () => {
 test('Should note include context fields with "null" value', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 304 }]
+        [JSON.stringify(data), { status: 304 }],
     );
     const context: IMutableContext = {
         userId: undefined,
@@ -870,7 +832,7 @@ test('Should note include context fields with "null" value', async () => {
 test('Should update context fields with await', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 304 }]
+        [JSON.stringify(data), { status: 304 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -907,7 +869,7 @@ test('Should update context fields with await', async () => {
 test('Should update context fields on request', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 304 }]
+        [JSON.stringify(data), { status: 304 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -944,7 +906,7 @@ test('Should update context fields on request', async () => {
 test('Updating context should wait on asynchronous start', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 200 }]
+        [JSON.stringify(data), { status: 200 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -965,7 +927,7 @@ test('Updating context should wait on asynchronous start', async () => {
 test('Should not replace sessionId when updating context', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 304 }]
+        [JSON.stringify(data), { status: 304 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -990,14 +952,14 @@ test('Should not replace sessionId when updating context', async () => {
     const url = new URL(getTypeSafeRequestUrl(fetchMock));
 
     expect(url.searchParams.get('sessionId')).toEqual(
-        context.sessionId?.toString()
+        context.sessionId?.toString(),
     );
 });
 
 test('Should not add property fields when properties is an empty object', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 304 }]
+        [JSON.stringify(data), { status: 304 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -1026,7 +988,7 @@ test('Should not add property fields when properties is an empty object', async 
 test('Should use default environment', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 200 }]
+        [JSON.stringify(data), { status: 200 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -1082,6 +1044,19 @@ test('Should setContextField with remoteAddress', async () => {
     expect(context.remoteAddress).toBe(remoteAddress);
 });
 
+test('Should setContextField with currentTime', async () => {
+    const currentTime = '2022-01-22T13:00:00.000Z';
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    client.setContextField('currentTime', currentTime);
+    const context = client.getContext();
+    expect(context.currentTime).toBe(currentTime);
+});
+
 test('Should setContextField with custom property', async () => {
     const clientId = 'some-client-id-443';
     const config: IConfig = {
@@ -1109,7 +1084,7 @@ test('Should setContextField with custom property and keep existing props', asyn
     const context = client.getContext();
     expect(context.properties?.clientId).toBe(clientId);
     expect(context.properties?.someField).toBe(
-        initialContext.properties.someField
+        initialContext.properties.someField,
     );
 });
 
@@ -1177,7 +1152,6 @@ test('Should emit impression events on isEnabled calls when impressionData is tr
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -1208,7 +1182,7 @@ test('Should emit impression events on isEnabled calls when impressionData is tr
 test('Should pass custom headers', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
-        [JSON.stringify(data), { status: 200 }]
+        [JSON.stringify(data), { status: 200 }],
     );
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -1250,7 +1224,6 @@ test('Should emit impression events on getVariant calls when impressionData is t
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -1287,7 +1260,6 @@ test('Should not emit impression events on isEnabled calls when impressionData i
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: false,
         },
@@ -1323,7 +1295,6 @@ test('Should emit impression events on isEnabled calls when impressionData is fa
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: false,
         },
@@ -1366,7 +1337,6 @@ test('Should emit impression events on isEnabled calls when toggle is unknown an
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: false,
         },
@@ -1405,7 +1375,6 @@ test('Should emit impression events on getVariant calls when impressionData is f
             variant: {
                 name: 'disabled',
                 enabled: false,
-                feature_enabled: true,
             },
             impressionData: false,
         },
@@ -1478,7 +1447,7 @@ test('Should be able to configure UnleashClient with a URL instance', () => {
     expect(client).toHaveProperty('url', url);
 });
 
-test("Should update toggles even when refresh interval is set to '0'", async () => {
+test('Should update toggles even when refresh interval is set to \'0\'', async () => {
     fetchMock.mockResponse(JSON.stringify(data));
     const config: IConfig = {
         url: 'http://localhost/test',
@@ -1513,7 +1482,7 @@ test.each([null, undefined])(
         await client.updateContext({ userId });
 
         expect(client.getContext().userId).toBeUndefined();
-    }
+    },
 );
 
 test('Should report metrics', async () => {
@@ -1524,7 +1493,6 @@ test('Should report metrics', async () => {
             variant: {
                 name: 'variant',
                 enabled: true,
-                feature_enabled: true,
             },
             impressionData: true,
         },
@@ -1570,57 +1538,4 @@ test('Should report metrics', async () => {
         },
     });
     client.stop();
-});
-
-test('Should emit RECOVERED event when sdkStatus is error and status is less than 400', (done) => {
-    const data = { status: 200 }; // replace with the actual data you want to test
-    fetchMock.mockResponseOnce(JSON.stringify(data), { status: 200 });
-
-    const config: IConfig = {
-        url: 'http://localhost/test',
-        clientKey: '12',
-        appName: 'web',
-    };
-
-    const client = new UnleashClient(config);
-
-    client.start();
-
-    client.on(EVENTS.INIT, () => {
-        // Set error after the SDK has moved through the sdk states internally
-        // eslint-disable-next-line
-        // @ts-ignore - Private method by design, but we want to access it in tests
-        client.sdkState = 'error';
-    });
-
-    client.on(EVENTS.RECOVERED, () => {
-        // eslint-disable-next-line
-        // @ts-ignore - Private method by design. but we want to access it in tests
-        expect(client.sdkState).toBe('healthy');
-        client.stop();
-        done();
-    });
-});
-
-test('Should set sdkState to healthy when client is started', (done) => {
-    const config: IConfig = {
-        url: 'http://localhost/test',
-        clientKey: '12',
-        appName: 'web',
-    };
-
-    const client = new UnleashClient(config);
-    // eslint-disable-next-line
-    // @ts-ignore - Private method by design, but we want to access it in tests
-    expect(client.sdkState).toBe('initializing');
-
-    client.start();
-
-    client.on(EVENTS.INIT, () => {
-        // eslint-disable-next-line
-        // @ts-ignore - Private method by design, but we want to access it in tests
-        expect(client.sdkState).toBe('healthy');
-        client.stop();
-        done();
-    });
 });

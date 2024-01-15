@@ -17,6 +17,7 @@ interface IMutableContext {
     userId?: string;
     sessionId?: string;
     remoteAddress?: string;
+    currentTime?: string;
     properties?: {
         [key: string]: string;
     };

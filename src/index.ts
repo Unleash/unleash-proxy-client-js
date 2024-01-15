@@ -6,7 +6,7 @@ import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
 import { notNullOrUndefined, urlWithContextAsQuery } from './util';
 
-const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress'];
+const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress', 'currentTime'];
 
 interface IStaticContext {
     appName: string;

@@ -6,7 +6,13 @@ import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
 import { notNullOrUndefined, urlWithContextAsQuery } from './util';
 
-const DEFINED_FIELDS = ['userId', 'sessionId', 'remoteAddress', 'currentTime'];
+const DEFINED_FIELDS = [
+    'userId',
+    'sessionId',
+    'remoteAddress',
+    'currentTime',
+] as const;
+type DefinedField = (typeof DEFINED_FIELDS)[number];
 
 interface IStaticContext {
     appName: string;
@@ -24,6 +30,10 @@ interface IMutableContext {
 }
 
 type IContext = IStaticContext & IMutableContext;
+
+const isDefinedContextField = (field: string): field is DefinedField => {
+    return DEFINED_FIELDS.includes(field as DefinedField);
+};
 
 interface IConfig extends IStaticContext {
     url: URL | string;
@@ -271,21 +281,7 @@ export class UnleashClient extends TinyEmitter {
         return { ...variant, feature_enabled: enabled };
     }
 
-    public async updateContext(context: IMutableContext): Promise<void> {
-        // @ts-expect-error Give the user a nicer error message when
-        // including static fields in the mutable context object
-        if (context.appName || context.environment) {
-            console.warn(
-                "appName and environment are static. They can't be updated with updateContext."
-            );
-        }
-        const staticContext = {
-            environment: this.context.environment,
-            appName: this.context.appName,
-            sessionId: this.context.sessionId,
-        };
-        this.context = { ...staticContext, ...context };
-
+    private async updateToggles() {
         if (this.timerRef || this.readyEventEmitted) {
             await this.fetchToggles();
         } else if (this.started) {
@@ -301,20 +297,47 @@ export class UnleashClient extends TinyEmitter {
         }
     }
 
+    public async updateContext(context: IMutableContext): Promise<void> {
+        // @ts-expect-error Give the user a nicer error message when
+        // including static fields in the mutable context object
+        if (context.appName || context.environment) {
+            console.warn(
+                "appName and environment are static. They can't be updated with updateContext."
+            );
+        }
+        const staticContext = {
+            environment: this.context.environment,
+            appName: this.context.appName,
+            sessionId: this.context.sessionId,
+        };
+        this.context = { ...staticContext, ...context };
+
+        await this.updateToggles();
+    }
+
     public getContext() {
         return { ...this.context };
     }
 
     public setContextField(field: string, value: string) {
-        if (DEFINED_FIELDS.includes(field)) {
+        if (isDefinedContextField(field)) {
             this.context = { ...this.context, [field]: value };
         } else {
             const properties = { ...this.context.properties, [field]: value };
             this.context = { ...this.context, properties };
         }
-        if (this.timerRef) {
-            this.fetchToggles();
+
+        this.updateToggles();
+    }
+
+    public removeContextField(field: string): void {
+        if (isDefinedContextField(field)) {
+            this.context = { ...this.context, [field]: undefined };
+        } else if (typeof this.context.properties === 'object') {
+            delete this.context.properties[field];
         }
+
+        this.updateToggles();
     }
 
     private async init(): Promise<void> {

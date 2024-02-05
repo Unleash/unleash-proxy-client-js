@@ -1067,9 +1067,11 @@ test('Should removeContextField', async () => {
     const client = new UnleashClient(config);
     client.setContextField('userId', userId);
     client.setContextField('customField', customValue);
+
     client.removeContextField('userId');
     client.removeContextField('customField');
     const context = client.getContext();
+
     expect(context).toEqual({
         appName: 'web',
         environment: 'default',

@@ -1056,6 +1056,27 @@ test('Should setContextField with userId', async () => {
     expect(context.userId).toBe(userId);
 });
 
+test('Should removeContextField', async () => {
+    const userId = 'some-id-123';
+    const customValue = 'customValue';
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    client.setContextField('userId', userId);
+    client.setContextField('customField', customValue);
+    client.removeContextField('userId');
+    client.removeContextField('customField');
+    const context = client.getContext();
+    expect(context).toEqual({
+        appName: 'web',
+        environment: 'default',
+        properties: {},
+    });
+});
+
 test('Should setContextField with sessionId', async () => {
     const sessionId = 'some-session-id-123';
     const config: IConfig = {

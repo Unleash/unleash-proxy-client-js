@@ -88,7 +88,7 @@ if (variant.name === 'blue') {
 
 #### Updating the Unleash context
 
-The [Unleash context](https://docs.getunleash.io/reference/unleash-context) is used to evaluate features against attributes of a the current user. To update and configure the Unleash context in this SDK, use the `updateContext` and `setContextField` methods.
+The [Unleash context](https://docs.getunleash.io/reference/unleash-context) is used to evaluate features against attributes of a the current user. To update and configure the Unleash context in this SDK, use the `updateContext`, `setContextField` and `removeContextField` methods.
 
 The context you set in your app will be passed along to the Unleash proxy or the front-end API as query parameters for feature evaluation.
 
@@ -101,6 +101,14 @@ The `setContextField` method only acts on the property that you choose. It does 
 unleash.updateContext({ userId: '1233' });
 
 unleash.setContextField('userId', '4141');
+```
+
+The `removeContextField` method only acts on the property that you choose. It does not affect any other properties of the Unleash context.
+
+```js
+unleash.updateContext({ userId: '1233', sessionId: 'sessionNotAffected' });
+
+unleash.removeContextField('userId');
 ```
 
 ### Available options

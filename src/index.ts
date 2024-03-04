@@ -400,11 +400,14 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private getHeaders() {
+        const isPOST = this.usePOSTrequests;
         const headers = {
             [this.headerName]: this.clientKey,
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
+            Accept: 'application/json'
         };
+        if (isPOST){
+            headers['Content-Type'] = 'application/json';
+        }
         if (this.etag) {
             headers['If-None-Match'] = this.etag;
         }

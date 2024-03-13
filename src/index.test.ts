@@ -60,6 +60,9 @@ test('Should perform an initial fetch as POST', async () => {
 
     expect(request.method).toBe('POST');
     expect(body.context.appName).toBe('webAsPOST');
+    expect(request.headers).toMatchObject({
+        'Content-Type': 'application/json',
+    });
 });
 
 test('Should perform an initial fetch as GET', async () => {
@@ -75,6 +78,9 @@ test('Should perform an initial fetch as GET', async () => {
     const request = getTypeSafeRequest(fetchMock, 0);
 
     expect(request.method).toBe('GET');
+    expect(request.headers).not.toMatchObject({
+        'Content-Type': 'application/json',
+    });
 });
 
 test('Should have correct variant', async () => {

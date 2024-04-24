@@ -1667,7 +1667,7 @@ test('Should set sdkState to healthy when client is started', (done) => {
     });
 });
 
-describe('Response handling and READY event emission', () => {
+describe('READY event emission', () => {
     let client: UnleashClient;
 
     const config: IConfig = {
@@ -1707,7 +1707,6 @@ describe('Response handling and READY event emission', () => {
             headers: { 'ETag': 'new-etag' }
         });
 
-        // Check that the toggles are stored, SDK state is healthy, and READY is emitted
         expect(client.emit).toHaveBeenCalledWith(EVENTS.READY);
     });
 });

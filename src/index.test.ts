@@ -1675,20 +1675,20 @@ describe('READY event emission', () => {
         clientKey: '12',
         appName: 'web',
         bootstrap: [
-        {
-            enabled: false,
-            name: 'test-frontend',
-            variant: { name: 'some-variant', enabled: false},
-            impressionData: false
-        },
-    ],
+            {
+                enabled: false,
+                name: 'test-frontend',
+                variant: { name: 'some-variant', enabled: false },
+                impressionData: false,
+            },
+        ],
         bootstrapOverride: false,
         fetch: async () => {
             return {
                 ok: true,
                 headers: new Map(),
                 async json() {
-                    return {  };
+                    return {};
                 },
             };
         },
@@ -1702,10 +1702,15 @@ describe('READY event emission', () => {
 
     test('should emit READY when response is OK and not 304, and conditions are met', async () => {
         // Mock a successful fetch response that is not 304
-        fetchMock.mockResponseOnce(JSON.stringify({ toggles: [{ feature: 'test-feature', enabled: true }] }), {
-            status: 200,
-            headers: { 'ETag': 'new-etag' }
-        });
+        fetchMock.mockResponseOnce(
+            JSON.stringify({
+                toggles: [{ feature: 'test-feature', enabled: true }],
+            }),
+            {
+                status: 200,
+                headers: { ETag: 'new-etag' },
+            }
+        );
 
         expect(client.emit).toHaveBeenCalledWith(EVENTS.READY);
     });

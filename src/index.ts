@@ -466,7 +466,7 @@ export class UnleashClient extends TinyEmitter {
                         this.sdkState = 'healthy';
                     }
 
-                    if (!this.bootstrap && !this.readyEventEmitted) {
+                    if ((!this.bootstrap || this.bootstrap && !this.bootstrapOverride) && !this.readyEventEmitted) {
                         this.emit(EVENTS.READY);
                         this.readyEventEmitted = true;
                     }

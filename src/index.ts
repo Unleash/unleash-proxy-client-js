@@ -52,6 +52,7 @@ interface IConfig extends IStaticContext {
     customHeaders?: Record<string, string>;
     impressionDataAll?: boolean;
     usePOSTrequests?: boolean;
+    refreshOnlyIfExpired?: boolean;
 }
 
 interface IVariant {
@@ -92,6 +93,7 @@ const defaultVariant: IVariant = {
     feature_enabled: false,
 };
 const storeKey = 'repo';
+const lastUpdateKey = 'lastUpdate';
 
 type SdkState = 'initializing' | 'healthy' | 'error';
 
@@ -165,6 +167,7 @@ export class UnleashClient extends TinyEmitter {
         customHeaders = {},
         impressionDataAll = false,
         usePOSTrequests = false,
+        refreshOnlyIfExpired = false,
     }: IConfig) {
         super();
         // Validations
@@ -457,19 +460,22 @@ export class UnleashClient extends TinyEmitter {
                     this.emit(EVENTS.RECOVERED);
                 }
 
-                if (response.ok && response.status !== 304) {
-                    this.etag = response.headers.get('ETag') || '';
-                    const data = await response.json();
-                    await this.storeToggles(data.toggles);
+                if (response.ok) {
+                    if (response.status !== 304) {
+                        this.etag = response.headers.get('ETag') || '';
+                        const data = await response.json();
+                        await this.storeToggles(data.toggles);
 
-                    if (this.sdkState !== 'healthy') {
-                        this.sdkState = 'healthy';
-                    }
+                        if (this.sdkState !== 'healthy') {
+                            this.sdkState = 'healthy';
+                        }
 
-                    if (!this.bootstrap && !this.readyEventEmitted) {
-                        this.emit(EVENTS.READY);
-                        this.readyEventEmitted = true;
+                        if (!this.bootstrap && !this.readyEventEmitted) {
+                            this.emit(EVENTS.READY);
+                            this.readyEventEmitted = true;
+                        }
                     }
+                    this.storage.save(lastUpdateKey, Date.now());
                 } else if (!response.ok && response.status !== 304) {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'

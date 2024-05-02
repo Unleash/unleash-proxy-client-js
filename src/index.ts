@@ -52,7 +52,7 @@ interface IConfig extends IStaticContext {
     customHeaders?: Record<string, string>;
     impressionDataAll?: boolean;
     usePOSTrequests?: boolean;
-    refreshOnlyIfExpired?: boolean;
+    toggleStorageTTL?: number;
 }
 
 interface IVariant {
@@ -147,6 +147,7 @@ export class UnleashClient extends TinyEmitter {
     private usePOSTrequests = false;
     private started = false;
     private sdkState: SdkState;
+    private toggleStorageTTL: number;
 
     constructor({
         storageProvider,
@@ -167,7 +168,7 @@ export class UnleashClient extends TinyEmitter {
         customHeaders = {},
         impressionDataAll = false,
         usePOSTrequests = false,
-        refreshOnlyIfExpired = false,
+        toggleStorageTTL = 0,
     }: IConfig) {
         super();
         // Validations
@@ -196,6 +197,7 @@ export class UnleashClient extends TinyEmitter {
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
+        this.toggleStorageTTL = toggleStorageTTL;
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
@@ -284,7 +286,7 @@ export class UnleashClient extends TinyEmitter {
         return { ...variant, feature_enabled: enabled };
     }
 
-    private async updateToggles() {
+    public async updateToggles() {
         if (this.timerRef || this.readyEventEmitted) {
             await this.fetchToggles();
         } else if (this.started) {
@@ -426,8 +428,27 @@ export class UnleashClient extends TinyEmitter {
         await this.storage.save(storeKey, toggles);
     }
 
+    private async isUpToDate() {
+        if (this.toggleStorageTTL <= 0 || this.toggles.length === 0) {
+            return false;
+        }
+        const timestamp = Date.now();
+        const unleashRefreshIntervalMs = this.toggleStorageTTL * 60 * 1000;
+    
+        const lastRefresh = await this.storage.get(lastUpdateKey);
+
+        return !!(lastRefresh && timestamp - lastRefresh <= unleashRefreshIntervalMs);
+      }
+
     private async fetchToggles() {
         if (this.fetch) {
+            if (await this.isUpToDate()) {
+                if (!this.bootstrap && !this.readyEventEmitted) {
+                    this.emit(EVENTS.READY);
+                    this.readyEventEmitted = true;
+                }
+                return;
+            }
             if (this.abortController) {
                 this.abortController.abort();
             }

@@ -460,23 +460,7 @@ export class UnleashClient extends TinyEmitter {
                     this.emit(EVENTS.RECOVERED);
                 }
 
-                if (response.ok) {
-                    if (response.status !== 304) {
-                        this.etag = response.headers.get('ETag') || '';
-                        const data = await response.json();
-                        await this.storeToggles(data.toggles);
-
-                        if (this.sdkState !== 'healthy') {
-                            this.sdkState = 'healthy';
-                        }
-
-                        if (!this.bootstrap && !this.readyEventEmitted) {
-                            this.emit(EVENTS.READY);
-                            this.readyEventEmitted = true;
-                        }
-                    }
-                    this.storage.save(lastUpdateKey, Date.now());
-                } else if (!response.ok && response.status !== 304) {
+                if (!response.ok && response.status !== 304) {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'
                     );
@@ -485,8 +469,24 @@ export class UnleashClient extends TinyEmitter {
                         type: 'HttpError',
                         code: response.status,
                     });
+                    return;
                 }
-            } catch (e) {
+                if (response.status !== 304) {
+                    this.etag = response.headers.get('ETag') || '';
+                    const data = await response.json();
+                    await this.storeToggles(data.toggles);
+
+                    if (this.sdkState !== 'healthy') {
+                        this.sdkState = 'healthy';
+                    }
+
+                    if (!this.bootstrap && !this.readyEventEmitted) {
+                        this.emit(EVENTS.READY);
+                        this.readyEventEmitted = true;
+                    }
+                }
+                this.storage.save(lastUpdateKey, Date.now());
+        } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
                 this.sdkState = 'error';
                 this.emit(EVENTS.ERROR, e);

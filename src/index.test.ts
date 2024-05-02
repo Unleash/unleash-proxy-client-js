@@ -553,6 +553,74 @@ test('Should publish ready when initial fetch completed', (done) => {
     });
 });
 
+describe('handling last update flag storage', () => {
+    let storageProvider: IStorageProvider;
+    let saveSpy: jest.SpyInstance;
+    class Store implements IStorageProvider {
+        public async save() {
+            return Promise.resolve();
+        }
+
+        public async get() {
+            return Promise.resolve([]);
+        }
+    }
+
+    beforeEach(() => {
+        storageProvider = new Store();
+        saveSpy = jest.spyOn(storageProvider, 'save');
+    });
+    
+    test('Should store last update flag when fetch is successful', async () => {
+        const startTime = Date.now();
+        fetchMock.mockResponseOnce(JSON.stringify(data));
+        
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider,
+        };
+    
+        const client = new UnleashClient(config);
+        await client.start();
+        expect(saveSpy).toHaveBeenCalledWith('lastUpdate', expect.any(Number));
+        expect(saveSpy.mock.lastCall?.at(1)).toBeGreaterThanOrEqual(startTime);
+    });
+
+    test('Should store last update flag when fetch is successful with 304 status', async () => {
+        const startTime = Date.now();
+        fetchMock.mockResponseOnce(JSON.stringify(data), { status: 304 });
+        
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider,
+        };
+    
+        const client = new UnleashClient(config);
+        await client.start();
+        expect(saveSpy).toHaveBeenCalledWith('lastUpdate', expect.any(Number));
+        expect(saveSpy.mock.lastCall?.at(1)).toBeGreaterThanOrEqual(startTime);
+    });
+
+    test('Should not store last update flag when fetch is not successful', async () => {
+        fetchMock.mockResponseOnce('', { status: 500 });
+        
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider,
+        };
+    
+        const client = new UnleashClient(config);
+        await client.start();
+        expect(saveSpy).not.toHaveBeenCalledWith('lastUpdate', expect.any(Number));
+    });
+});
+
 test('Should publish error when initial init fails', (done) => {
     const givenError = 'Error';
 

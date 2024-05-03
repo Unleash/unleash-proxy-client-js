@@ -198,7 +198,7 @@ export class UnleashClient extends TinyEmitter {
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
-        this.toggleStorageTTL = toggleStorageTTL;
+        this.toggleStorageTTL = toggleStorageTTL * 1000;
         this.lastRefreshTimestamp = 0;
 
         this.ready = new Promise((resolve) => {
@@ -437,9 +437,8 @@ export class UnleashClient extends TinyEmitter {
             return false;
         }
         const timestamp = Date.now();
-        const unleashRefreshIntervalMs = this.toggleStorageTTL * 60 * 1000;
 
-        return !!(this.lastRefreshTimestamp && timestamp - this.lastRefreshTimestamp <= unleashRefreshIntervalMs);
+        return !!(this.lastRefreshTimestamp && timestamp - this.lastRefreshTimestamp <= this.toggleStorageTTL);
     }
 
     private async updateLastRefresh() {

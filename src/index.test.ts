@@ -1739,7 +1739,7 @@ test('Should set sdkState to healthy when client is started', (done) => {
     });
 });
 
-describe('handling togglesStorageTTL', () => {
+describe('handling togglesStorageTTL > 0', () => {
     let storage: IStorageProvider;
     beforeEach(async () => {
         storage = new InMemoryStorageProvider();
@@ -1760,7 +1760,7 @@ describe('handling togglesStorageTTL', () => {
         fetchMock.mockReset();
     });
 
-    test('Should not perform an initial fetch when toggles are up to date and togglesStorageTTL > 0', async () => {
+    test('Should not perform an initial fetch when toggles are up to date', async () => {
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',
@@ -1776,7 +1776,7 @@ describe('handling togglesStorageTTL', () => {
         expect(fetchMock).toHaveBeenCalledTimes(0);
     });
 
-    test('Should send ready event when toggles are up to date and togglesStorageTTL > 0', async () => {
+    test('Should send ready event when toggles are up to date', async () => {
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',
@@ -1787,8 +1787,40 @@ describe('handling togglesStorageTTL', () => {
         const client = new UnleashClient(config);
 
         const readySpy = jest.fn();
-        client.on('ready', readySpy);
+        client.on(EVENTS.READY, readySpy);
+        client.on(EVENTS.INIT, () => readySpy.mockClear());
         await client.start();
         expect(readySpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('Should not send ready event when bootstrap option is defined', async () => {
+        const bootstrap = [
+            {
+                name: 'toggles',
+                enabled: true,
+                variant: {
+                    name: 'disabled',
+                    enabled: false,
+                    feature_enabled: true,
+                },
+                impressionData: true,
+            }
+        ];
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider: storage,
+            bootstrap,
+            togglesStorageTTL: 60,
+        };
+        const client = new UnleashClient(config);
+
+        const readySpy = jest.fn();
+        // clearing "ready" sent by init() when bootstrap is defined
+        client.on(EVENTS.INIT, () => readySpy.mockClear());
+        client.on(EVENTS.READY, readySpy);
+        await client.start();
+        expect(readySpy).not.toHaveBeenCalled();
     });
 });

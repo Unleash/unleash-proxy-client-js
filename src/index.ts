@@ -52,7 +52,7 @@ interface IConfig extends IStaticContext {
     customHeaders?: Record<string, string>;
     impressionDataAll?: boolean;
     usePOSTrequests?: boolean;
-    toggleStorageTTL?: number;
+    togglesStorageTTL?: number;
 }
 
 interface IVariant {
@@ -147,7 +147,7 @@ export class UnleashClient extends TinyEmitter {
     private usePOSTrequests = false;
     private started = false;
     private sdkState: SdkState;
-    private toggleStorageTTL: number;
+    private togglesStorageTTL: number;
     private lastRefreshTimestamp: number;
 
     constructor({
@@ -169,7 +169,7 @@ export class UnleashClient extends TinyEmitter {
         customHeaders = {},
         impressionDataAll = false,
         usePOSTrequests = false,
-        toggleStorageTTL = 0,
+        togglesStorageTTL = 0,
     }: IConfig) {
         super();
         // Validations
@@ -198,7 +198,7 @@ export class UnleashClient extends TinyEmitter {
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
-        this.toggleStorageTTL = toggleStorageTTL * 1000;
+        this.togglesStorageTTL = togglesStorageTTL * 1000;
         this.lastRefreshTimestamp = 0;
 
         this.ready = new Promise((resolve) => {
@@ -433,12 +433,12 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private isUpToDate() {
-        if (this.toggleStorageTTL <= 0 || this.toggles.length === 0) {
+        if (this.togglesStorageTTL <= 0 || this.toggles.length === 0) {
             return false;
         }
         const timestamp = Date.now();
 
-        return !!(this.lastRefreshTimestamp && timestamp - this.lastRefreshTimestamp <= this.toggleStorageTTL);
+        return !!(this.lastRefreshTimestamp && timestamp - this.lastRefreshTimestamp <= this.togglesStorageTTL);
     }
 
     private async updateLastRefresh() {

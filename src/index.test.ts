@@ -1741,10 +1741,25 @@ test('Should set sdkState to healthy when client is started', (done) => {
 
 describe('handling togglesStorageTTL > 0', () => {
     let storage: IStorageProvider;
+    let fakeNow: number;
     beforeEach(async () => {
+        fakeNow = new Date('2024-01-01').getTime();
+        jest.useFakeTimers();
+        jest.setSystemTime(fakeNow);
         storage = new InMemoryStorageProvider();
         
-        fetchMock.mockResponseOnce(JSON.stringify(data));
+        fetchMock
+        .mockResponseOnce(JSON.stringify(data))
+        .mockResponseOnce(JSON.stringify({
+            "toggles": [
+              {
+                "name": "simpleToggle",
+                "enabled": false,
+                "impressionData": true
+              }
+            ]
+          }));
+
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',
@@ -1757,10 +1772,15 @@ describe('handling togglesStorageTTL > 0', () => {
         client.stop();
     
         expect(fetchMock).toHaveBeenCalledTimes(1);
-        fetchMock.mockReset();
+        fetchMock.mockClear();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     test('Should not perform an initial fetch when toggles are up to date', async () => {
+        jest.setSystemTime(fakeNow + 59000);
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',
@@ -1774,6 +1794,24 @@ describe('handling togglesStorageTTL > 0', () => {
         expect(isEnabled).toBe(true);
         client.stop();
         expect(fetchMock).toHaveBeenCalledTimes(0);
+    });
+
+    test('Should perform an initial fetch when toggles are expired', async () => {
+        jest.setSystemTime(fakeNow + 61000);
+
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider: storage,
+            togglesStorageTTL: 60,
+        };
+        const client = new UnleashClient(config);
+        await client.start();
+        const isEnabled = client.isEnabled('simpleToggle');
+        expect(isEnabled).toBe(false);
+        client.stop();
+        expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
     test('Should send ready event when toggles are up to date', async () => {

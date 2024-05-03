@@ -7,6 +7,7 @@ import {
     IConfig,
     IMutableContext,
     IToggle,
+    InMemoryStorageProvider,
     UnleashClient,
 } from './index';
 import { getTypeSafeRequest, getTypeSafeRequestUrl } from './test';
@@ -1735,5 +1736,43 @@ test('Should set sdkState to healthy when client is started', (done) => {
         expect(client.sdkState).toBe('healthy');
         client.stop();
         done();
+    });
+});
+
+describe('handling togglesStorageTTL', () => {
+    let storage: IStorageProvider;
+    beforeEach(async () => {
+        storage = new InMemoryStorageProvider();
+        
+        fetchMock.mockResponseOnce(JSON.stringify(data));
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider: storage,
+        };
+        // performing an initial fetch to populate the toggles and lastUpdate timestamp
+        const client = new UnleashClient(config);
+        await client.start();
+        client.stop();
+    
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        fetchMock.mockReset();
+    });
+
+    test('Should not perform an initial fetch when toggles are up to date and togglesStorageTTL > 0', async () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider: storage,
+            togglesStorageTTL: 60,
+        };
+        const client = new UnleashClient(config);
+        await client.start();
+        const isEnabled = client.isEnabled('simpleToggle');
+        expect(isEnabled).toBe(true);
+        client.stop();
+        expect(fetchMock).toHaveBeenCalledTimes(0);
     });
 });

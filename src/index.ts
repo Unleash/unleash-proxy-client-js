@@ -449,10 +449,7 @@ export class UnleashClient extends TinyEmitter {
     private async fetchToggles() {
         if (this.fetch) {
             if (this.isUpToDate()) {
-                if (!this.bootstrap && !this.readyEventEmitted) {
-                    this.emit(EVENTS.READY);
-                    this.readyEventEmitted = true;
-                }
+                this.emitReady();
                 return;
             }
             if (this.abortController) {
@@ -507,10 +504,7 @@ export class UnleashClient extends TinyEmitter {
                         this.sdkState = 'healthy';
                     }
 
-                    if (!this.bootstrap && !this.readyEventEmitted) {
-                        this.emit(EVENTS.READY);
-                        this.readyEventEmitted = true;
-                    }
+                    this.emitReady();
                 }
 
                 this.updateLastRefresh();
@@ -521,6 +515,13 @@ export class UnleashClient extends TinyEmitter {
             } finally {
                 this.abortController = null;
             }
+        }
+    }
+
+    private emitReady() {
+        if (!this.bootstrap && !this.readyEventEmitted) {
+            this.emit(EVENTS.READY);
+            this.readyEventEmitted = true;
         }
     }
 }

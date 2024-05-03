@@ -1775,4 +1775,20 @@ describe('handling togglesStorageTTL', () => {
         client.stop();
         expect(fetchMock).toHaveBeenCalledTimes(0);
     });
+
+    test('Should send ready event when toggles are up to date and togglesStorageTTL > 0', async () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider: storage,
+            togglesStorageTTL: 60,
+        };
+        const client = new UnleashClient(config);
+
+        const readySpy = jest.fn();
+        client.on('ready', readySpy);
+        await client.start();
+        expect(readySpy).toHaveBeenCalledTimes(1);
+    });
 });

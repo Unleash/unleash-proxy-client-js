@@ -148,6 +148,7 @@ export class UnleashClient extends TinyEmitter {
     private started = false;
     private sdkState: SdkState;
     private toggleStorageTTL: number;
+    private lastRefreshTimestamp: number;
 
     constructor({
         storageProvider,
@@ -198,6 +199,8 @@ export class UnleashClient extends TinyEmitter {
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
         this.toggleStorageTTL = toggleStorageTTL;
+        this.lastRefreshTimestamp = 0;
+
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
@@ -350,6 +353,7 @@ export class UnleashClient extends TinyEmitter {
         this.context = { sessionId, ...this.context };
 
         this.toggles = (await this.storage.get(storeKey)) || [];
+        this.lastRefreshTimestamp = await this.storage.get(lastUpdateKey);
 
         if (
             this.bootstrap &&
@@ -428,21 +432,24 @@ export class UnleashClient extends TinyEmitter {
         await this.storage.save(storeKey, toggles);
     }
 
-    private async isUpToDate() {
+    private isUpToDate() {
         if (this.toggleStorageTTL <= 0 || this.toggles.length === 0) {
             return false;
         }
         const timestamp = Date.now();
         const unleashRefreshIntervalMs = this.toggleStorageTTL * 60 * 1000;
-    
-        const lastRefresh = await this.storage.get(lastUpdateKey);
 
-        return !!(lastRefresh && timestamp - lastRefresh <= unleashRefreshIntervalMs);
-      }
+        return !!(this.lastRefreshTimestamp && timestamp - this.lastRefreshTimestamp <= unleashRefreshIntervalMs);
+    }
+
+    private async updateLastRefresh() {
+        this.lastRefreshTimestamp = Date.now();
+        this.storage.save(lastUpdateKey, this.lastRefreshTimestamp);
+    }
 
     private async fetchToggles() {
         if (this.fetch) {
-            if (await this.isUpToDate()) {
+            if (this.isUpToDate()) {
                 if (!this.bootstrap && !this.readyEventEmitted) {
                     this.emit(EVENTS.READY);
                     this.readyEventEmitted = true;
@@ -506,7 +513,8 @@ export class UnleashClient extends TinyEmitter {
                         this.readyEventEmitted = true;
                     }
                 }
-                this.storage.save(lastUpdateKey, Date.now());
+
+                this.updateLastRefresh();
         } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
                 this.sdkState = 'error';

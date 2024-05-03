@@ -581,7 +581,7 @@ describe('handling last update flag storage', () => {
             appName: 'web',
             storageProvider,
         };
-    
+
         const client = new UnleashClient(config);
         await client.start();
         expect(saveSpy).toHaveBeenCalledWith('lastUpdate', expect.any(Number));
@@ -1572,22 +1572,11 @@ test('Should publish ready only when the first fetch was successful', async () =
         expect(readyCount).toEqual(1);
     });
 
-    let fetchCount = 0;
-
-    const fetchedPromise = new Promise<void>((resolve) => {
-        client.on(EVENTS.UPDATE, () => {
-            fetchCount++;
-            if (fetchCount === 2) {
-                resolve();
-            }
-        });
-    });
     await client.start();
 
     jest.advanceTimersByTime(1001);
     jest.advanceTimersByTime(1001);
 
-    await fetchedPromise;
     expect(fetchMock).toHaveBeenCalledTimes(3);
 });
 

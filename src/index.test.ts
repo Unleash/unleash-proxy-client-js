@@ -570,11 +570,11 @@ describe('handling last update flag storage', () => {
         storageProvider = new Store();
         saveSpy = jest.spyOn(storageProvider, 'save');
     });
-    
+
     test('Should store last update flag when fetch is successful', async () => {
         const startTime = Date.now();
         fetchMock.mockResponseOnce(JSON.stringify(data));
-        
+
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',
@@ -591,14 +591,14 @@ describe('handling last update flag storage', () => {
     test('Should store last update flag when fetch is successful with 304 status', async () => {
         const startTime = Date.now();
         fetchMock.mockResponseOnce(JSON.stringify(data), { status: 304 });
-        
+
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',
             appName: 'web',
             storageProvider,
         };
-    
+
         const client = new UnleashClient(config);
         await client.start();
         expect(saveSpy).toHaveBeenCalledWith('lastUpdate', expect.any(Number));
@@ -607,14 +607,14 @@ describe('handling last update flag storage', () => {
 
     test('Should not store last update flag when fetch is not successful', async () => {
         fetchMock.mockResponseOnce('', { status: 500 });
-        
+
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',
             appName: 'web',
             storageProvider,
         };
-    
+
         const client = new UnleashClient(config);
         await client.start();
         expect(saveSpy).not.toHaveBeenCalledWith('lastUpdate', expect.any(Number));
@@ -1551,15 +1551,16 @@ test('Should emit impression events on getVariant calls when impressionData is f
 });
 
 test('Should publish ready only when the first fetch was successful', async () => {
+    expect.assertions(3);
     fetchMock.mockResponse(JSON.stringify(data));
     const config: IConfig = {
         url: 'http://localhost/test',
         clientKey: '12',
         appName: 'web',
         refreshInterval: 1,
+        disableMetrics: true,
     };
     const client = new UnleashClient(config);
-    await client.start();
 
     let readyCount = 0;
 
@@ -1581,6 +1582,7 @@ test('Should publish ready only when the first fetch was successful', async () =
             }
         });
     });
+    await client.start();
 
     jest.advanceTimersByTime(1001);
     jest.advanceTimersByTime(1001);

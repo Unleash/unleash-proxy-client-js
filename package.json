@@ -3,7 +3,19 @@
   "version": "3.3.2",
   "description": "A browser client that can be used together with the unleash-proxy.",
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./build/index.cjs",
+  "types": "./build/cjs/index.d.ts",	
+  "browser": "./build/main.min.js",	
+  "module": "./build/main.esm.js",	
+  "exports": {	
+    ".": {	
+      "import": "./build/main.esm.js",	
+      "node": "./build/index.cjs",	
+      "require": "./build/index.cjs",	
+      "types": "./build/cjs/index.d.ts",	
+      "default": "./build/main.min.js"	
+    }	
+  },
   "files": [
     "build",
     "examples",

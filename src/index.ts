@@ -438,7 +438,10 @@ export class UnleashClient extends TinyEmitter {
         }
         const timestamp = Date.now();
 
-        return !!(this.lastRefreshTimestamp && timestamp - this.lastRefreshTimestamp <= this.togglesStorageTTL);
+        return !!(
+            this.lastRefreshTimestamp &&
+            timestamp - this.lastRefreshTimestamp <= this.togglesStorageTTL
+        );
     }
 
     private async updateLastRefresh() {
@@ -508,7 +511,7 @@ export class UnleashClient extends TinyEmitter {
                 }
 
                 this.updateLastRefresh();
-        } catch (e) {
+            } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
                 this.sdkState = 'error';
                 this.emit(EVENTS.ERROR, e);

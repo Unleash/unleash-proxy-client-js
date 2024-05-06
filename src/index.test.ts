@@ -618,7 +618,10 @@ describe('handling last update flag storage', () => {
 
         const client = new UnleashClient(config);
         await client.start();
-        expect(saveSpy).not.toHaveBeenCalledWith('lastUpdate', expect.any(Number));
+        expect(saveSpy).not.toHaveBeenCalledWith(
+            'lastUpdate',
+            expect.any(Number)
+        );
     });
 });
 
@@ -1747,18 +1750,18 @@ describe('handling togglesStorageTTL > 0', () => {
         jest.useFakeTimers();
         jest.setSystemTime(fakeNow);
         storage = new InMemoryStorageProvider();
-        
-        fetchMock
-        .mockResponseOnce(JSON.stringify(data))
-        .mockResponseOnce(JSON.stringify({
-            "toggles": [
-              {
-                "name": "simpleToggle",
-                "enabled": false,
-                "impressionData": true
-              }
-            ]
-          }));
+
+        fetchMock.mockResponseOnce(JSON.stringify(data)).mockResponseOnce(
+            JSON.stringify({
+                toggles: [
+                    {
+                        name: 'simpleToggle',
+                        enabled: false,
+                        impressionData: true,
+                    },
+                ],
+            })
+        );
 
         const config: IConfig = {
             url: 'http://localhost/test',
@@ -1770,7 +1773,7 @@ describe('handling togglesStorageTTL > 0', () => {
         const client = new UnleashClient(config);
         await client.start();
         client.stop();
-    
+
         expect(fetchMock).toHaveBeenCalledTimes(1);
         fetchMock.mockClear();
     });
@@ -1842,7 +1845,7 @@ describe('handling togglesStorageTTL > 0', () => {
                     feature_enabled: true,
                 },
                 impressionData: true,
-            }
+            },
         ];
         const config: IConfig = {
             url: 'http://localhost/test',

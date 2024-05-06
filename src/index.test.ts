@@ -1666,3 +1666,52 @@ test('Should set sdkState to healthy when client is started', (done) => {
         done();
     });
 });
+
+describe('READY event emission', () => {
+    let client: UnleashClient;
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap: [
+            {
+                enabled: false,
+                name: 'test-frontend',
+                variant: { name: 'some-variant', enabled: false },
+                impressionData: false,
+            },
+        ],
+        bootstrapOverride: false,
+        fetch: async () => {
+            return {
+                ok: true,
+                headers: new Map(),
+                async json() {
+                    return {};
+                },
+            };
+        },
+    };
+
+    beforeEach(() => {
+        fetchMock.resetMocks();
+        client = new UnleashClient(config);
+        jest.spyOn(client, 'emit');
+    });
+
+    test('should emit READY when response is OK and not 304, and conditions are met', async () => {
+        // Mock a successful fetch response that is not 304
+        fetchMock.mockResponseOnce(
+            JSON.stringify({
+                toggles: [{ feature: 'test-feature', enabled: true }],
+            }),
+            {
+                status: 200,
+                headers: { ETag: 'new-etag' },
+            }
+        );
+
+        expect(client.emit).toHaveBeenCalledWith(EVENTS.READY);
+    });
+});

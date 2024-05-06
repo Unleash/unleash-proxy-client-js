@@ -132,7 +132,7 @@ The Unleash SDK takes the following options:
 | customHeaders     | no| `{}` | Additional headers to use when making HTTP requests to the Unleash proxy. In case of name collisions with the default headers, the `customHeaders` value will be used if it is not `null` or `undefined`. `customHeaders` values that are `null` or `undefined` will be ignored. |
 | impressionDataAll | no| `false` | Allows you to trigger "impression" events for **all** `getToggle` and `getVariant` invocations. This is particularly useful for "disabled" feature toggles that are not visible to frontend SDKs. |
 | environment | no | `default` | Sets the `environment` option of the [Unleash context](https://docs.getunleash.io/reference/unleash-context). This does **not** affect the SDK's [Unleash environment](https://docs.getunleash.io/reference/environments). |
-| togglesStorageTTL   | no | `0` | How much time (Time To Live), in seconds, the toggles in storage are considered valid and should not be fetched again. If set to 0 will disable checking for expiration and considered always expired                 |
+| togglesStorageTTL   | no | `0` | How long (Time To Live), in seconds, the toggles in storage are considered valid and should not be fetched again. If set to 0 will disable expiration checking and will be considered always expired.                 |
 
 ### Listen for updates via the EventEmitter
 

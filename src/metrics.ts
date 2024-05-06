@@ -13,6 +13,7 @@ export interface MetricsOptions {
     fetch: any;
     headerName: string;
     customHeaders?: Record<string, string>;
+    metricsIntervalInitial: number;
 }
 
 interface VariantBucket {
@@ -51,6 +52,7 @@ export default class Metrics {
     private fetch: any;
     private headerName: string;
     private customHeaders: Record<string, string>;
+    private metricsIntervalInitial: number;
 
     constructor({
         onError,
@@ -63,11 +65,13 @@ export default class Metrics {
         fetch,
         headerName,
         customHeaders = {},
+        metricsIntervalInitial,
     }: MetricsOptions) {
         this.onError = onError;
         this.onSent = onSent || doNothing;
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
+        this.metricsIntervalInitial = Math.min(metricsInterval, metricsIntervalInitial) * 1000;
         this.appName = appName;
         this.url = url instanceof URL ? url : new URL(url);
         this.clientKey = clientKey;
@@ -75,6 +79,7 @@ export default class Metrics {
         this.fetch = fetch;
         this.headerName = headerName;
         this.customHeaders = customHeaders;
+        
     }
 
     public start() {
@@ -87,10 +92,15 @@ export default class Metrics {
             this.metricsInterval > 0
         ) {
             // send first metrics after two seconds.
-            setTimeout(() => {
+            if(this.metricsIntervalInitial > 0) {
+                setTimeout(() => {
+                    this.startTimer();
+                    this.sendMetrics();
+                }, this.metricsIntervalInitial);
+            } else {
                 this.startTimer();
-                this.sendMetrics();
-            }, 2000);
+            }
+            
         }
     }
 

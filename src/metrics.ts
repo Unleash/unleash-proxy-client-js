@@ -71,7 +71,7 @@ export default class Metrics {
         this.onSent = onSent || doNothing;
         this.disabled = disableMetrics;
         this.metricsInterval = metricsInterval * 1000;
-        this.metricsIntervalInitial = Math.min(metricsInterval, metricsIntervalInitial) * 1000;
+        this.metricsIntervalInitial = metricsIntervalInitial * 1000;
         this.appName = appName;
         this.url = url instanceof URL ? url : new URL(url);
         this.clientKey = clientKey;
@@ -79,7 +79,6 @@ export default class Metrics {
         this.fetch = fetch;
         this.headerName = headerName;
         this.customHeaders = customHeaders;
-        
     }
 
     public start() {
@@ -91,7 +90,7 @@ export default class Metrics {
             typeof this.metricsInterval === 'number' &&
             this.metricsInterval > 0
         ) {
-            if(this.metricsIntervalInitial > 0) {
+            if (this.metricsIntervalInitial > 0) {
                 setTimeout(() => {
                     this.startTimer();
                     this.sendMetrics();
@@ -99,7 +98,6 @@ export default class Metrics {
             } else {
                 this.startTimer();
             }
-            
         }
     }
 

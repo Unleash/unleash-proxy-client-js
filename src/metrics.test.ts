@@ -116,7 +116,7 @@ test('Should send initial metrics after 2 seconds', () => {
     expect(fetchMock.mock.calls.length).toEqual(1);
 });
 
-test('Should send initial metrics after 5 seconds, when metricsIntervalInitial is higher than metricsInterval', () => {
+test('Should send initial metrics after 20 seconds, when metricsIntervalInitial is higher than metricsInterval', () => {
     const metrics = new Metrics({
         onError: console.error,
         appName: 'test',
@@ -135,9 +135,36 @@ test('Should send initial metrics after 5 seconds, when metricsIntervalInitial i
     metrics.count('foo', true);
     metrics.count('foo', false);
     metrics.count('bar', false);
-    // Account for 2 second timeout before the set interval starts
-    jest.advanceTimersByTime(5000);
+    // Account for 20 second timeout before the set interval starts
+    jest.advanceTimersByTime(20000);
     expect(fetchMock.mock.calls.length).toEqual(1);
+});
+
+test('Should send metrics for initial and after metrics interval', () => {
+    const metrics = new Metrics({
+        onError: console.error,
+        appName: 'test',
+        metricsInterval: 5,
+        disableMetrics: false,
+        url: 'http://localhost:3000',
+        clientKey: '123',
+        fetch: fetchMock,
+        headerName: 'Authorization',
+        metricsIntervalInitial: 2,
+    });
+
+    metrics.start();
+
+    metrics.count('foo', true);
+    metrics.count('foo', true);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    // Account for 2 second timeout before the set interval starts
+    jest.advanceTimersByTime(2000);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    jest.advanceTimersByTime(5000);
+    expect(fetchMock.mock.calls.length).toEqual(2);
 });
 
 test('Should not send initial metrics if disabled', () => {

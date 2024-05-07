@@ -91,7 +91,6 @@ export default class Metrics {
             typeof this.metricsInterval === 'number' &&
             this.metricsInterval > 0
         ) {
-            // send first metrics after two seconds.
             if(this.metricsIntervalInitial > 0) {
                 setTimeout(() => {
                     this.startTimer();

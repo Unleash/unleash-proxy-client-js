@@ -21,6 +21,7 @@ test('should be disabled by flag disableMetrics', async () => {
         clientKey: '123',
         fetch: fetchMock,
         headerName: 'Authorization',
+        metricsIntervalInitial: 0,
     });
 
     metrics.count('foo', true);
@@ -40,6 +41,7 @@ test('should send metrics', async () => {
         clientKey: '123',
         fetch: fetchMock,
         headerName: 'Authorization',
+        metricsIntervalInitial: 0,
     });
 
     metrics.count('foo', true);
@@ -76,6 +78,7 @@ test('should send metrics with custom auth header', async () => {
         clientKey: '123',
         fetch: fetchMock,
         headerName: 'NotAuthorization',
+        metricsIntervalInitial: 0,
     });
 
     metrics.count('foo', true);
@@ -99,6 +102,7 @@ test('Should send initial metrics after 2 seconds', () => {
         clientKey: '123',
         fetch: fetchMock,
         headerName: 'Authorization',
+        metricsIntervalInitial: 2,
     });
 
     metrics.start();
@@ -112,6 +116,81 @@ test('Should send initial metrics after 2 seconds', () => {
     expect(fetchMock.mock.calls.length).toEqual(1);
 });
 
+test('Should send initial metrics after 20 seconds, when metricsIntervalInitial is higher than metricsInterval', () => {
+    const metrics = new Metrics({
+        onError: console.error,
+        appName: 'test',
+        metricsInterval: 5,
+        disableMetrics: false,
+        url: 'http://localhost:3000',
+        clientKey: '123',
+        fetch: fetchMock,
+        headerName: 'Authorization',
+        metricsIntervalInitial: 20,
+    });
+
+    metrics.start();
+
+    metrics.count('foo', true);
+    metrics.count('foo', true);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    // Account for 20 second timeout before the set interval starts
+    jest.advanceTimersByTime(20000);
+    expect(fetchMock.mock.calls.length).toEqual(1);
+});
+
+test('Should send metrics for initial and after metrics interval', () => {
+    const metrics = new Metrics({
+        onError: console.error,
+        appName: 'test',
+        metricsInterval: 5,
+        disableMetrics: false,
+        url: 'http://localhost:3000',
+        clientKey: '123',
+        fetch: fetchMock,
+        headerName: 'Authorization',
+        metricsIntervalInitial: 2,
+    });
+
+    metrics.start();
+
+    metrics.count('foo', true);
+    metrics.count('foo', true);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    // Account for 2 second timeout before the set interval starts
+    jest.advanceTimersByTime(2000);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    jest.advanceTimersByTime(5000);
+    expect(fetchMock.mock.calls.length).toEqual(2);
+});
+
+test('Should not send initial metrics if disabled', () => {
+    const metrics = new Metrics({
+        onError: console.error,
+        appName: 'test',
+        metricsInterval: 5,
+        disableMetrics: false,
+        url: 'http://localhost:3000',
+        clientKey: '123',
+        fetch: fetchMock,
+        headerName: 'Authorization',
+        metricsIntervalInitial: 0,
+    });
+
+    metrics.start();
+
+    metrics.count('foo', true);
+    metrics.count('foo', true);
+    metrics.count('foo', false);
+    metrics.count('bar', false);
+    // Account for 2 second timeout before the set interval starts
+    jest.advanceTimersByTime(2000);
+    expect(fetchMock.mock.calls.length).toEqual(0);
+});
+
 test('should send metrics based on timer interval', async () => {
     const metrics = new Metrics({
         onError: console.error,
@@ -122,6 +201,7 @@ test('should send metrics based on timer interval', async () => {
         clientKey: '123',
         fetch: fetchMock,
         headerName: 'Authorization',
+        metricsIntervalInitial: 2,
     });
 
     metrics.start();
@@ -162,6 +242,7 @@ describe('Custom headers for metrics', () => {
             fetch: fetchMock,
             headerName: 'Authorization',
             customHeaders,
+            metricsIntervalInitial: 2,
         });
 
         metrics.count('foo', true);

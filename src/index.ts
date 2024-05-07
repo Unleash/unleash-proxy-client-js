@@ -522,7 +522,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private emitReady() {
-        if (!this.bootstrap && !this.readyEventEmitted) {
+        if (!this.readyEventEmitted) {
             this.emit(EVENTS.READY);
             this.readyEventEmitted = true;
         }

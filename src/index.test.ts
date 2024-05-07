@@ -1742,6 +1742,56 @@ test('Should set sdkState to healthy when client is started', (done) => {
     });
 });
 
+
+describe('READY event emission', () => {
+    let client: UnleashClient;
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap: [
+            {
+                enabled: false,
+                name: 'test-frontend',
+                variant: { name: 'some-variant', enabled: false },
+                impressionData: false,
+            },
+        ],
+        bootstrapOverride: false,
+        fetch: async () => {
+            return {
+                ok: true,
+                headers: new Map(),
+                async json() {
+                    return {};
+                },
+            };
+        },
+    };
+
+    beforeEach(() => {
+        fetchMock.resetMocks();
+        client = new UnleashClient(config);
+        jest.spyOn(client, 'emit');
+    });
+
+    test('should emit READY when response is OK and not 304, and conditions are met', async () => {
+        // Mock a successful fetch response that is not 304
+        fetchMock.mockResponseOnce(
+            JSON.stringify({
+                toggles: [{ feature: 'test-feature', enabled: true }],
+            }),
+            {
+                status: 200,
+                headers: { ETag: 'new-etag' },
+            }
+        );
+
+        expect(client.emit).toHaveBeenCalledWith(EVENTS.READY);
+    });
+});
+
 describe('handling togglesStorageTTL > 0', () => {
     let storage: IStorageProvider;
     let fakeNow: number;
@@ -1832,36 +1882,5 @@ describe('handling togglesStorageTTL > 0', () => {
         client.on(EVENTS.INIT, () => readySpy.mockClear());
         await client.start();
         expect(readySpy).toHaveBeenCalledTimes(1);
-    });
-
-    test('Should not send ready event when bootstrap option is defined', async () => {
-        const bootstrap = [
-            {
-                name: 'toggles',
-                enabled: true,
-                variant: {
-                    name: 'disabled',
-                    enabled: false,
-                    feature_enabled: true,
-                },
-                impressionData: true,
-            },
-        ];
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider: storage,
-            bootstrap,
-            togglesStorageTTL: 60,
-        };
-        const client = new UnleashClient(config);
-
-        const readySpy = jest.fn();
-        // clearing "ready" sent by init() when bootstrap is defined
-        client.on(EVENTS.INIT, () => readySpy.mockClear());
-        client.on(EVENTS.READY, readySpy);
-        await client.start();
-        expect(readySpy).not.toHaveBeenCalled();
     });
 });

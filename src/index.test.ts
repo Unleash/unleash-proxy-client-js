@@ -1742,7 +1742,6 @@ test('Should set sdkState to healthy when client is started', (done) => {
     });
 });
 
-
 describe('READY event emission', () => {
     let client: UnleashClient;
 

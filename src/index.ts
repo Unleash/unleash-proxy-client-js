@@ -436,7 +436,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private isUpToDate() {
-        if (this.togglesStorageTTL <= 0 || this.toggles.length === 0) {
+        if (this.togglesStorageTTL <= 0) {
             return false;
         }
         const timestamp = Date.now();

@@ -383,7 +383,7 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.start();
         const interval = this.refreshInterval;
 
-        await this.fetchToggles();
+        await this.initialFetchToggles();
 
         if (interval > 0) {
             this.timerRef = setInterval(() => this.fetchToggles(), interval);
@@ -447,17 +447,21 @@ export class UnleashClient extends TinyEmitter {
         );
     }
 
-    private async updateLastRefresh() {
+    private async updateLastRefreshTimestamp() {
         this.lastRefreshTimestamp = Date.now();
         this.storage.save(lastUpdateKey, this.lastRefreshTimestamp);
     }
 
+    private initialFetchToggles() {
+        if (this.isUpToDate()) {
+            this.emitReady();
+            return;
+        }
+        return this.fetchToggles();
+    }
+
     private async fetchToggles() {
         if (this.fetch) {
-            if (this.isUpToDate()) {
-                this.emitReady();
-                return;
-            }
             if (this.abortController) {
                 this.abortController.abort();
             }
@@ -499,9 +503,8 @@ export class UnleashClient extends TinyEmitter {
                         type: 'HttpError',
                         code: response.status,
                     });
-                    return;
                 }
-                if (response.status !== 304) {
+                else if (response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
@@ -513,7 +516,7 @@ export class UnleashClient extends TinyEmitter {
                     this.emitReady();
                 }
 
-                this.updateLastRefresh();
+                this.updateLastRefreshTimestamp();
             } catch (e) {
                 console.error('Unleash: unable to fetch feature toggles', e);
                 this.sdkState = 'error';

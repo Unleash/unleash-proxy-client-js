@@ -41,6 +41,7 @@ interface IConfig extends IStaticContext {
     disableRefresh?: boolean;
     refreshInterval?: number;
     metricsInterval?: number;
+    metricsIntervalInitial?: number;
     disableMetrics?: boolean;
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
@@ -157,6 +158,7 @@ export class UnleashClient extends TinyEmitter {
         disableRefresh = false,
         refreshInterval = 30,
         metricsInterval = 30,
+        metricsIntervalInitial = 2,
         disableMetrics = false,
         appName,
         environment = 'default',
@@ -240,6 +242,7 @@ export class UnleashClient extends TinyEmitter {
             fetch,
             headerName,
             customHeaders,
+            metricsIntervalInitial,
         });
     }
 

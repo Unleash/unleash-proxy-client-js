@@ -585,7 +585,7 @@ describe('handling last update flag storage', () => {
 
         const client = new UnleashClient(config);
         await client.start();
-        expect(saveSpy).toHaveBeenCalledWith('lastUpdate', expect.any(Number));
+        expect(saveSpy).toHaveBeenCalledWith('repoLastUpdateTimestamp', expect.any(Number));
         expect(saveSpy.mock.lastCall?.at(1)).toBeGreaterThanOrEqual(startTime);
     });
 
@@ -602,7 +602,7 @@ describe('handling last update flag storage', () => {
 
         const client = new UnleashClient(config);
         await client.start();
-        expect(saveSpy).toHaveBeenCalledWith('lastUpdate', expect.any(Number));
+        expect(saveSpy).toHaveBeenCalledWith('repoLastUpdateTimestamp', expect.any(Number));
         expect(saveSpy.mock.lastCall?.at(1)).toBeGreaterThanOrEqual(startTime);
     });
 

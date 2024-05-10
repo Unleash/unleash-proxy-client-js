@@ -1882,4 +1882,22 @@ describe('handling togglesStorageTTL > 0', () => {
         await client.start();
         expect(readySpy).toHaveBeenCalledTimes(1);
     });
+
+    test('Should perform a fetch when context is updated, even if flags are up to date', async () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider: storage,
+            togglesStorageTTL: 60,
+        };
+        const client = new UnleashClient(config);
+        await client.start();
+        let isEnabled = client.isEnabled('simpleToggle');
+        expect(isEnabled).toBe(true);
+        await client.updateContext({ userId: '123' });
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        isEnabled = client.isEnabled('simpleToggle');
+        expect(isEnabled).toBe(false);
+    });
 });

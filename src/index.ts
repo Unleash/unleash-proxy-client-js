@@ -503,8 +503,7 @@ export class UnleashClient extends TinyEmitter {
                         type: 'HttpError',
                         code: response.status,
                     });
-                }
-                else if (response.status !== 304) {
+                } else if (response.status !== 304) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);

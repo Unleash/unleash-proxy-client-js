@@ -133,6 +133,8 @@ The Unleash SDK takes the following options:
 | customHeaders     | no| `{}` | Additional headers to use when making HTTP requests to the Unleash proxy. In case of name collisions with the default headers, the `customHeaders` value will be used if it is not `null` or `undefined`. `customHeaders` values that are `null` or `undefined` will be ignored. |
 | impressionDataAll | no| `false` | Allows you to trigger "impression" events for **all** `getToggle` and `getVariant` invocations. This is particularly useful for "disabled" feature toggles that are not visible to frontend SDKs. |
 | environment | no | `default` | Sets the `environment` option of the [Unleash context](https://docs.getunleash.io/reference/unleash-context). This does **not** affect the SDK's [Unleash environment](https://docs.getunleash.io/reference/environments). |
+| usePOSTrequests | no | `false` | Configures the client to use POST requests instead of GET when requesting enabled features. This is helpful when sensitive information (like user email, when used as a user ID) is passed in the context to avoid leaking it in the URL. |
+
 
 ### Listen for updates via the EventEmitter
 

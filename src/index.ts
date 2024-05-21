@@ -53,6 +53,7 @@ interface IConfig extends IStaticContext {
     customHeaders?: Record<string, string>;
     impressionDataAll?: boolean;
     usePOSTrequests?: boolean;
+    togglesStorageTTL?: number;
 }
 
 interface IVariant {
@@ -93,6 +94,7 @@ const defaultVariant: IVariant = {
     feature_enabled: false,
 };
 const storeKey = 'repo';
+const lastUpdateKey = 'repoLastUpdateTimestamp';
 
 type SdkState = 'initializing' | 'healthy' | 'error';
 
@@ -146,6 +148,8 @@ export class UnleashClient extends TinyEmitter {
     private usePOSTrequests = false;
     private started = false;
     private sdkState: SdkState;
+    private togglesStorageTTL: number;
+    private lastRefreshTimestamp: number;
 
     constructor({
         storageProvider,
@@ -167,6 +171,7 @@ export class UnleashClient extends TinyEmitter {
         customHeaders = {},
         impressionDataAll = false,
         usePOSTrequests = false,
+        togglesStorageTTL = 0,
     }: IConfig) {
         super();
         // Validations
@@ -195,6 +200,9 @@ export class UnleashClient extends TinyEmitter {
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
+        this.togglesStorageTTL = togglesStorageTTL * 1000;
+        this.lastRefreshTimestamp = 0;
+
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
@@ -348,6 +356,7 @@ export class UnleashClient extends TinyEmitter {
         this.context = { sessionId, ...this.context };
 
         this.toggles = (await this.storage.get(storeKey)) || [];
+        this.lastRefreshTimestamp = await this.storage.get(lastUpdateKey);
 
         if (
             this.bootstrap &&
@@ -374,7 +383,7 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.start();
         const interval = this.refreshInterval;
 
-        await this.fetchToggles();
+        await this.initialFetchToggles();
 
         if (interval > 0) {
             this.timerRef = setInterval(() => this.fetchToggles(), interval);
@@ -426,6 +435,31 @@ export class UnleashClient extends TinyEmitter {
         await this.storage.save(storeKey, toggles);
     }
 
+    private isUpToDate() {
+        if (this.togglesStorageTTL <= 0) {
+            return false;
+        }
+        const timestamp = Date.now();
+
+        return !!(
+            this.lastRefreshTimestamp &&
+            timestamp - this.lastRefreshTimestamp <= this.togglesStorageTTL
+        );
+    }
+
+    private async updateLastRefreshTimestamp() {
+        this.lastRefreshTimestamp = Date.now();
+        this.storage.save(lastUpdateKey, this.lastRefreshTimestamp);
+    }
+
+    private initialFetchToggles() {
+        if (this.isUpToDate()) {
+            this.emitReady();
+            return;
+        }
+        return this.fetchToggles();
+    }
+
     private async fetchToggles() {
         if (this.fetch) {
             if (this.abortController) {
@@ -460,20 +494,7 @@ export class UnleashClient extends TinyEmitter {
                     this.emit(EVENTS.RECOVERED);
                 }
 
-                if (response.ok && response.status !== 304) {
-                    this.etag = response.headers.get('ETag') || '';
-                    const data = await response.json();
-                    await this.storeToggles(data.toggles);
-
-                    if (this.sdkState !== 'healthy') {
-                        this.sdkState = 'healthy';
-                    }
-
-                    if (!this.readyEventEmitted) {
-                        this.emit(EVENTS.READY);
-                        this.readyEventEmitted = true;
-                    }
-                } else if (!response.ok && response.status !== 304) {
+                if (!response.ok && response.status !== 304) {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'
                     );
@@ -482,7 +503,19 @@ export class UnleashClient extends TinyEmitter {
                         type: 'HttpError',
                         code: response.status,
                     });
+                } else if (response.status !== 304) {
+                    this.etag = response.headers.get('ETag') || '';
+                    const data = await response.json();
+                    await this.storeToggles(data.toggles);
+
+                    if (this.sdkState !== 'healthy') {
+                        this.sdkState = 'healthy';
+                    }
+
+                    this.emitReady();
                 }
+
+                this.updateLastRefreshTimestamp();
             } catch (e) {
                 if (!(e instanceof DOMException && e.name === 'AbortError')) {
                     console.error(
@@ -495,6 +528,13 @@ export class UnleashClient extends TinyEmitter {
             } finally {
                 this.abortController = null;
             }
+        }
+    }
+
+    private emitReady() {
+        if (!this.readyEventEmitted) {
+            this.emit(EVENTS.READY);
+            this.readyEventEmitted = true;
         }
     }
 }

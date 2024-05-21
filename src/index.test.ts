@@ -632,7 +632,7 @@ test('Should not trigger error on abort', async () => {
         appName: 'web',
     };
     const client = new UnleashClient(config);
-    client.on(EVENTS.ERROR, (e: any) => {
+    client.on(EVENTS.ERROR, () => {
         throw new Error('abort should not trigger error');
     });
 

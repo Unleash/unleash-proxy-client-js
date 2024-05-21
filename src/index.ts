@@ -484,9 +484,14 @@ export class UnleashClient extends TinyEmitter {
                     });
                 }
             } catch (e) {
-                console.error('Unleash: unable to fetch feature toggles', e);
-                this.sdkState = 'error';
-                this.emit(EVENTS.ERROR, e);
+                if (!(e instanceof DOMException && e.name === 'AbortError')) {
+                    console.error(
+                        'Unleash: unable to fetch feature toggles',
+                        e
+                    );
+                    this.sdkState = 'error';
+                    this.emit(EVENTS.ERROR, e);
+                }
             } finally {
                 this.abortController = null;
             }

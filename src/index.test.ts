@@ -11,6 +11,7 @@ import {
     UnleashClient,
 } from './index';
 import { getTypeSafeRequest, getTypeSafeRequestUrl } from './test';
+import * as hash from 'object-hash';
 
 jest.useFakeTimers();
 
@@ -551,83 +552,6 @@ test('Should publish ready when initial fetch completed', (done) => {
         client.stop();
         expect(isEnabled).toBe(true);
         done();
-    });
-});
-
-describe('handling last update flag storage', () => {
-    let storageProvider: IStorageProvider;
-    let saveSpy: jest.SpyInstance;
-    class Store implements IStorageProvider {
-        public async save() {
-            return Promise.resolve();
-        }
-
-        public async get() {
-            return Promise.resolve([]);
-        }
-    }
-
-    beforeEach(() => {
-        storageProvider = new Store();
-        saveSpy = jest.spyOn(storageProvider, 'save');
-    });
-
-    test('Should store last update flag when fetch is successful', async () => {
-        const startTime = Date.now();
-        fetchMock.mockResponseOnce(JSON.stringify(data));
-
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider,
-        };
-
-        const client = new UnleashClient(config);
-        await client.start();
-        expect(saveSpy).toHaveBeenCalledWith(
-            'repoLastUpdateTimestamp',
-            expect.any(Number)
-        );
-        expect(saveSpy.mock.lastCall?.at(1)).toBeGreaterThanOrEqual(startTime);
-    });
-
-    test('Should store last update flag when fetch is successful with 304 status', async () => {
-        const startTime = Date.now();
-        fetchMock.mockResponseOnce(JSON.stringify(data), { status: 304 });
-
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider,
-        };
-
-        const client = new UnleashClient(config);
-        await client.start();
-        expect(saveSpy).toHaveBeenCalledWith(
-            'repoLastUpdateTimestamp',
-            expect.any(Number)
-        );
-        expect(saveSpy.mock.lastCall?.at(1)).toBeGreaterThanOrEqual(startTime);
-    });
-
-    test('Should not store last update flag when fetch is not successful', async () => {
-        fetchMock.mockResponseOnce('', { status: 500 });
-
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider,
-        };
-
-        const client = new UnleashClient(config);
-        await client.start();
-        expect(saveSpy).not.toHaveBeenCalledWith(
-            'lastUpdate',
-            expect.any(Number)
-        );
     });
 });
 
@@ -1797,113 +1721,437 @@ describe('READY event emission', () => {
     });
 });
 
-describe('handling togglesStorageTTL > 0', () => {
+describe('Experimental options togglesStorageTTL disabled', () => {
+    const lastUpdateStorageKey = 'repoLastUpdateTimestamp';
+
+    describe('Handling last update flag storage', () => {
+        let storageProvider: IStorageProvider;
+        let saveSpy: jest.SpyInstance;
+
+        class Store implements IStorageProvider {
+            public async save() {
+                return Promise.resolve();
+            }
+
+            public async get() {
+                return Promise.resolve([]);
+            }
+        }
+
+        beforeEach(() => {
+            storageProvider = new Store();
+            saveSpy = jest.spyOn(storageProvider, 'save');
+            jest.clearAllMocks();
+        });
+
+        test('Should not store last update flag when fetch is successful', async () => {
+            fetchMock.mockResponseOnce(JSON.stringify(data));
+
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider,
+                experimental: {
+                },
+            };
+
+            const client = new UnleashClient(config);
+            await client.start();
+            expect(saveSpy).not.toHaveBeenCalledWith(
+                lastUpdateStorageKey,
+                {
+                    contextHash: expect.any(String),
+                    timestamp: expect.any(Number)
+                }
+            );
+        });
+    });
+  
+    test('Should not store last update flag when bootstrap is set', async () => {
+        localStorage.clear();
+        const bootstrap = [
+            {
+                name: 'toggles',
+                enabled: true,
+                variant: {
+                    name: 'disabled',
+                    enabled: false,
+                    feature_enabled: true,
+                },
+                impressionData: true,
+            }
+        ];
+    
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            bootstrap,
+        };
+        const client = new UnleashClient(config);
+        await client.start();
+        expect(localStorage.getItem(lastUpdateStorageKey)).toBeNull();
+    });
+});
+
+describe('Experimental options togglesStorageTTL enabled', () => {
     let storage: IStorageProvider;
     let fakeNow: number;
-    beforeEach(async () => {
-        fakeNow = new Date('2024-01-01').getTime();
-        jest.useFakeTimers();
-        jest.setSystemTime(fakeNow);
-        storage = new InMemoryStorageProvider();
+    const lastUpdateStorageKey = 'repoLastUpdateTimestamp';
 
-        fetchMock.mockResponseOnce(JSON.stringify(data)).mockResponseOnce(
-            JSON.stringify({
-                toggles: [
-                    {
-                        name: 'simpleToggle',
+    describe('Handling last update flag storage', () => {
+        let storageProvider: IStorageProvider;
+        let saveSpy: jest.SpyInstance;
+
+
+        class Store implements IStorageProvider {
+            public async save() {
+                return Promise.resolve();
+            }
+
+            public async get() {
+                return Promise.resolve([]);
+            }
+        }
+
+        beforeEach(() => {
+            storageProvider = new Store();
+            saveSpy = jest.spyOn(storageProvider, 'save');
+            jest.clearAllMocks();
+        });
+
+        test('Should store last update flag when fetch is successful', async () => {
+            const startTime = Date.now();
+            fetchMock.mockResponseOnce(JSON.stringify(data));
+
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+            };
+
+            const client = new UnleashClient(config);
+            await client.start();
+            expect(saveSpy).toHaveBeenCalledWith(
+                lastUpdateStorageKey,
+                {
+                    contextHash: expect.any(String),
+                    timestamp: expect.any(Number)
+                }
+            );
+            expect(saveSpy.mock.lastCall?.at(1).timestamp).toBeGreaterThanOrEqual(startTime);
+        });
+
+        test('Should store last update flag when fetch is successful with 304 status', async () => {
+            const startTime = Date.now();
+            fetchMock.mockResponseOnce(JSON.stringify(data), { status: 304 });
+
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+            };
+
+            const client = new UnleashClient(config);
+            await client.start();
+            expect(saveSpy).toHaveBeenCalledWith(
+                lastUpdateStorageKey,
+                {
+                    contextHash: expect.any(String),
+                    timestamp: expect.any(Number)
+                }
+            );
+            expect(saveSpy.mock.lastCall?.at(1).timestamp).toBeGreaterThanOrEqual(startTime);
+        });
+
+        test('Should not store last update flag when fetch is not successful', async () => {
+            fetchMock.mockResponseOnce('', { status: 500 });
+
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+            };
+
+            const client = new UnleashClient(config);
+            await client.start();
+            expect(saveSpy).not.toHaveBeenCalledWith(
+                lastUpdateStorageKey,
+                expect.any(Number)
+            );
+        });
+    });
+
+    describe('Handling last update flag storage hash value', () => {
+        let storageProvider: IStorageProvider;
+        let saveSpy: jest.SpyInstance;
+
+        class Store implements IStorageProvider {
+            public async save() {
+                return Promise.resolve();
+            }
+
+            public async get() {
+                return Promise.resolve([]);
+            }
+        }
+
+        beforeEach(() => {
+            storageProvider = new Store();
+            saveSpy = jest.spyOn(storageProvider, 'save');
+            jest.clearAllMocks();
+        });
+
+        test('Should compute last update flag value with the context value', async () => {
+            fetchMock.mockResponse(JSON.stringify({}));
+
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider,
+                experimental: {
+                    togglesStorageTTL: 60,
+                }
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            const clientContext = client.getContext();
+            expect(saveSpy).toHaveBeenNthCalledWith(1, 'repo', undefined);
+            expect(saveSpy).toHaveBeenNthCalledWith(2,
+                lastUpdateStorageKey,
+                {
+                    contextHash: hash(clientContext),
+                    timestamp: expect.any(Number)
+                }
+            );
+
+            await client.updateContext({ userId: '123' });
+            const clientContextUpdated = client.getContext();
+            expect(saveSpy).toHaveBeenNthCalledWith(3, 'repo', undefined);
+            expect(saveSpy).toHaveBeenNthCalledWith(4,
+                lastUpdateStorageKey,
+                {
+                    contextHash: hash(clientContextUpdated),
+                    timestamp: expect.any(Number)
+                }
+            );
+
+            expect(clientContext).not.toMatchObject(clientContextUpdated);
+        });
+    });
+
+   
+
+    describe('For bootstrap initialisation', () => {
+        beforeEach(async () => {
+            storage = new InMemoryStorageProvider();
+            jest.clearAllMocks();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        test('Should store last update flag when bootstrap is set', async () => {
+            const bootstrap = [
+                {
+                    name: 'toggles',
+                    enabled: true,
+                    variant: {
+                        name: 'disabled',
                         enabled: false,
-                        impressionData: true,
+                        feature_enabled: true,
                     },
-                ],
-            })
-        );
+                    impressionData: true,
+                }
+            ];
 
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider: storage,
-        };
-        // performing an initial fetch to populate the toggles and lastUpdate timestamp
-        const client = new UnleashClient(config);
-        await client.start();
-        client.stop();
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                bootstrap,
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            expect(await storage.get(lastUpdateStorageKey)).not.toBeUndefined();
+        });
 
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        fetchMock.mockClear();
+        test('Should not store last update flag when bootstrap is not set', async () => {
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            expect(await storage.get(lastUpdateStorageKey)).toBeUndefined();
+        });
     });
 
-    afterEach(() => {
-        jest.useRealTimers();
-    });
+    describe('With a previous storage initialisation', () => {
+        beforeEach(async () => {
+            fakeNow = new Date('2024-01-01').getTime();
+            jest.useFakeTimers();
+            jest.setSystemTime(fakeNow);
+            storage = new InMemoryStorageProvider();
 
-    test('Should not perform an initial fetch when toggles are up to date', async () => {
-        jest.setSystemTime(fakeNow + 59000);
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider: storage,
-            togglesStorageTTL: 60,
-        };
-        const client = new UnleashClient(config);
-        await client.start();
-        const isEnabled = client.isEnabled('simpleToggle');
-        expect(isEnabled).toBe(true);
-        client.stop();
-        expect(fetchMock).toHaveBeenCalledTimes(0);
-    });
+            fetchMock.mockResponseOnce(JSON.stringify(data)).mockResponseOnce(
+                JSON.stringify({
+                    toggles: [
+                        {
+                            name: 'simpleToggle',
+                            enabled: false,
+                            impressionData: true,
+                        },
+                    ],
+                })
+            );
 
-    test('Should perform an initial fetch when toggles are expired', async () => {
-        jest.setSystemTime(fakeNow + 61000);
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                }
+            };
+            // performing an initial fetch to populate the toggles and lastUpdate timestamp
+            const client = new UnleashClient(config);
+            await client.start();
+            client.stop();
 
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider: storage,
-            togglesStorageTTL: 60,
-        };
-        const client = new UnleashClient(config);
-        await client.start();
-        const isEnabled = client.isEnabled('simpleToggle');
-        expect(isEnabled).toBe(false);
-        client.stop();
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-    });
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            fetchMock.mockClear();
+        });
 
-    test('Should send ready event when toggles are up to date', async () => {
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider: storage,
-            togglesStorageTTL: 60,
-        };
-        const client = new UnleashClient(config);
+        afterEach(() => {
+            jest.useRealTimers();
+        });
 
-        const readySpy = jest.fn();
-        client.on(EVENTS.READY, readySpy);
-        client.on(EVENTS.INIT, () => readySpy.mockClear());
-        await client.start();
-        expect(readySpy).toHaveBeenCalledTimes(1);
-    });
+        test('Should not perform an initial fetch when toggles are up to date', async () => {
+            jest.setSystemTime(fakeNow + 59000);
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                }
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            const isEnabled = client.isEnabled('simpleToggle');
+            expect(isEnabled).toBe(true);
+            client.stop();
+            expect(fetchMock).toHaveBeenCalledTimes(0);
+        });
 
-    test('Should perform a fetch when context is updated, even if flags are up to date', async () => {
-        const config: IConfig = {
-            url: 'http://localhost/test',
-            clientKey: '12',
-            appName: 'web',
-            storageProvider: storage,
-            togglesStorageTTL: 60,
-        };
-        const client = new UnleashClient(config);
-        await client.start();
-        let isEnabled = client.isEnabled('simpleToggle');
-        expect(isEnabled).toBe(true);
-        await client.updateContext({ userId: '123' });
-        expect(fetchMock).toHaveBeenCalledTimes(1);
-        isEnabled = client.isEnabled('simpleToggle');
-        expect(isEnabled).toBe(false);
+        test('Should perform an initial fetch when toggles are expired', async () => {
+            jest.setSystemTime(fakeNow + 61000);
+
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                }
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            const isEnabled = client.isEnabled('simpleToggle');
+            expect(isEnabled).toBe(false);
+            client.stop();
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should perform an initial fetch when context has change, even if flags are up to date', async () => {
+            jest.setSystemTime(fakeNow + 59000);
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+                context: {
+                    properties: {
+                        newProperty: 'newProperty'
+                    }
+                }
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            const isEnabled = client.isEnabled('simpleToggle');
+            expect(isEnabled).toBe(false);
+            client.stop();
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should send ready event when toggles are up to date', async () => {
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                }
+            };
+            const client = new UnleashClient(config);
+
+            const readySpy = jest.fn();
+            client.on(EVENTS.READY, readySpy);
+            client.on(EVENTS.INIT, () => readySpy.mockClear());
+            await client.start();
+            expect(readySpy).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should perform a fetch when context is updated, even if flags are up to date', async () => {
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                }
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            let isEnabled = client.isEnabled('simpleToggle');
+            expect(isEnabled).toBe(true);
+            await client.updateContext({ userId: '123' });
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            isEnabled = client.isEnabled('simpleToggle');
+            expect(isEnabled).toBe(false);
+        });
     });
 });

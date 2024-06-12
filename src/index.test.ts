@@ -1527,16 +1527,15 @@ test('Should emit impression events on getVariant calls when impressionData is f
 });
 
 test('Should publish ready only when the first fetch was successful', async () => {
-    expect.assertions(3);
     fetchMock.mockResponse(JSON.stringify(data));
     const config: IConfig = {
         url: 'http://localhost/test',
         clientKey: '12',
         appName: 'web',
         refreshInterval: 1,
-        disableMetrics: true,
     };
     const client = new UnleashClient(config);
+    await client.start();
 
     let readyCount = 0;
 
@@ -1547,8 +1546,6 @@ test('Should publish ready only when the first fetch was successful', async () =
         client.stop();
         expect(readyCount).toEqual(1);
     });
-
-    await client.start();
 
     jest.advanceTimersByTime(1001);
     jest.advanceTimersByTime(1001);

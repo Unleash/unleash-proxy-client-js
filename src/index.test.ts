@@ -616,12 +616,53 @@ test('Should abort previous request', async () => {
         appName: 'web',
     };
     const client = new UnleashClient(config);
+
     await client.start();
     client.updateContext({ userId: '123' }); // abort 1
     client.updateContext({ userId: '456' }); // abort 2
     await client.updateContext({ userId: '789' });
 
     expect(abortSpy).toBeCalledTimes(2);
+    abortSpy.mockRestore();
+});
+
+test('Should not trigger error on abort', async () => {
+    fetchMock.mockResponse(JSON.stringify(data));
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    client.on(EVENTS.ERROR, () => {
+        throw new Error('abort should not trigger error');
+    });
+
+    await client.start();
+
+    fetchMock.mockAbort();
+    await client.updateContext({ userId: '789' });
+});
+
+test('Should run without abort controller', async () => {
+    fetchMock.mockResponse(JSON.stringify(data));
+    const abortSpy = jest.spyOn(AbortController.prototype, 'abort');
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        createAbortController: () => null,
+    };
+    const client = new UnleashClient(config);
+
+    await client.start();
+    client.updateContext({ userId: '123' });
+    client.updateContext({ userId: '456' });
+    await client.updateContext({ userId: '789' });
+
+    expect(abortSpy).toBeCalledTimes(0);
     abortSpy.mockRestore();
 });
 

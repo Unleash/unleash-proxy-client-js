@@ -47,7 +47,7 @@ interface IConfig extends IStaticContext {
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
     fetch?: any;
-    createAbortController?: () => AbortController;
+    createAbortController?: () => AbortController | null;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
     headerName?: string;
@@ -112,7 +112,9 @@ export const resolveFetch = () => {
     try {
         if (typeof window !== 'undefined' && 'fetch' in window) {
             return fetch.bind(window);
-        } else if ('fetch' in globalThis) {
+        }
+
+        if ('fetch' in globalThis) {
             return fetch.bind(globalThis);
         }
     } catch (e) {
@@ -126,7 +128,9 @@ const resolveAbortController = () => {
     try {
         if (typeof window !== 'undefined' && 'AbortController' in window) {
             return () => new window.AbortController();
-        } else if ('fetch' in globalThis) {
+        }
+
+        if ('fetch' in globalThis) {
             return () => new globalThis.AbortController();
         }
     } catch (e) {
@@ -147,7 +151,7 @@ export class UnleashClient extends TinyEmitter {
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;
-    private createAbortController?: () => AbortController;
+    private createAbortController?: () => AbortController | null;
     private abortController?: AbortController | null;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
@@ -515,8 +519,7 @@ export class UnleashClient extends TinyEmitter {
             if (this.abortController) {
                 this.abortController.abort();
             }
-            this.abortController =
-                this.createAbortController && this.createAbortController();
+            this.abortController = this.createAbortController?.();
             const signal = this.abortController
                 ? this.abortController.signal
                 : undefined;
@@ -571,9 +574,14 @@ export class UnleashClient extends TinyEmitter {
                     this.storeLastRefreshTimestamp();
                 }
             } catch (e) {
-                console.error('Unleash: unable to fetch feature toggles', e);
-                this.sdkState = 'error';
-                this.emit(EVENTS.ERROR, e);
+                if (!(e instanceof DOMException && e.name === 'AbortError')) {
+                    console.error(
+                        'Unleash: unable to fetch feature toggles',
+                        e
+                    );
+                    this.sdkState = 'error';
+                    this.emit(EVENTS.ERROR, e);
+                }
             } finally {
                 this.abortController = null;
             }

@@ -120,13 +120,15 @@ The Unleash SDK takes the following options:
 | url               | yes | n/a | The Unleash Proxy URL to connect to. E.g.: `https://examples.com/proxy`                                                                         |
 | clientKey         | yes | n/a | The Unleash Proxy Secret to be used                                                                                                             | 
 | appName           | yes | n/a | The name of the application using this SDK. Will be used as part of the metrics sent to Unleash Proxy. Will also be part of the Unleash Context. | 
+| context           | no | `{}` | The initial Unleash context. This will be used as the initial context for all feature toggle evaluations. `appName` and `environment` from other options are also used. |
 | refreshInterval   | no | `30` | How often, in seconds, the SDK should check for updated toggle configuration. If set to 0 will disable checking for updates                 |
 | disableRefresh    | no | `false` | If set to true, the client will not check for updated toggle configuration                                                                |
 | metricsInterval   | no | `60` | How often, in seconds, the SDK should send usage metrics back to Unleash Proxy. It will be started after the initial metrics report, which is sent after the configured `metricsIntervalInitial` | 
 | metricsIntervalInitial | no | `2` | How long the SDK should wait for the first metrics report back to the Unleash API. If you want to disable the initial metrics call you can set it to 0. | 
 | disableMetrics    | no | `false` | Set this option to `true` if you want to disable usage metrics                                                                           |
 | storageProvider   | no | `LocalStorageProvider` in browser, `InMemoryStorageProvider` otherwise | Allows you to inject a custom storeProvider                                                                              |
-| fetch             | no | `window.fetch` or global `fetch` | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch`                    | 
+| fetch | no | `window.fetch` or global `fetch` | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch` |
+| createAbortController | no | `() => new AbortController()` | Allows you to override the default `AbortController` creation. Used to cancel requests with outdated context. Can be `() => null` | 
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 
 | bootstrapOverride | no| `true` | Should the bootstrap automatically override cached data in the local-storage. Will only be used if bootstrap is not an empty array.     | 
 | headerName        | no| `Authorization` | Which header the SDK should use to authorize with Unleash / Unleash Proxy. The header will be given the `clientKey` as its value. |

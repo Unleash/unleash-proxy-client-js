@@ -9,6 +9,7 @@ import {
     IToggle,
     InMemoryStorageProvider,
     UnleashClient,
+    lastUpdateKey,
 } from './index';
 import { getTypeSafeRequest, getTypeSafeRequestUrl } from './test';
 import * as hash from 'object-hash';
@@ -1722,53 +1723,46 @@ describe('READY event emission', () => {
 });
 
 describe('Experimental options togglesStorageTTL disabled', () => {
-    const lastUpdateStorageKey = 'repoLastUpdateTimestamp';
+    let storageProvider: IStorageProvider;
+    let saveSpy: jest.SpyInstance;
 
-    describe('Handling last update flag storage', () => {
-        let storageProvider: IStorageProvider;
-        let saveSpy: jest.SpyInstance;
-
-        class Store implements IStorageProvider {
-            public async save() {
-                return Promise.resolve();
-            }
-
-            public async get() {
-                return Promise.resolve([]);
-            }
+    class Store implements IStorageProvider {
+        public async save() {
+            return Promise.resolve();
         }
 
-        beforeEach(() => {
-            storageProvider = new Store();
-            saveSpy = jest.spyOn(storageProvider, 'save');
-            jest.clearAllMocks();
-        });
+        public async get() {
+            return Promise.resolve([]);
+        }
+    }
 
-        test('Should not store last update flag when fetch is successful', async () => {
-            fetchMock.mockResponseOnce(JSON.stringify(data));
-
-            const config: IConfig = {
-                url: 'http://localhost/test',
-                clientKey: '12',
-                appName: 'web',
-                storageProvider,
-                experimental: {
-                },
-            };
-
-            const client = new UnleashClient(config);
-            await client.start();
-            expect(saveSpy).not.toHaveBeenCalledWith(
-                lastUpdateStorageKey,
-                {
-                    contextHash: expect.any(String),
-                    timestamp: expect.any(Number)
-                }
-            );
-        });
+    beforeEach(() => {
+        storageProvider = new Store();
+        saveSpy = jest.spyOn(storageProvider, 'save');
+        jest.clearAllMocks();
     });
-  
-    test('Should not store last update flag when bootstrap is set', async () => {
+
+    test('Should not store last update flag when fetch is successful', async () => {
+        fetchMock.mockResponseOnce(JSON.stringify(data));
+
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            storageProvider,
+            experimental: {},
+        };
+
+        const client = new UnleashClient(config);
+        await client.start();
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(saveSpy).not.toHaveBeenCalledWith(
+            lastUpdateKey,
+            expect.anything()
+        );
+    });
+
+    test('Should not store last update flag even when bootstrap is set', async () => {
         localStorage.clear();
         const bootstrap = [
             {
@@ -1780,30 +1774,32 @@ describe('Experimental options togglesStorageTTL disabled', () => {
                     feature_enabled: true,
                 },
                 impressionData: true,
-            }
+            },
         ];
-    
+
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',
             appName: 'web',
             bootstrap,
+            storageProvider,
         };
         const client = new UnleashClient(config);
         await client.start();
-        expect(localStorage.getItem(lastUpdateStorageKey)).toBeNull();
+        expect(saveSpy).not.toHaveBeenCalledWith(
+            lastUpdateKey,
+            expect.anything()
+        );
     });
 });
 
 describe('Experimental options togglesStorageTTL enabled', () => {
     let storage: IStorageProvider;
     let fakeNow: number;
-    const lastUpdateStorageKey = 'repoLastUpdateTimestamp';
 
     describe('Handling last update flag storage', () => {
         let storageProvider: IStorageProvider;
         let saveSpy: jest.SpyInstance;
-
 
         class Store implements IStorageProvider {
             public async save() {
@@ -1837,14 +1833,13 @@ describe('Experimental options togglesStorageTTL enabled', () => {
 
             const client = new UnleashClient(config);
             await client.start();
-            expect(saveSpy).toHaveBeenCalledWith(
-                lastUpdateStorageKey,
-                {
-                    contextHash: expect.any(String),
-                    timestamp: expect.any(Number)
-                }
-            );
-            expect(saveSpy.mock.lastCall?.at(1).timestamp).toBeGreaterThanOrEqual(startTime);
+            expect(saveSpy).toHaveBeenCalledWith(lastUpdateKey, {
+                contextHash: expect.any(String),
+                timestamp: expect.any(Number),
+            });
+            expect(
+                saveSpy.mock.lastCall?.at(1).timestamp
+            ).toBeGreaterThanOrEqual(startTime);
         });
 
         test('Should store last update flag when fetch is successful with 304 status', async () => {
@@ -1863,14 +1858,13 @@ describe('Experimental options togglesStorageTTL enabled', () => {
 
             const client = new UnleashClient(config);
             await client.start();
-            expect(saveSpy).toHaveBeenCalledWith(
-                lastUpdateStorageKey,
-                {
-                    contextHash: expect.any(String),
-                    timestamp: expect.any(Number)
-                }
-            );
-            expect(saveSpy.mock.lastCall?.at(1).timestamp).toBeGreaterThanOrEqual(startTime);
+            expect(saveSpy).toHaveBeenCalledWith(lastUpdateKey, {
+                contextHash: expect.any(String),
+                timestamp: expect.any(Number),
+            });
+            expect(
+                saveSpy.mock.lastCall?.at(1).timestamp
+            ).toBeGreaterThanOrEqual(startTime);
         });
 
         test('Should not store last update flag when fetch is not successful', async () => {
@@ -1889,7 +1883,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             const client = new UnleashClient(config);
             await client.start();
             expect(saveSpy).not.toHaveBeenCalledWith(
-                lastUpdateStorageKey,
+                lastUpdateKey,
                 expect.any(Number)
             );
         });
@@ -1915,7 +1909,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             jest.clearAllMocks();
         });
 
-        test('Should compute last update flag value with the context value', async () => {
+        test('Hash value computed should not change when the context value not change', async () => {
             fetchMock.mockResponse(JSON.stringify({}));
 
             const config: IConfig = {
@@ -1925,36 +1919,43 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 storageProvider,
                 experimental: {
                     togglesStorageTTL: 60,
-                }
+                },
             };
             const client = new UnleashClient(config);
             await client.start();
-            const clientContext = client.getContext();
-            expect(saveSpy).toHaveBeenNthCalledWith(1, 'repo', undefined);
-            expect(saveSpy).toHaveBeenNthCalledWith(2,
-                lastUpdateStorageKey,
-                {
-                    contextHash: hash(clientContext),
-                    timestamp: expect.any(Number)
-                }
-            );
+
+            const firstHash = saveSpy.mock.lastCall?.at(1).contextHash;
+            await client.updateContext({});
+
+            const secondHash = saveSpy.mock.lastCall?.at(1).contextHash;
+
+            expect(firstHash).toEqual(secondHash);
+        });
+
+        test('Hash value computed should change when context value change', async () => {
+            fetchMock.mockResponse(JSON.stringify({}));
+
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+
+            const firstHash = saveSpy.mock.lastCall?.at(1).contextHash;
 
             await client.updateContext({ userId: '123' });
-            const clientContextUpdated = client.getContext();
-            expect(saveSpy).toHaveBeenNthCalledWith(3, 'repo', undefined);
-            expect(saveSpy).toHaveBeenNthCalledWith(4,
-                lastUpdateStorageKey,
-                {
-                    contextHash: hash(clientContextUpdated),
-                    timestamp: expect.any(Number)
-                }
-            );
 
-            expect(clientContext).not.toMatchObject(clientContextUpdated);
+            const secondHash = saveSpy.mock.lastCall?.at(1).contextHash;
+
+            expect(firstHash).not.toEqual(secondHash);
         });
     });
-
-   
 
     describe('For bootstrap initialisation', () => {
         beforeEach(async () => {
@@ -1977,7 +1978,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                         feature_enabled: true,
                     },
                     impressionData: true,
-                }
+                },
             ];
 
             const config: IConfig = {
@@ -1992,7 +1993,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             };
             const client = new UnleashClient(config);
             await client.start();
-            expect(await storage.get(lastUpdateStorageKey)).not.toBeUndefined();
+            expect(await storage.get(lastUpdateKey)).not.toBeUndefined();
         });
 
         test('Should not store last update flag when bootstrap is not set', async () => {
@@ -2007,7 +2008,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             };
             const client = new UnleashClient(config);
             await client.start();
-            expect(await storage.get(lastUpdateStorageKey)).toBeUndefined();
+            expect(await storage.get(lastUpdateKey)).toBeUndefined();
         });
     });
 
@@ -2037,7 +2038,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 storageProvider: storage,
                 experimental: {
                     togglesStorageTTL: 60,
-                }
+                },
             };
             // performing an initial fetch to populate the toggles and lastUpdate timestamp
             const client = new UnleashClient(config);
@@ -2061,7 +2062,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 storageProvider: storage,
                 experimental: {
                     togglesStorageTTL: 60,
-                }
+                },
             };
             const client = new UnleashClient(config);
             await client.start();
@@ -2081,7 +2082,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 storageProvider: storage,
                 experimental: {
                     togglesStorageTTL: 60,
-                }
+                },
             };
             const client = new UnleashClient(config);
             await client.start();
@@ -2091,7 +2092,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             expect(fetchMock).toHaveBeenCalledTimes(1);
         });
 
-        test('Should perform an initial fetch when context has change, even if flags are up to date', async () => {
+        test('Should perform an initial fetch when context has changed, even if flags are up to date', async () => {
             jest.setSystemTime(fakeNow + 59000);
             const config: IConfig = {
                 url: 'http://localhost/test',
@@ -2103,9 +2104,9 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 },
                 context: {
                     properties: {
-                        newProperty: 'newProperty'
-                    }
-                }
+                        newProperty: 'newProperty',
+                    },
+                },
             };
             const client = new UnleashClient(config);
             await client.start();
@@ -2123,7 +2124,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 storageProvider: storage,
                 experimental: {
                     togglesStorageTTL: 60,
-                }
+                },
             };
             const client = new UnleashClient(config);
 
@@ -2142,7 +2143,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 storageProvider: storage,
                 experimental: {
                     togglesStorageTTL: 60,
-                }
+                },
             };
             const client = new UnleashClient(config);
             await client.start();

@@ -99,13 +99,13 @@ const defaultVariant: IVariant = {
     feature_enabled: false,
 };
 const storeKey = 'repo';
-const lastUpdateKey = 'repoLastUpdateTimestamp';
+export const lastUpdateKey = 'repoLastUpdateTimestamp';
 
 type SdkState = 'initializing' | 'healthy' | 'error';
 
-type LastUpdateTimestamp = {
-    contextHash: string,
-    timestamp: number
+type LastUpdateTerms = {
+    contextHash: string;
+    timestamp: number;
 };
 
 export const resolveFetch = () => {
@@ -158,7 +158,7 @@ export class UnleashClient extends TinyEmitter {
     private usePOSTrequests = false;
     private started = false;
     private sdkState: SdkState;
-    private experimental?: IExperimentalConfig;
+    private experimental: IExperimentalConfig;
     private lastRefreshTimestamp: number;
 
     constructor({
@@ -210,10 +210,15 @@ export class UnleashClient extends TinyEmitter {
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
+
         this.experimental = { ...experimental };
 
-        if (experimental?.togglesStorageTTL && experimental?.togglesStorageTTL > 0) {
-            this.experimental.togglesStorageTTL= experimental.togglesStorageTTL * 1000;
+        if (
+            experimental?.togglesStorageTTL &&
+            experimental?.togglesStorageTTL > 0
+        ) {
+            this.experimental.togglesStorageTTL =
+                experimental.togglesStorageTTL * 1000;
         }
 
         this.lastRefreshTimestamp = 0;
@@ -454,34 +459,45 @@ export class UnleashClient extends TinyEmitter {
         await this.storage.save(storeKey, toggles);
     }
 
+    private isTogglesStorageTTLEnabled() {
+        return (
+            this.experimental?.togglesStorageTTL &&
+            this.experimental.togglesStorageTTL > 0
+        );
+    }
+
     private isUpToDate() {
-        if (!this.experimental?.togglesStorageTTL || this.experimental?.togglesStorageTTL <= 0) {
+        if (!this.isTogglesStorageTTLEnabled()) {
             return false;
         }
         const timestamp = Date.now();
 
         return !!(
             this.lastRefreshTimestamp &&
-            timestamp - this.lastRefreshTimestamp <= this.experimental.togglesStorageTTL
+            timestamp - this.lastRefreshTimestamp <=
+                this.experimental.togglesStorageTTL!
         );
     }
 
     private async getLastRefreshTimestamp() {
-        if (this.experimental?.togglesStorageTTL && this.experimental.togglesStorageTTL > 0) {            
-            const lastRefresh: LastUpdateTimestamp = await this.storage.get(lastUpdateKey);
-            return lastRefresh?.contextHash === hash(this.context) ? lastRefresh.timestamp : 0;
+        if (this.isTogglesStorageTTLEnabled()) {
+            const lastRefresh: LastUpdateTerms | undefined =
+                await this.storage.get(lastUpdateKey);
+            return lastRefresh?.contextHash === hash(this.context)
+                ? lastRefresh.timestamp
+                : 0;
         }
         return 0;
     }
 
     private async storeLastRefreshTimestamp() {
-        if (this.experimental?.togglesStorageTTL && this.experimental.togglesStorageTTL > 0) {
+        if (this.isTogglesStorageTTLEnabled()) {
             this.lastRefreshTimestamp = Date.now();
 
-            const lastUpdateValue: LastUpdateTimestamp = {
+            const lastUpdateValue: LastUpdateTerms = {
                 contextHash: hash(this.context),
                 timestamp: this.lastRefreshTimestamp,
-            }
+            };
             this.storage.save(lastUpdateKey, lastUpdateValue);
         }
     }
@@ -527,17 +543,21 @@ export class UnleashClient extends TinyEmitter {
                     this.sdkState = 'healthy';
                     this.emit(EVENTS.RECOVERED);
                 }
-                
-                if (!response.ok && response.status !== 304) { // Error (but not 304)
-                    console.error(
-                        'Unleash: Fetching feature toggles did not have an ok response'
-                    );
-                    this.sdkState = 'error';
-                    this.emit(EVENTS.ERROR, {
-                        type: 'HttpError',
-                        code: response.status,
-                    });
-                } else if (response.status !== 304) { // Not an error (like 2xx)
+
+                if (!response.ok) {
+                    if (response.status === 304) {
+                        this.storeLastRefreshTimestamp();
+                    } else {
+                        console.error(
+                            'Unleash: Fetching feature toggles did not have an ok response'
+                        );
+                        this.sdkState = 'error';
+                        this.emit(EVENTS.ERROR, {
+                            type: 'HttpError',
+                            code: response.status,
+                        });
+                    }
+                } else {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
@@ -547,9 +567,7 @@ export class UnleashClient extends TinyEmitter {
                     }
 
                     this.emitReady();
-                    
-                    this.storeLastRefreshTimestamp();
-                } else if (response.status === 304)  { // Specific 304
+
                     this.storeLastRefreshTimestamp();
                 }
             } catch (e) {

@@ -120,7 +120,7 @@ The Unleash SDK takes the following options:
 | url               | yes | n/a | The Unleash Proxy URL to connect to. E.g.: `https://examples.com/proxy`                                                                         |
 | clientKey         | yes | n/a | The Unleash Proxy Secret to be used                                                                                                             | 
 | appName           | yes | n/a | The name of the application using this SDK. Will be used as part of the metrics sent to Unleash Proxy. Will also be part of the Unleash Context. | 
-| context           | no | `{}` | The initial Unleash context. This will be used as the initial context for all feature toggle evaluations. `appName` and `environment` from other options are also used. |
+| context           | no | `{}` | The initial Unleash context. This will be used as the initial context for all feature toggle evaluations. The `appName` and `environment` options will automatically be populated with the values you pass for those options. |
 | refreshInterval   | no | `30` | How often, in seconds, the SDK should check for updated toggle configuration. If set to 0 will disable checking for updates                 |
 | disableRefresh    | no | `false` | If set to true, the client will not check for updated toggle configuration                                                                |
 | metricsInterval   | no | `60` | How often, in seconds, the SDK should send usage metrics back to Unleash Proxy. It will be started after the initial metrics report, which is sent after the configured `metricsIntervalInitial` | 

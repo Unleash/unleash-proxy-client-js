@@ -1756,3 +1756,45 @@ describe('READY event emission', () => {
         expect(client.emit).toHaveBeenCalledWith(EVENTS.READY);
     });
 });
+
+test('should not emit READY twice with bootstrapOverride', async () => {
+    const client = new UnleashClient({
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap: [
+            {
+                enabled: false,
+                name: 'test-frontend',
+                variant: { name: 'some-variant', enabled: false },
+                impressionData: false,
+            },
+        ],
+        bootstrapOverride: true,
+        fetch: async () => {
+            return {
+                ok: true,
+                headers: new Map(),
+                async json() {
+                    return {};
+                },
+            };
+        },
+    });
+    const listener = jest.fn();
+    client.on(EVENTS.READY, listener);
+
+    fetchMock.mockResponseOnce(
+        JSON.stringify({
+            toggles: [{ feature: 'test-feature', enabled: true }],
+        }),
+        {
+            status: 200,
+            headers: { ETag: 'new-etag' },
+        }
+    );
+
+    await client.start();
+
+    expect(listener).toHaveBeenCalledTimes(1);
+});

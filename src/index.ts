@@ -360,6 +360,7 @@ export class UnleashClient extends TinyEmitter {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
             this.emit(EVENTS.READY);
+            this.readyEventEmitted = true;
         }
 
         this.sdkState = 'healthy';

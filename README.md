@@ -128,7 +128,7 @@ The Unleash SDK takes the following options:
 | disableMetrics    | no | `false` | Set this option to `true` if you want to disable usage metrics                                                                           |
 | storageProvider   | no | `LocalStorageProvider` in browser, `InMemoryStorageProvider` otherwise | Allows you to inject a custom storeProvider                                                                              |
 | fetch | no | `window.fetch` or global `fetch` | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch` |
-| createAbortController | no | `() => new AbortController()` | Allows you to override the default `AbortController` creation. Used to cancel requests with outdated context. Can be `() => null` | 
+| createAbortController | no | `() => new AbortController()` | Allows you to override the default `AbortController` creation. Used to cancel requests with outdated context. Set it to `() => null` if you don't want to ... | 
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 
 | bootstrapOverride | no| `true` | Should the bootstrap automatically override cached data in the local-storage. Will only be used if bootstrap is not an empty array.     | 
 | headerName        | no| `Authorization` | Which header the SDK should use to authorize with Unleash / Unleash Proxy. The header will be given the `clientKey` as its value. |

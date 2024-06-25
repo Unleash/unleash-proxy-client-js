@@ -150,6 +150,7 @@ export class UnleashClient extends TinyEmitter {
     private usePOSTrequests = false;
     private started = false;
     private sdkState: SdkState;
+    private lastError: any;
 
     constructor({
         storageProvider,
@@ -206,6 +207,7 @@ export class UnleashClient extends TinyEmitter {
                     console.error(error);
                     this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, error);
+                    this.lastError = error;
                     resolve();
                 });
         });
@@ -393,6 +395,14 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.stop();
     }
 
+    public isReady(): boolean {
+        return this.readyEventEmitted;
+    }
+
+    public getError(): SdkState {
+        return this.sdkState === 'error' ? this.lastError : undefined;
+    }
+
     private async resolveSessionId(): Promise<string> {
         if (this.context.sessionId) {
             return this.context.sessionId;
@@ -485,6 +495,10 @@ export class UnleashClient extends TinyEmitter {
                         type: 'HttpError',
                         code: response.status,
                     });
+                    this.lastError = {
+                        type: 'HttpError',
+                        code: response.status,
+                    };
                 }
             } catch (e) {
                 if (!(e instanceof DOMException && e.name === 'AbortError')) {
@@ -494,6 +508,7 @@ export class UnleashClient extends TinyEmitter {
                     );
                     this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, e);
+                    this.lastError = e;
                 }
             } finally {
                 this.abortController = null;

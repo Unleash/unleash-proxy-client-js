@@ -361,6 +361,7 @@ export class UnleashClient extends TinyEmitter {
         ) {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
+            this.sdkState = 'healthy';
             this.emit(EVENTS.READY);
         }
 
@@ -396,7 +397,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     public isReady(): boolean {
-        return this.readyEventEmitted;
+        return this.sdkState === 'healthy' || this.readyEventEmitted;
     }
 
     public getError(): SdkState {

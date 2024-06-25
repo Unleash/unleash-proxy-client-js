@@ -1756,3 +1756,28 @@ describe('READY event emission', () => {
         expect(client.emit).toHaveBeenCalledWith(EVENTS.READY);
     });
 });
+
+test('should be in ready state if bootstrapping', (done) => {
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        bootstrap: [
+            {
+                enabled: false,
+                name: 'test-frontend',
+                variant: { name: 'some-variant', enabled: false },
+                impressionData: false,
+            },
+        ],
+        fetch: async () => {},
+    };
+
+    const client = new UnleashClient(config);
+
+    client.on(EVENTS.READY, () => {
+        expect(client.isReady()).toBe(true);
+        client.stop();
+        done();
+    });
+});

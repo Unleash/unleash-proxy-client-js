@@ -162,9 +162,11 @@ export class UnleashClient extends TinyEmitter {
     private eventsHandler: EventsHandler;
     private customHeaders: Record<string, string>;
     private readyEventEmitted = false;
+    private fetchedFromServer = false;
     private usePOSTrequests = false;
     private started = false;
     private sdkState: SdkState;
+    private lastError: any;
     private experimental: IExperimentalConfig;
     private lastRefreshTimestamp: number;
 
@@ -237,6 +239,7 @@ export class UnleashClient extends TinyEmitter {
                     console.error(error);
                     this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, error);
+                    this.lastError = error;
                     resolve();
                 });
         });
@@ -320,7 +323,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private async updateToggles() {
-        if (this.timerRef || this.readyEventEmitted) {
+        if (this.timerRef || this.fetchedFromServer) {
             await this.fetchToggles();
         } else if (this.started) {
             await new Promise<void>((resolve) => {
@@ -391,6 +394,8 @@ export class UnleashClient extends TinyEmitter {
         ) {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
+            this.sdkState = 'healthy';
+            this.readyEventEmitted = true;
 
             // Indicates that the bootstrap is fresh, and avoid the initial fetch
             this.storeLastRefreshTimestamp();
@@ -427,6 +432,14 @@ export class UnleashClient extends TinyEmitter {
             this.timerRef = undefined;
         }
         this.metrics.stop();
+    }
+
+    public isReady(): boolean {
+        return this.readyEventEmitted;
+    }
+
+    public getError() {
+        return this.sdkState === 'error' ? this.lastError : undefined;
     }
 
     private async resolveSessionId(): Promise<string> {
@@ -563,6 +576,11 @@ export class UnleashClient extends TinyEmitter {
                             type: 'HttpError',
                             code: response.status,
                         });
+
+                        this.lastError = {
+                            type: 'HttpError',
+                            code: response.status,
+                        };
                     }
                 } else {
                     this.etag = response.headers.get('ETag') || '';
@@ -572,9 +590,11 @@ export class UnleashClient extends TinyEmitter {
                     if (this.sdkState !== 'healthy') {
                         this.sdkState = 'healthy';
                     }
-
-                    this.emitReady();
-
+                    if (!this.fetchedFromServer) {
+                        this.fetchedFromServer = true;
+                        this.readyEventEmitted = true;
+                        this.emit(EVENTS.READY);
+                    }
                     this.storeLastRefreshTimestamp();
                 }
             } catch (e) {
@@ -585,6 +605,7 @@ export class UnleashClient extends TinyEmitter {
                     );
                     this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, e);
+                    this.lastError = e;
                 }
             } finally {
                 this.abortController = null;

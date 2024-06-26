@@ -402,7 +402,7 @@ export class UnleashClient extends TinyEmitter {
         return this.readyEventEmitted;
     }
 
-    public getError(): SdkState {
+    public getError() {
         return this.sdkState === 'error' ? this.lastError : undefined;
     }
 

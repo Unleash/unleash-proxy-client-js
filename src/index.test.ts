@@ -12,7 +12,6 @@ import {
     lastUpdateKey,
 } from './index';
 import { getTypeSafeRequest, getTypeSafeRequestUrl } from './test';
-import * as hash from 'object-hash';
 
 jest.useFakeTimers();
 

@@ -4,8 +4,11 @@ import type IStorageProvider from './storage-provider';
 import InMemoryStorageProvider from './storage-provider-inmemory';
 import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
-import { notNullOrUndefined, urlWithContextAsQuery } from './util';
-import * as hash from 'object-hash';
+import {
+    computeObjectHashValue,
+    notNullOrUndefined,
+    urlWithContextAsQuery,
+} from './util';
 
 const DEFINED_FIELDS = [
     'userId',
@@ -487,7 +490,8 @@ export class UnleashClient extends TinyEmitter {
         if (this.isTogglesStorageTTLEnabled()) {
             const lastRefresh: LastUpdateTerms | undefined =
                 await this.storage.get(lastUpdateKey);
-            return lastRefresh?.contextHash === hash(this.context)
+            return lastRefresh?.contextHash ===
+                computeObjectHashValue(this.context)
                 ? lastRefresh.timestamp
                 : 0;
         }
@@ -499,7 +503,7 @@ export class UnleashClient extends TinyEmitter {
             this.lastRefreshTimestamp = Date.now();
 
             const lastUpdateValue: LastUpdateTerms = {
-                contextHash: hash(this.context),
+                contextHash: computeObjectHashValue(this.context),
                 timestamp: this.lastRefreshTimestamp,
             };
             this.storage.save(lastUpdateKey, lastUpdateValue);

@@ -147,6 +147,7 @@ export class UnleashClient extends TinyEmitter {
     private eventsHandler: EventsHandler;
     private customHeaders: Record<string, string>;
     private readyEventEmitted = false;
+    private fetchedFromServer = false;
     private usePOSTrequests = false;
     private started = false;
     private sdkState: SdkState;
@@ -291,7 +292,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private async updateToggles() {
-        if (this.timerRef || this.readyEventEmitted) {
+        if (this.timerRef || this.fetchedFromServer) {
             await this.fetchToggles();
         } else if (this.started) {
             await new Promise<void>((resolve) => {
@@ -361,6 +362,8 @@ export class UnleashClient extends TinyEmitter {
         ) {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
+            this.sdkState = 'healthy';
+            this.readyEventEmitted = true;
             this.emit(EVENTS.READY);
         }
 
@@ -482,9 +485,10 @@ export class UnleashClient extends TinyEmitter {
                         this.sdkState = 'healthy';
                     }
 
-                    if (!this.readyEventEmitted) {
-                        this.emit(EVENTS.READY);
+                    if (!this.fetchedFromServer) {
+                        this.fetchedFromServer = true;
                         this.readyEventEmitted = true;
+                        this.emit(EVENTS.READY);
                     }
                 } else if (!response.ok && response.status !== 304) {
                     console.error(

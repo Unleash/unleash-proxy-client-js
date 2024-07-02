@@ -525,7 +525,10 @@ export class UnleashClient extends TinyEmitter {
 
     private initialFetchToggles() {
         if (this.isUpToDate()) {
-            this.emitReady();
+            if (!this.readyEventEmitted) {
+                this.emit(EVENTS.READY);
+                this.readyEventEmitted = true;
+            }
             return;
         }
         return this.fetchToggles();
@@ -610,13 +613,6 @@ export class UnleashClient extends TinyEmitter {
             } finally {
                 this.abortController = null;
             }
-        }
-    }
-
-    private emitReady() {
-        if (!this.readyEventEmitted) {
-            this.emit(EVENTS.READY);
-            this.readyEventEmitted = true;
         }
     }
 }

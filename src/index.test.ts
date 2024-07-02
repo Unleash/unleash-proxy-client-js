@@ -2245,5 +2245,26 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             isEnabled = client.isEnabled('simpleToggle');
             expect(isEnabled).toBe(false);
         });
+
+        test('Should perform a fetch when context is updated and refreshInterval disabled, even if flags are up to date', async () => {
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+                refreshInterval: 0,
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            let isEnabled = client.isEnabled('simpleToggle');
+            expect(isEnabled).toBe(true);
+            await client.updateContext({ userId: '123' });
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            isEnabled = client.isEnabled('simpleToggle');
+            expect(isEnabled).toBe(false);
+        });
     });
 });

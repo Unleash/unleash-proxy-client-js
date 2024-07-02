@@ -525,9 +525,10 @@ export class UnleashClient extends TinyEmitter {
 
     private initialFetchToggles() {
         if (this.isUpToDate()) {
-            if (!this.readyEventEmitted) {
-                this.emit(EVENTS.READY);
+            if (!this.fetchedFromServer) {
+                this.fetchedFromServer = true;
                 this.readyEventEmitted = true;
+                this.emit(EVENTS.READY);
             }
             return;
         }

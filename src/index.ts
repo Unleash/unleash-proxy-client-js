@@ -107,7 +107,7 @@ export const lastUpdateKey = 'repoLastUpdateTimestamp';
 type SdkState = 'initializing' | 'healthy' | 'error';
 
 type LastUpdateTerms = {
-    contextHash: string;
+    key: string;
     timestamp: number;
 };
 
@@ -479,14 +479,14 @@ export class UnleashClient extends TinyEmitter {
         await this.storage.save(storeKey, toggles);
     }
 
-    private isTogglesStorageTTLEnabled() {
-        return (
+    private isTogglesStorageTTLEnabled(): boolean {
+        return !!(
             this.experimental?.togglesStorageTTL &&
             this.experimental.togglesStorageTTL > 0
         );
     }
 
-    private isUpToDate() {
+    private isUpToDate(): boolean {
         if (!this.isTogglesStorageTTLEnabled()) {
             return false;
         }
@@ -494,29 +494,29 @@ export class UnleashClient extends TinyEmitter {
 
         return !!(
             this.lastRefreshTimestamp &&
+            this.lastRefreshTimestamp <= timestamp &&
             timestamp - this.lastRefreshTimestamp <=
                 this.experimental.togglesStorageTTL!
         );
     }
 
-    private async getLastRefreshTimestamp() {
+    private async getLastRefreshTimestamp(): Promise<number> {
         if (this.isTogglesStorageTTLEnabled()) {
             const lastRefresh: LastUpdateTerms | undefined =
                 await this.storage.get(lastUpdateKey);
-            return lastRefresh?.contextHash ===
-                computeObjectHashValue(this.context)
+            return lastRefresh?.key === computeObjectHashValue(this.context)
                 ? lastRefresh.timestamp
                 : 0;
         }
         return 0;
     }
 
-    private async storeLastRefreshTimestamp() {
+    private async storeLastRefreshTimestamp(): Promise<void> {
         if (this.isTogglesStorageTTLEnabled()) {
             this.lastRefreshTimestamp = Date.now();
 
             const lastUpdateValue: LastUpdateTerms = {
-                contextHash: computeObjectHashValue(this.context),
+                key: computeObjectHashValue(this.context),
                 timestamp: this.lastRefreshTimestamp,
             };
             this.storage.save(lastUpdateKey, lastUpdateValue);

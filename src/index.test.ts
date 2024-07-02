@@ -1896,7 +1896,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             const client = new UnleashClient(config);
             await client.start();
             expect(saveSpy).toHaveBeenCalledWith(lastUpdateKey, {
-                contextHash: expect.any(String),
+                key: expect.any(String),
                 timestamp: expect.any(Number),
             });
             expect(
@@ -1921,7 +1921,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             const client = new UnleashClient(config);
             await client.start();
             expect(saveSpy).toHaveBeenCalledWith(lastUpdateKey, {
-                contextHash: expect.any(String),
+                key: expect.any(String),
                 timestamp: expect.any(Number),
             });
             expect(
@@ -1986,11 +1986,13 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             const client = new UnleashClient(config);
             await client.start();
 
-            const firstHash = saveSpy.mock.lastCall?.at(1).contextHash;
+            const firstHash = saveSpy.mock.lastCall?.at(1).key;
             await client.updateContext({});
 
-            const secondHash = saveSpy.mock.lastCall?.at(1).contextHash;
+            const secondHash = saveSpy.mock.lastCall?.at(1).key;
 
+            expect(firstHash).not.toBeUndefined();
+            expect(secondHash).not.toBeUndefined();
             expect(firstHash).toEqual(secondHash);
         });
 
@@ -2009,17 +2011,19 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             const client = new UnleashClient(config);
             await client.start();
 
-            const firstHash = saveSpy.mock.lastCall?.at(1).contextHash;
+            const firstHash = saveSpy.mock.lastCall?.at(1).key;
 
             await client.updateContext({ userId: '123' });
 
-            const secondHash = saveSpy.mock.lastCall?.at(1).contextHash;
+            const secondHash = saveSpy.mock.lastCall?.at(1).key;
 
+            expect(firstHash).not.toBeUndefined();
+            expect(secondHash).not.toBeUndefined();
             expect(firstHash).not.toEqual(secondHash);
         });
     });
 
-    describe('For bootstrap initialisation', () => {
+    describe('During bootstrap initialisation', () => {
         beforeEach(async () => {
             storage = new InMemoryStorageProvider();
             jest.clearAllMocks();
@@ -2030,6 +2034,7 @@ describe('Experimental options togglesStorageTTL enabled', () => {
         });
 
         test('Should store last update flag when bootstrap is set', async () => {
+            expect.assertions(1);
             const bootstrap = [
                 {
                     name: 'toggles',
@@ -2054,11 +2059,14 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 },
             };
             const client = new UnleashClient(config);
-            await client.start();
-            expect(await storage.get(lastUpdateKey)).not.toBeUndefined();
+
+            client.on(EVENTS.READY, async () => {
+                expect(await storage.get(lastUpdateKey)).not.toBeUndefined();
+            });
         });
 
         test('Should not store last update flag when bootstrap is not set', async () => {
+            expect.assertions(1);
             const config: IConfig = {
                 url: 'http://localhost/test',
                 clientKey: '12',
@@ -2069,8 +2077,9 @@ describe('Experimental options togglesStorageTTL enabled', () => {
                 },
             };
             const client = new UnleashClient(config);
-            await client.start();
-            expect(await storage.get(lastUpdateKey)).toBeUndefined();
+            client.on(EVENTS.INIT, async () => {
+                expect(await storage.get(lastUpdateKey)).toBeUndefined();
+            });
         });
     });
 
@@ -2136,6 +2145,26 @@ describe('Experimental options togglesStorageTTL enabled', () => {
 
         test('Should perform an initial fetch when toggles are expired', async () => {
             jest.setSystemTime(fakeNow + 61000);
+
+            const config: IConfig = {
+                url: 'http://localhost/test',
+                clientKey: '12',
+                appName: 'web',
+                storageProvider: storage,
+                experimental: {
+                    togglesStorageTTL: 60,
+                },
+            };
+            const client = new UnleashClient(config);
+            await client.start();
+            const isEnabled = client.isEnabled('simpleToggle');
+            expect(isEnabled).toBe(false);
+            client.stop();
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should perform an initial fetch when system time goes back into the past', async () => {
+            jest.setSystemTime(fakeNow - 1000);
 
             const config: IConfig = {
                 url: 'http://localhost/test',

@@ -381,6 +381,11 @@ export class UnleashClient extends TinyEmitter {
         this.updateToggles();
     }
 
+    private setReady() {
+        this.readyEventEmitted = true;
+        this.emit(EVENTS.READY);
+    }
+
     private async init(): Promise<void> {
         const sessionId = await this.resolveSessionId();
         this.context = { sessionId, ...this.context };
@@ -395,12 +400,11 @@ export class UnleashClient extends TinyEmitter {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
             this.sdkState = 'healthy';
-            this.readyEventEmitted = true;
 
             // Indicates that the bootstrap is fresh, and avoid the initial fetch
             this.storeLastRefreshTimestamp();
 
-            this.emit(EVENTS.READY);
+            this.setReady();
         }
 
         this.sdkState = 'healthy';
@@ -504,7 +508,10 @@ export class UnleashClient extends TinyEmitter {
         if (this.isTogglesStorageTTLEnabled()) {
             const lastRefresh: LastUpdateTerms | undefined =
                 await this.storage.get(lastUpdateKey);
-            return lastRefresh?.key === computeObjectHashValue(this.context)
+            return lastRefresh?.key ===
+                computeObjectHashValue(
+                    this.context as unknown as Record<string, unknown>
+                )
                 ? lastRefresh.timestamp
                 : 0;
         }
@@ -516,7 +523,9 @@ export class UnleashClient extends TinyEmitter {
             this.lastRefreshTimestamp = Date.now();
 
             const lastUpdateValue: LastUpdateTerms = {
-                key: computeObjectHashValue(this.context),
+                key: computeObjectHashValue(
+                    this.context as unknown as Record<string, unknown>
+                ),
                 timestamp: this.lastRefreshTimestamp,
             };
             this.storage.save(lastUpdateKey, lastUpdateValue);
@@ -527,8 +536,7 @@ export class UnleashClient extends TinyEmitter {
         if (this.isUpToDate()) {
             if (!this.fetchedFromServer) {
                 this.fetchedFromServer = true;
-                this.readyEventEmitted = true;
-                this.emit(EVENTS.READY);
+                this.setReady();
             }
             return;
         }
@@ -596,8 +604,7 @@ export class UnleashClient extends TinyEmitter {
                     }
                     if (!this.fetchedFromServer) {
                         this.fetchedFromServer = true;
-                        this.readyEventEmitted = true;
-                        this.emit(EVENTS.READY);
+                        this.setReady();
                     }
                     this.storeLastRefreshTimestamp();
                 }

@@ -28,13 +28,15 @@ export const urlWithContextAsQuery = (url: URL, context: IContext) => {
 };
 
 const sortObjectProperties = (
-    obj: Record<string, any>
-): Record<string, any> => {
+    obj: Record<string, unknown>
+): Record<string, unknown> => {
     const sortedKeys = Object.keys(obj).sort();
-    const sortedObj: Record<string, any> = {};
+    const sortedObj: Record<string, unknown> = {};
     sortedKeys.forEach((key) => {
-        if (typeof obj[key] === 'object') {
-            sortedObj[key] = sortObjectProperties(obj[key]);
+        if (obj[key] !== null && typeof obj[key] === 'object') {
+            sortedObj[key] = sortObjectProperties(
+                obj[key] as Record<string, unknown>
+            );
         } else {
             sortedObj[key] = obj[key];
         }
@@ -43,5 +45,5 @@ const sortObjectProperties = (
     return sortedObj;
 };
 
-export const computeObjectHashValue = (obj: Record<string, any>) =>
+export const computeObjectHashValue = (obj: Record<string, unknown>) =>
     JSON.stringify(sortObjectProperties(obj));

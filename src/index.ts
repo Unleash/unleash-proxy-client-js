@@ -5,7 +5,7 @@ import InMemoryStorageProvider from './storage-provider-inmemory';
 import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
 import {
-    computeObjectHashValue,
+    computeContextHashValue,
     notNullOrUndefined,
     urlWithContextAsQuery,
 } from './util';
@@ -509,8 +509,8 @@ export class UnleashClient extends TinyEmitter {
             const lastRefresh: LastUpdateTerms | undefined =
                 await this.storage.get(lastUpdateKey);
             return lastRefresh?.key ===
-                computeObjectHashValue(
-                    this.context as unknown as Record<string, unknown>
+                computeContextHashValue(
+                    this.context
                 )
                 ? lastRefresh.timestamp
                 : 0;
@@ -523,8 +523,8 @@ export class UnleashClient extends TinyEmitter {
             this.lastRefreshTimestamp = Date.now();
 
             const lastUpdateValue: LastUpdateTerms = {
-                key: computeObjectHashValue(
-                    this.context as unknown as Record<string, unknown>
+                key: computeContextHashValue(
+                    this.context
                 ),
                 timestamp: this.lastRefreshTimestamp,
             };

@@ -120,20 +120,23 @@ The Unleash SDK takes the following options:
 | url               | yes | n/a | The Unleash Proxy URL to connect to. E.g.: `https://examples.com/proxy`                                                                         |
 | clientKey         | yes | n/a | The Unleash Proxy Secret to be used                                                                                                             | 
 | appName           | yes | n/a | The name of the application using this SDK. Will be used as part of the metrics sent to Unleash Proxy. Will also be part of the Unleash Context. | 
+| context           | no | `{}` | The initial Unleash context. This will be used as the initial context for all feature toggle evaluations. The `appName` and `environment` options will automatically be populated with the values you pass for those options. |
 | refreshInterval   | no | `30` | How often, in seconds, the SDK should check for updated toggle configuration. If set to 0 will disable checking for updates                 |
 | disableRefresh    | no | `false` | If set to true, the client will not check for updated toggle configuration                                                                |
 | metricsInterval   | no | `60` | How often, in seconds, the SDK should send usage metrics back to Unleash Proxy. It will be started after the initial metrics report, which is sent after the configured `metricsIntervalInitial` | 
 | metricsIntervalInitial | no | `2` | How long the SDK should wait for the first metrics report back to the Unleash API. If you want to disable the initial metrics call you can set it to 0. | 
 | disableMetrics    | no | `false` | Set this option to `true` if you want to disable usage metrics                                                                           |
 | storageProvider   | no | `LocalStorageProvider` in browser, `InMemoryStorageProvider` otherwise | Allows you to inject a custom storeProvider                                                                              |
-| fetch             | no | `window.fetch` or global `fetch` | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch`                    | 
+| fetch | no | `window.fetch` or global `fetch` | Allows you to override the fetch implementation to use. Useful in Node.js environments where you can inject `node-fetch` |
+| createAbortController | no | `() => new AbortController()` | Allows you to override the default `AbortController` creation. Used to cancel requests with outdated context. Set it to `() => null` if you don't want to handle it. | 
 | bootstrap         | no | `[]` | Allows you to bootstrap the cached feature toggle configuration.                                                                               | 
 | bootstrapOverride | no| `true` | Should the bootstrap automatically override cached data in the local-storage. Will only be used if bootstrap is not an empty array.     | 
 | headerName        | no| `Authorization` | Which header the SDK should use to authorize with Unleash / Unleash Proxy. The header will be given the `clientKey` as its value. |
 | customHeaders     | no| `{}` | Additional headers to use when making HTTP requests to the Unleash proxy. In case of name collisions with the default headers, the `customHeaders` value will be used if it is not `null` or `undefined`. `customHeaders` values that are `null` or `undefined` will be ignored. |
 | impressionDataAll | no| `false` | Allows you to trigger "impression" events for **all** `getToggle` and `getVariant` invocations. This is particularly useful for "disabled" feature toggles that are not visible to frontend SDKs. |
 | environment | no | `default` | Sets the `environment` option of the [Unleash context](https://docs.getunleash.io/reference/unleash-context). This does **not** affect the SDK's [Unleash environment](https://docs.getunleash.io/reference/environments). |
-| togglesStorageTTL   | no | `0` | How long (Time To Live), in seconds, the toggles in storage are considered valid and should not be fetched on start. If set to 0 will disable expiration checking and will be considered always expired.                 |
+| usePOSTrequests | no | `false` | Configures the client to use POST requests instead of GET when requesting enabled features. This is helpful when sensitive information (like user email, when used as a user ID) is passed in the context to avoid leaking it in the URL. NOTE: Post requests are not supported by the frontend api built into Unleash. |
+| experimental | no | `{}` | Enabling optional experimentation. `togglesStorageTTL` : How long (Time To Live), in seconds, the toggles in storage are considered valid and should not be fetched on start. If set to 0 will disable expiration checking and will be considered always expired.                 |
 
 ### Listen for updates via the EventEmitter
 
@@ -151,7 +154,7 @@ unleash.on('update', () => {
 
 - **error** - emitted when an error occurs on init, or when fetch function fails, or when fetch receives a non-ok response object. The error object is sent as payload.
 - **initialized** - emitted after the SDK has read local cached data in the storageProvider. 
-- **ready** - emitted after the SDK has successfully started and performed the initial fetch towards the Unleash Proxy. 
+- **ready** - emitted after the SDK has successfully started and performed the initial fetch of flags via the network (Edge, proxy, or front-end API). When bootstrapping, the client can emit this event twice: once when the bootstrapped flags are loaded, and once on first successful connection to Unleash.
 - **update** - emitted every time the Unleash Proxy return a new feature toggle configuration. The SDK will emit this event as part of the initial fetch from the SDK.  
 - **recovered** - emitted when the SDK has recovered from an error. This event will only be emitted if the SDK has previously emitted an error.
 - **sent** - emitted when the SDK has successfully sent metrics to Unleash.

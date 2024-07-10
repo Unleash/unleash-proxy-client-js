@@ -4,7 +4,11 @@ import type IStorageProvider from './storage-provider';
 import InMemoryStorageProvider from './storage-provider-inmemory';
 import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
-import { notNullOrUndefined, urlWithContextAsQuery } from './util';
+import {
+    computeContextHashValue,
+    notNullOrUndefined,
+    urlWithContextAsQuery,
+} from './util';
 
 const DEFINED_FIELDS = [
     'userId',
@@ -46,13 +50,17 @@ interface IConfig extends IStaticContext {
     storageProvider?: IStorageProvider;
     context?: IMutableContext;
     fetch?: any;
-    createAbortController?: () => AbortController;
+    createAbortController?: () => AbortController | null;
     bootstrap?: IToggle[];
     bootstrapOverride?: boolean;
     headerName?: string;
     customHeaders?: Record<string, string>;
     impressionDataAll?: boolean;
     usePOSTrequests?: boolean;
+    experimental?: IExperimentalConfig;
+}
+
+interface IExperimentalConfig {
     togglesStorageTTL?: number;
 }
 
@@ -94,15 +102,22 @@ const defaultVariant: IVariant = {
     feature_enabled: false,
 };
 const storeKey = 'repo';
-const lastUpdateKey = 'repoLastUpdateTimestamp';
+export const lastUpdateKey = 'repoLastUpdateTimestamp';
 
 type SdkState = 'initializing' | 'healthy' | 'error';
+
+type LastUpdateTerms = {
+    key: string;
+    timestamp: number;
+};
 
 export const resolveFetch = () => {
     try {
         if (typeof window !== 'undefined' && 'fetch' in window) {
             return fetch.bind(window);
-        } else if ('fetch' in globalThis) {
+        }
+
+        if ('fetch' in globalThis) {
             return fetch.bind(globalThis);
         }
     } catch (e) {
@@ -116,7 +131,9 @@ const resolveAbortController = () => {
     try {
         if (typeof window !== 'undefined' && 'AbortController' in window) {
             return () => new window.AbortController();
-        } else if ('fetch' in globalThis) {
+        }
+
+        if ('fetch' in globalThis) {
             return () => new globalThis.AbortController();
         }
     } catch (e) {
@@ -137,7 +154,7 @@ export class UnleashClient extends TinyEmitter {
     private metrics: Metrics;
     private ready: Promise<void>;
     private fetch: any;
-    private createAbortController?: () => AbortController;
+    private createAbortController?: () => AbortController | null;
     private abortController?: AbortController | null;
     private bootstrap?: IToggle[];
     private bootstrapOverride: boolean;
@@ -145,10 +162,12 @@ export class UnleashClient extends TinyEmitter {
     private eventsHandler: EventsHandler;
     private customHeaders: Record<string, string>;
     private readyEventEmitted = false;
+    private fetchedFromServer = false;
     private usePOSTrequests = false;
     private started = false;
     private sdkState: SdkState;
-    private togglesStorageTTL: number;
+    private lastError: any;
+    private experimental: IExperimentalConfig;
     private lastRefreshTimestamp: number;
 
     constructor({
@@ -171,7 +190,7 @@ export class UnleashClient extends TinyEmitter {
         customHeaders = {},
         impressionDataAll = false,
         usePOSTrequests = false,
-        togglesStorageTTL = 0,
+        experimental,
     }: IConfig) {
         super();
         // Validations
@@ -200,7 +219,17 @@ export class UnleashClient extends TinyEmitter {
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
-        this.togglesStorageTTL = togglesStorageTTL * 1000;
+
+        this.experimental = { ...experimental };
+
+        if (
+            experimental?.togglesStorageTTL &&
+            experimental?.togglesStorageTTL > 0
+        ) {
+            this.experimental.togglesStorageTTL =
+                experimental.togglesStorageTTL * 1000;
+        }
+
         this.lastRefreshTimestamp = 0;
 
         this.ready = new Promise((resolve) => {
@@ -210,6 +239,7 @@ export class UnleashClient extends TinyEmitter {
                     console.error(error);
                     this.sdkState = 'error';
                     this.emit(EVENTS.ERROR, error);
+                    this.lastError = error;
                     resolve();
                 });
         });
@@ -293,7 +323,7 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private async updateToggles() {
-        if (this.timerRef || this.readyEventEmitted) {
+        if (this.timerRef || this.fetchedFromServer) {
             await this.fetchToggles();
         } else if (this.started) {
             await new Promise<void>((resolve) => {
@@ -351,12 +381,17 @@ export class UnleashClient extends TinyEmitter {
         this.updateToggles();
     }
 
+    private setReady() {
+        this.readyEventEmitted = true;
+        this.emit(EVENTS.READY);
+    }
+
     private async init(): Promise<void> {
         const sessionId = await this.resolveSessionId();
         this.context = { sessionId, ...this.context };
 
         this.toggles = (await this.storage.get(storeKey)) || [];
-        this.lastRefreshTimestamp = await this.storage.get(lastUpdateKey);
+        this.lastRefreshTimestamp = await this.getLastRefreshTimestamp();
 
         if (
             this.bootstrap &&
@@ -364,7 +399,12 @@ export class UnleashClient extends TinyEmitter {
         ) {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
-            this.emit(EVENTS.READY);
+            this.sdkState = 'healthy';
+
+            // Indicates that the bootstrap is fresh, and avoid the initial fetch
+            this.storeLastRefreshTimestamp();
+
+            this.setReady();
         }
 
         this.sdkState = 'healthy';
@@ -396,6 +436,14 @@ export class UnleashClient extends TinyEmitter {
             this.timerRef = undefined;
         }
         this.metrics.stop();
+    }
+
+    public isReady(): boolean {
+        return this.readyEventEmitted;
+    }
+
+    public getError() {
+        return this.sdkState === 'error' ? this.lastError : undefined;
     }
 
     private async resolveSessionId(): Promise<string> {
@@ -435,26 +483,61 @@ export class UnleashClient extends TinyEmitter {
         await this.storage.save(storeKey, toggles);
     }
 
-    private isUpToDate() {
-        if (this.togglesStorageTTL <= 0) {
+    private isTogglesStorageTTLEnabled(): boolean {
+        return !!(
+            this.experimental?.togglesStorageTTL &&
+            this.experimental.togglesStorageTTL > 0
+        );
+    }
+
+    private isUpToDate(): boolean {
+        if (!this.isTogglesStorageTTLEnabled()) {
             return false;
         }
         const timestamp = Date.now();
 
         return !!(
             this.lastRefreshTimestamp &&
-            timestamp - this.lastRefreshTimestamp <= this.togglesStorageTTL
+            this.lastRefreshTimestamp <= timestamp &&
+            timestamp - this.lastRefreshTimestamp <=
+                this.experimental.togglesStorageTTL!
         );
     }
 
-    private async updateLastRefreshTimestamp() {
-        this.lastRefreshTimestamp = Date.now();
-        this.storage.save(lastUpdateKey, this.lastRefreshTimestamp);
+    private async getLastRefreshTimestamp(): Promise<number> {
+        if (this.isTogglesStorageTTLEnabled()) {
+            const lastRefresh: LastUpdateTerms | undefined =
+                await this.storage.get(lastUpdateKey);
+            return lastRefresh?.key ===
+                computeContextHashValue(
+                    this.context
+                )
+                ? lastRefresh.timestamp
+                : 0;
+        }
+        return 0;
+    }
+
+    private async storeLastRefreshTimestamp(): Promise<void> {
+        if (this.isTogglesStorageTTLEnabled()) {
+            this.lastRefreshTimestamp = Date.now();
+
+            const lastUpdateValue: LastUpdateTerms = {
+                key: computeContextHashValue(
+                    this.context
+                ),
+                timestamp: this.lastRefreshTimestamp,
+            };
+            this.storage.save(lastUpdateKey, lastUpdateValue);
+        }
     }
 
     private initialFetchToggles() {
         if (this.isUpToDate()) {
-            this.emitReady();
+            if (!this.fetchedFromServer) {
+                this.fetchedFromServer = true;
+                this.setReady();
+            }
             return;
         }
         return this.fetchToggles();
@@ -465,8 +548,7 @@ export class UnleashClient extends TinyEmitter {
             if (this.abortController) {
                 this.abortController.abort();
             }
-            this.abortController =
-                this.createAbortController && this.createAbortController();
+            this.abortController = this.createAbortController?.();
             const signal = this.abortController
                 ? this.abortController.signal
                 : undefined;
@@ -494,16 +576,25 @@ export class UnleashClient extends TinyEmitter {
                     this.emit(EVENTS.RECOVERED);
                 }
 
-                if (!response.ok && response.status !== 304) {
-                    console.error(
-                        'Unleash: Fetching feature toggles did not have an ok response'
-                    );
-                    this.sdkState = 'error';
-                    this.emit(EVENTS.ERROR, {
-                        type: 'HttpError',
-                        code: response.status,
-                    });
-                } else if (response.status !== 304) {
+                if (!response.ok) {
+                    if (response.status === 304) {
+                        this.storeLastRefreshTimestamp();
+                    } else {
+                        console.error(
+                            'Unleash: Fetching feature toggles did not have an ok response'
+                        );
+                        this.sdkState = 'error';
+                        this.emit(EVENTS.ERROR, {
+                            type: 'HttpError',
+                            code: response.status,
+                        });
+
+                        this.lastError = {
+                            type: 'HttpError',
+                            code: response.status,
+                        };
+                    }
+                } else {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
@@ -511,25 +602,25 @@ export class UnleashClient extends TinyEmitter {
                     if (this.sdkState !== 'healthy') {
                         this.sdkState = 'healthy';
                     }
-
-                    this.emitReady();
+                    if (!this.fetchedFromServer) {
+                        this.fetchedFromServer = true;
+                        this.setReady();
+                    }
+                    this.storeLastRefreshTimestamp();
                 }
-
-                this.updateLastRefreshTimestamp();
             } catch (e) {
-                console.error('Unleash: unable to fetch feature toggles', e);
-                this.sdkState = 'error';
-                this.emit(EVENTS.ERROR, e);
+                if (!(e instanceof DOMException && e.name === 'AbortError')) {
+                    console.error(
+                        'Unleash: unable to fetch feature toggles',
+                        e
+                    );
+                    this.sdkState = 'error';
+                    this.emit(EVENTS.ERROR, e);
+                    this.lastError = e;
+                }
             } finally {
                 this.abortController = null;
             }
-        }
-    }
-
-    private emitReady() {
-        if (!this.readyEventEmitted) {
-            this.emit(EVENTS.READY);
-            this.readyEventEmitted = true;
         }
     }
 }

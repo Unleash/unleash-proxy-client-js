@@ -26,3 +26,24 @@ export const urlWithContextAsQuery = (url: URL, context: IContext) => {
         });
     return urlWithQuery;
 };
+
+const sortObjectProperties = (
+    obj: Record<string, unknown>
+): Record<string, unknown> => {
+    const sortedKeys = Object.keys(obj).sort();
+    const sortedObj: Record<string, unknown> = {};
+    sortedKeys.forEach((key) => {
+        if (obj[key] !== null && typeof obj[key] === 'object') {
+            sortedObj[key] = sortObjectProperties(
+                obj[key] as Record<string, unknown>
+            );
+        } else {
+            sortedObj[key] = obj[key];
+        }
+    });
+
+    return sortedObj;
+};
+
+export const computeContextHashValue = (obj: IContext) =>
+    JSON.stringify(sortObjectProperties(obj as unknown as Record<string, unknown>));

@@ -504,8 +504,8 @@ export class UnleashClient extends TinyEmitter {
                         code: response.status,
                     };
                 }
-            } catch (e: any) {
-                if (!(typeof e === 'object' && e !== null && e.name === 'AbortError')) {
+            } catch (e) {
+                if (!(typeof e === 'object' && e !== null && 'name' in e && e.name === 'AbortError')) {
                     console.error(
                         'Unleash: unable to fetch feature toggles',
                         e

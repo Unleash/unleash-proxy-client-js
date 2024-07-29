@@ -46,4 +46,6 @@ const sortObjectProperties = (
 };
 
 export const computeContextHashValue = (obj: IContext) =>
-    JSON.stringify(sortObjectProperties(obj as unknown as Record<string, unknown>));
+    JSON.stringify(
+        sortObjectProperties(obj as unknown as Record<string, unknown>)
+    );

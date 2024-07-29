@@ -61,20 +61,40 @@ test('should exclude context properties that are null or undefined', async () =>
 
 describe('sortObjectProperties', () => {
     test('Should compute hash value for a simple object', () => {
-        const obj: IContext = { appName: '1', currentTime: '2', environment: '3', userId: '4' };
+        const obj: IContext = {
+            appName: '1',
+            currentTime: '2',
+            environment: '3',
+            userId: '4',
+        };
         const hashValue = computeContextHashValue(obj);
-        expect(hashValue).toBe('{"appName":"1","currentTime":"2","environment":"3","userId":"4"}');
+        expect(hashValue).toBe(
+            '{"appName":"1","currentTime":"2","environment":"3","userId":"4"}'
+        );
     });
 
     test('Should compute hash value for an object with not sorted keys', () => {
-        const obj: IContext = { userId: '4', appName: '1', environment: '3', currentTime: '2' };
+        const obj: IContext = {
+            userId: '4',
+            appName: '1',
+            environment: '3',
+            currentTime: '2',
+        };
         const hashValue = computeContextHashValue(obj);
-        expect(hashValue).toBe('{"appName":"1","currentTime":"2","environment":"3","userId":"4"}');
+        expect(hashValue).toBe(
+            '{"appName":"1","currentTime":"2","environment":"3","userId":"4"}'
+        );
     });
 
     test('Should compute hash value for an object with nested objects and not sorted keys', () => {
-        const obj: IContext = { appName: '1', properties: { d: "4", c: "3" }, currentTime: '2' };
+        const obj: IContext = {
+            appName: '1',
+            properties: { d: '4', c: '3' },
+            currentTime: '2',
+        };
         const hashValue = computeContextHashValue(obj);
-        expect(hashValue).toBe('{"appName":"1","currentTime":"2","properties":{"c":"3","d":"4"}}');
+        expect(hashValue).toBe(
+            '{"appName":"1","currentTime":"2","properties":{"c":"3","d":"4"}}'
+        );
     });
 });

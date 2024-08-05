@@ -402,7 +402,7 @@ export class UnleashClient extends TinyEmitter {
             this.sdkState = 'healthy';
 
             // Indicates that the bootstrap is fresh, and avoid the initial fetch
-            this.storeLastRefreshTimestamp();
+            await this.storeLastRefreshTimestamp();
 
             this.setReady();
         }

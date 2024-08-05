@@ -82,7 +82,7 @@ describe('contextString', () => {
             userId: '4',
             appName: '1',
             environment: '3',
-            currentTime: new Date('2024-08-05 13:00').toISOString(),
+            currentTime: '2024-08-05T11:00:00.000Z',
         };
         const hashValue = contextString(obj);
         expect(hashValue).toBe(

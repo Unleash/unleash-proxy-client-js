@@ -494,13 +494,14 @@ export class UnleashClient extends TinyEmitter {
         if (!this.isTogglesStorageTTLEnabled()) {
             return false;
         }
-        const timestamp = Date.now();
+        const now = Date.now();
 
-        return !!(
-            this.lastRefreshTimestamp &&
-            this.lastRefreshTimestamp <= timestamp &&
-            timestamp - this.lastRefreshTimestamp <=
-                this.experimental.togglesStorageTTL!
+        const ttl = this.experimental?.togglesStorageTTL || 0;
+
+        return (
+            this.lastRefreshTimestamp > 0 &&
+            this.lastRefreshTimestamp <= now &&
+            now - this.lastRefreshTimestamp <= ttl
         );
     }
 

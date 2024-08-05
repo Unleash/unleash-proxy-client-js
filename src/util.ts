@@ -27,25 +27,44 @@ export const urlWithContextAsQuery = (url: URL, context: IContext) => {
     return urlWithQuery;
 };
 
-const sortObjectProperties = (
-    obj: Record<string, unknown>
-): Record<string, unknown> => {
-    const sortedKeys = Object.keys(obj).sort();
-    const sortedObj: Record<string, unknown> = {};
-    sortedKeys.forEach((key) => {
-        if (obj[key] !== null && typeof obj[key] === 'object') {
-            sortedObj[key] = sortObjectProperties(
-                obj[key] as Record<string, unknown>
-            );
-        } else {
-            sortedObj[key] = obj[key];
-        }
-    });
+export const contextString = (context: IContext): string => {
+    const { properties, ...fields } = context;
 
-    return sortedObj;
+    const sortEntries = (record: Record<string, string>) =>
+        Object.entries(record).sort(([a], [b]) =>
+            a.localeCompare(b, undefined)
+        );
+
+    return JSON.stringify([
+        sortEntries(fields),
+        sortEntries(context.properties || {}),
+    ]);
 };
 
-export const computeContextHashValue = (obj: IContext) =>
-    JSON.stringify(
-        sortObjectProperties(obj as unknown as Record<string, unknown>)
-    );
+const sha256 = async (input: string): Promise<string> => {
+    const cryptoSubtle =
+        typeof globalThis !== 'undefined' && globalThis.crypto?.subtle
+            ? globalThis.crypto?.subtle
+            : undefined;
+    if (typeof TextEncoder === 'undefined' || !cryptoSubtle?.digest) {
+        throw new Error('Hashing function not available');
+    }
+
+    const msgUint8 = new TextEncoder().encode(input);
+    const hashBuffer = await cryptoSubtle.digest('SHA-256', msgUint8);
+    const hexString = Array.from(new Uint8Array(hashBuffer))
+        .map((x) => x.toString(16).padStart(2, '0'))
+        .join('');
+    return hexString;
+};
+
+export const computeContextHashValue = async (obj: IContext) => {
+    const value = contextString(obj);
+
+    try {
+        const hash = await sha256(value);
+        return hash;
+    } catch {
+        return value;
+    }
+};

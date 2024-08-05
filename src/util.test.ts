@@ -1,5 +1,9 @@
-import { IContext } from '.';
-import { computeContextHashValue, urlWithContextAsQuery } from './util';
+import type { IContext } from '.';
+import {
+    computeContextHashValue,
+    contextString,
+    urlWithContextAsQuery,
+} from './util';
 
 test('should not add paramters to URL', async () => {
     const someUrl = new URL('https://test.com');
@@ -59,42 +63,59 @@ test('should exclude context properties that are null or undefined', async () =>
     );
 });
 
-describe('sortObjectProperties', () => {
-    test('Should compute hash value for a simple object', () => {
+describe('contextString', () => {
+    test('Should return value for a simple object', () => {
         const obj: IContext = {
             appName: '1',
             currentTime: '2',
             environment: '3',
             userId: '4',
         };
-        const hashValue = computeContextHashValue(obj);
+        const hashValue = contextString(obj);
         expect(hashValue).toBe(
-            '{"appName":"1","currentTime":"2","environment":"3","userId":"4"}'
+            '[[["appName","1"],["currentTime","2"],["environment","3"],["userId","4"]],[]]'
         );
     });
 
-    test('Should compute hash value for an object with not sorted keys', () => {
+    test('Should sort an object with not sorted keys', () => {
         const obj: IContext = {
             userId: '4',
             appName: '1',
             environment: '3',
-            currentTime: '2',
+            currentTime: new Date('2024-08-05 13:00').toISOString(),
         };
-        const hashValue = computeContextHashValue(obj);
+        const hashValue = contextString(obj);
         expect(hashValue).toBe(
-            '{"appName":"1","currentTime":"2","environment":"3","userId":"4"}'
+            '[[["appName","1"],["currentTime","2024-08-05T11:00:00.000Z"],["environment","3"],["userId","4"]],[]]'
         );
     });
 
-    test('Should compute hash value for an object with nested objects and not sorted keys', () => {
+    test('Should sort an object with not sorted properties', () => {
         const obj: IContext = {
             appName: '1',
             properties: { d: '4', c: '3' },
             currentTime: '2',
         };
-        const hashValue = computeContextHashValue(obj);
+        const hashValue = contextString(obj);
         expect(hashValue).toBe(
-            '{"appName":"1","currentTime":"2","properties":{"c":"3","d":"4"}}'
+            '[[["appName","1"],["currentTime","2"]],[["c","3"],["d","4"]]]'
+        );
+    });
+});
+
+describe('computeContextHashValue', () => {
+    test('Should return SHA-256 representation', async () => {
+        const obj: IContext = {
+            appName: '1',
+            currentTime: '2',
+            environment: '3',
+            userId: '4',
+        };
+
+        expect(computeContextHashValue(obj)).resolves.toBe(
+            // FIXME: Jest (JSDOM) doesn't have TextEncoder nor crypto.subtle
+            '[[["appName","1"],["currentTime","2"],["environment","3"],["userId","4"]],[]]'
+            // '70cff0d989f07f1bd8f29599b3d8d55d511a8a0718d02c6bc78894512e78d571'
         );
     });
 });

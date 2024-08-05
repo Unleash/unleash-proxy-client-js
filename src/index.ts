@@ -509,9 +509,8 @@ export class UnleashClient extends TinyEmitter {
         if (this.isTogglesStorageTTLEnabled()) {
             const lastRefresh: LastUpdateTerms | undefined =
                 await this.storage.get(lastUpdateKey);
-            return lastRefresh?.key === computeContextHashValue(this.context)
-                ? lastRefresh.timestamp
-                : 0;
+            const contextHash = await computeContextHashValue(this.context);
+            return lastRefresh?.key === contextHash ? lastRefresh.timestamp : 0;
         }
         return 0;
     }
@@ -521,10 +520,10 @@ export class UnleashClient extends TinyEmitter {
             this.lastRefreshTimestamp = Date.now();
 
             const lastUpdateValue: LastUpdateTerms = {
-                key: computeContextHashValue(this.context),
+                key: await computeContextHashValue(this.context),
                 timestamp: this.lastRefreshTimestamp,
             };
-            this.storage.save(lastUpdateKey, lastUpdateValue);
+            await this.storage.save(lastUpdateKey, lastUpdateValue);
         }
     }
 

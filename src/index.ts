@@ -571,25 +571,7 @@ export class UnleashClient extends TinyEmitter {
                     this.emit(EVENTS.RECOVERED);
                 }
 
-                if (!response.ok) {
-                    if (response.status === 304) {
-                        this.storeLastRefreshTimestamp();
-                    } else {
-                        console.error(
-                            'Unleash: Fetching feature toggles did not have an ok response'
-                        );
-                        this.sdkState = 'error';
-                        this.emit(EVENTS.ERROR, {
-                            type: 'HttpError',
-                            code: response.status,
-                        });
-
-                        this.lastError = {
-                            type: 'HttpError',
-                            code: response.status,
-                        };
-                    }
-                } else {
+                if (response.ok) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
@@ -602,6 +584,22 @@ export class UnleashClient extends TinyEmitter {
                         this.setReady();
                     }
                     this.storeLastRefreshTimestamp();
+                } else if (response.status === 304) {
+                    this.storeLastRefreshTimestamp();
+                } else {
+                    console.error(
+                        'Unleash: Fetching feature toggles did not have an ok response'
+                    );
+                    this.sdkState = 'error';
+                    this.emit(EVENTS.ERROR, {
+                        type: 'HttpError',
+                        code: response.status,
+                    });
+
+                    this.lastError = {
+                        type: 'HttpError',
+                        code: response.status,
+                    };
                 }
             } catch (e) {
                 if (!(e instanceof DOMException && e.name === 'AbortError')) {

@@ -28,17 +28,14 @@ export const urlWithContextAsQuery = (url: URL, context: IContext) => {
 };
 
 export const contextString = (context: IContext): string => {
-    const { properties, ...fields } = context;
+    const { properties = {}, ...fields } = context;
 
     const sortEntries = (record: Record<string, string>) =>
         Object.entries(record).sort(([a], [b]) =>
             a.localeCompare(b, undefined)
         );
 
-    return JSON.stringify([
-        sortEntries(fields),
-        sortEntries(context.properties || {}),
-    ]);
+    return JSON.stringify([sortEntries(fields), sortEntries(properties)]);
 };
 
 const sha256 = async (input: string): Promise<string> => {

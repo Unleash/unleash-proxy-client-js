@@ -43,7 +43,12 @@ const sha256 = async (input: string): Promise<string> => {
         typeof globalThis !== 'undefined' && globalThis.crypto?.subtle
             ? globalThis.crypto?.subtle
             : undefined;
-    if (typeof TextEncoder === 'undefined' || !cryptoSubtle?.digest) {
+
+    if (
+        typeof TextEncoder === 'undefined' ||
+        !cryptoSubtle?.digest ||
+        typeof Uint8Array === 'undefined'
+    ) {
         throw new Error('Hashing function not available');
     }
 

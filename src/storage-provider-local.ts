@@ -1,7 +1,11 @@
 import type IStorageProvider from './storage-provider';
 
 export default class LocalStorageProvider implements IStorageProvider {
-    private prefix = 'unleash:repository';
+    private prefix: string;
+
+    constructor(name = 'unleash:repository') {
+        this.prefix = name;
+    }
 
     public async save(name: string, data: any) {
         const repo = JSON.stringify(data);

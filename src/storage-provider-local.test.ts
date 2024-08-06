@@ -15,6 +15,18 @@ describe('LocalStorageProvider', () => {
         expect(await store.get('key4')).toBe(true);
     });
 
+    it('should support custom storage key', async () => {
+        const store1 = new LocalStorageProvider('custom-storage-key');
+        const store2 = new LocalStorageProvider('custom-storage-key');
+        const store3 = new LocalStorageProvider('another-custom-storage-key');
+
+        await store1.save('key1', 'value1');
+
+        expect(await store1.get('key1')).toBe('value1');
+        expect(await store2.get('key1')).toBe('value1');
+        expect(await store3.get('key1')).toBe(undefined);
+    });
+
     it('should return undefined for empty value', async () => {
         const store = new LocalStorageProvider();
         expect(await store.get('notDefinedKey')).toBe(undefined);

@@ -26,3 +26,47 @@ export const urlWithContextAsQuery = (url: URL, context: IContext) => {
         });
     return urlWithQuery;
 };
+
+export const contextString = (context: IContext): string => {
+    const { properties = {}, ...fields } = context;
+
+    const sortEntries = (record: Record<string, string>) =>
+        Object.entries(record).sort(([a], [b]) =>
+            a.localeCompare(b, undefined)
+        );
+
+    return JSON.stringify([sortEntries(fields), sortEntries(properties)]);
+};
+
+const sha256 = async (input: string): Promise<string> => {
+    const cryptoSubtle =
+        typeof globalThis !== 'undefined' && globalThis.crypto?.subtle
+            ? globalThis.crypto?.subtle
+            : undefined;
+
+    if (
+        typeof TextEncoder === 'undefined' ||
+        !cryptoSubtle?.digest ||
+        typeof Uint8Array === 'undefined'
+    ) {
+        throw new Error('Hashing function not available');
+    }
+
+    const msgUint8 = new TextEncoder().encode(input);
+    const hashBuffer = await cryptoSubtle.digest('SHA-256', msgUint8);
+    const hexString = Array.from(new Uint8Array(hashBuffer))
+        .map((x) => x.toString(16).padStart(2, '0'))
+        .join('');
+    return hexString;
+};
+
+export const computeContextHashValue = async (obj: IContext) => {
+    const value = contextString(obj);
+
+    try {
+        const hash = await sha256(value);
+        return hash;
+    } catch {
+        return value;
+    }
+};

@@ -4,7 +4,11 @@ import type IStorageProvider from './storage-provider';
 import InMemoryStorageProvider from './storage-provider-inmemory';
 import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
-import { notNullOrUndefined, urlWithContextAsQuery } from './util';
+import {
+    computeContextHashValue,
+    notNullOrUndefined,
+    urlWithContextAsQuery,
+} from './util';
 
 const DEFINED_FIELDS = [
     'userId',
@@ -53,6 +57,11 @@ interface IConfig extends IStaticContext {
     customHeaders?: Record<string, string>;
     impressionDataAll?: boolean;
     usePOSTrequests?: boolean;
+    experimental?: IExperimentalConfig;
+}
+
+interface IExperimentalConfig {
+    togglesStorageTTL?: number;
 }
 
 interface IVariant {
@@ -93,8 +102,14 @@ const defaultVariant: IVariant = {
     feature_enabled: false,
 };
 const storeKey = 'repo';
+export const lastUpdateKey = 'repoLastUpdateTimestamp';
 
 type SdkState = 'initializing' | 'healthy' | 'error';
+
+type LastUpdateTerms = {
+    key: string;
+    timestamp: number;
+};
 
 export const resolveFetch = () => {
     try {
@@ -152,6 +167,8 @@ export class UnleashClient extends TinyEmitter {
     private started = false;
     private sdkState: SdkState;
     private lastError: any;
+    private experimental: IExperimentalConfig;
+    private lastRefreshTimestamp: number;
 
     constructor({
         storageProvider,
@@ -173,6 +190,7 @@ export class UnleashClient extends TinyEmitter {
         customHeaders = {},
         impressionDataAll = false,
         usePOSTrequests = false,
+        experimental,
     }: IConfig) {
         super();
         // Validations
@@ -201,6 +219,19 @@ export class UnleashClient extends TinyEmitter {
         this.context = { appName, environment, ...context };
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
+
+        this.experimental = { ...experimental };
+
+        if (
+            experimental?.togglesStorageTTL &&
+            experimental?.togglesStorageTTL > 0
+        ) {
+            this.experimental.togglesStorageTTL =
+                experimental.togglesStorageTTL * 1000;
+        }
+
+        this.lastRefreshTimestamp = 0;
+
         this.ready = new Promise((resolve) => {
             this.init()
                 .then(resolve)
@@ -350,11 +381,17 @@ export class UnleashClient extends TinyEmitter {
         this.updateToggles();
     }
 
+    private setReady() {
+        this.readyEventEmitted = true;
+        this.emit(EVENTS.READY);
+    }
+
     private async init(): Promise<void> {
         const sessionId = await this.resolveSessionId();
         this.context = { sessionId, ...this.context };
 
         this.toggles = (await this.storage.get(storeKey)) || [];
+        this.lastRefreshTimestamp = await this.getLastRefreshTimestamp();
 
         if (
             this.bootstrap &&
@@ -363,8 +400,11 @@ export class UnleashClient extends TinyEmitter {
             await this.storage.save(storeKey, this.bootstrap);
             this.toggles = this.bootstrap;
             this.sdkState = 'healthy';
-            this.readyEventEmitted = true;
-            this.emit(EVENTS.READY);
+
+            // Indicates that the bootstrap is fresh, and avoid the initial fetch
+            await this.storeLastRefreshTimestamp();
+
+            this.setReady();
         }
 
         this.sdkState = 'healthy';
@@ -383,7 +423,7 @@ export class UnleashClient extends TinyEmitter {
         this.metrics.start();
         const interval = this.refreshInterval;
 
-        await this.fetchToggles();
+        await this.initialFetchToggles();
 
         if (interval > 0) {
             this.timerRef = setInterval(() => this.fetchToggles(), interval);
@@ -443,6 +483,61 @@ export class UnleashClient extends TinyEmitter {
         await this.storage.save(storeKey, toggles);
     }
 
+    private isTogglesStorageTTLEnabled(): boolean {
+        return !!(
+            this.experimental?.togglesStorageTTL &&
+            this.experimental.togglesStorageTTL > 0
+        );
+    }
+
+    private isUpToDate(): boolean {
+        if (!this.isTogglesStorageTTLEnabled()) {
+            return false;
+        }
+        const now = Date.now();
+
+        const ttl = this.experimental?.togglesStorageTTL || 0;
+
+        return (
+            this.lastRefreshTimestamp > 0 &&
+            this.lastRefreshTimestamp <= now &&
+            now - this.lastRefreshTimestamp <= ttl
+        );
+    }
+
+    private async getLastRefreshTimestamp(): Promise<number> {
+        if (this.isTogglesStorageTTLEnabled()) {
+            const lastRefresh: LastUpdateTerms | undefined =
+                await this.storage.get(lastUpdateKey);
+            const contextHash = await computeContextHashValue(this.context);
+            return lastRefresh?.key === contextHash ? lastRefresh.timestamp : 0;
+        }
+        return 0;
+    }
+
+    private async storeLastRefreshTimestamp(): Promise<void> {
+        if (this.isTogglesStorageTTLEnabled()) {
+            this.lastRefreshTimestamp = Date.now();
+
+            const lastUpdateValue: LastUpdateTerms = {
+                key: await computeContextHashValue(this.context),
+                timestamp: this.lastRefreshTimestamp,
+            };
+            await this.storage.save(lastUpdateKey, lastUpdateValue);
+        }
+    }
+
+    private initialFetchToggles() {
+        if (this.isUpToDate()) {
+            if (!this.fetchedFromServer) {
+                this.fetchedFromServer = true;
+                this.setReady();
+            }
+            return;
+        }
+        return this.fetchToggles();
+    }
+
     private async fetchToggles() {
         if (this.fetch) {
             if (this.abortController) {
@@ -476,7 +571,7 @@ export class UnleashClient extends TinyEmitter {
                     this.emit(EVENTS.RECOVERED);
                 }
 
-                if (response.ok && response.status !== 304) {
+                if (response.ok) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
                     await this.storeToggles(data.toggles);
@@ -484,13 +579,14 @@ export class UnleashClient extends TinyEmitter {
                     if (this.sdkState !== 'healthy') {
                         this.sdkState = 'healthy';
                     }
-
                     if (!this.fetchedFromServer) {
                         this.fetchedFromServer = true;
-                        this.readyEventEmitted = true;
-                        this.emit(EVENTS.READY);
+                        this.setReady();
                     }
-                } else if (!response.ok && response.status !== 304) {
+                    this.storeLastRefreshTimestamp();
+                } else if (response.status === 304) {
+                    this.storeLastRefreshTimestamp();
+                } else {
                     console.error(
                         'Unleash: Fetching feature toggles did not have an ok response'
                     );
@@ -499,6 +595,7 @@ export class UnleashClient extends TinyEmitter {
                         type: 'HttpError',
                         code: response.status,
                     });
+
                     this.lastError = {
                         type: 'HttpError',
                         code: response.status,

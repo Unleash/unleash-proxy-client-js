@@ -12,6 +12,7 @@ import {
     lastUpdateKey,
 } from './index';
 import { getTypeSafeRequest, getTypeSafeRequestUrl } from './test';
+import Metrics from './metrics';
 
 jest.useFakeTimers();
 
@@ -1655,6 +1656,26 @@ test('Should report metrics', async () => {
         },
     });
     client.stop();
+});
+
+test('should send metrics when sendMetrics called', async () => {
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+
+    jest.spyOn(Metrics.prototype, 'sendMetrics');
+
+    const client = new UnleashClient(config);
+
+    client.start();
+
+    expect(Metrics.prototype.sendMetrics).not.toHaveBeenCalled();
+
+    await client.sendMetrics();
+
+    expect(Metrics.prototype.sendMetrics).toHaveBeenCalled();
 });
 
 test('Should emit RECOVERED event when sdkStatus is error and status is less than 400', (done) => {

@@ -446,6 +446,10 @@ export class UnleashClient extends TinyEmitter {
         return this.sdkState === 'error' ? this.lastError : undefined;
     }
 
+    public sendMetrics() {
+        return this.metrics.sendMetrics();
+    }
+
     private async resolveSessionId(): Promise<string> {
         if (this.context.sessionId) {
             return this.context.sessionId;

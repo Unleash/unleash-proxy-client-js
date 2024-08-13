@@ -293,3 +293,7 @@ const unleash = new UnleashClient({
 **NOTES: ⚠️**
 If `bootstrapOverride` is `true` (by default), any local cached data will be overridden with the bootstrap specified.   
 If `bootstrapOverride` is `false` any local cached data will not be overridden unless the local cache is empty.
+
+## Manage your own refresh mechanism
+
+If you do not want to use the internal refresh mechanism provided by the `refreshInterval` or `metricsInterval` options, you can handle it yourself using the public `updateToggles` and `sendMetrics` methods.

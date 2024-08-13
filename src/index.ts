@@ -322,7 +322,7 @@ export class UnleashClient extends TinyEmitter {
         return { ...variant, feature_enabled: enabled };
     }
 
-    private async updateToggles() {
+    public async updateToggles() {
         if (this.timerRef || this.fetchedFromServer) {
             await this.fetchToggles();
         } else if (this.started) {

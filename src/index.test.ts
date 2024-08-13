@@ -2289,3 +2289,54 @@ describe('Experimental options togglesStorageTTL enabled', () => {
         });
     });
 });
+
+describe('updateToggles', () => {
+    it('should not update toggles when not started', () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+        };
+        const client = new UnleashClient(config);
+
+        client.updateToggles();
+
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('should update toggles when started', async () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+        };
+        const client = new UnleashClient(config);
+
+        await client.start();
+        fetchMock.mockClear();
+
+        client.updateToggles();
+
+        expect(fetchMock).toHaveBeenCalled();
+    });
+
+    it('should wait for readyness before update toggles', async () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            refreshInterval: 0,
+        };
+        const client = new UnleashClient(config);
+
+        client.start();
+
+        client.updateToggles();
+
+        expect(fetchMock).not.toHaveBeenCalled();
+
+        client.emit(EVENTS.READY);
+
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+});

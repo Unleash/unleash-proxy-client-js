@@ -296,4 +296,6 @@ If `bootstrapOverride` is `false` any local cached data will not be overridden u
 
 ## Manage your own refresh mechanism
 
-If you do not want to use the internal refresh mechanism provided by the `refreshInterval` or `metricsInterval` options, you can handle it yourself using the public `updateToggles` and `sendMetrics` methods.
+You can opt out of the Unleash feature flag auto-refresh mechanism and metrics update by settings the `refreshInterval` and/or `metricsInterval` options to `false`. 
+In this case, it becomes your responsibility to call `updateToggles` and/or `sendMetrics` methods.
+This approach is useful in environments that do not support the `setInterval` API, such as service workers.

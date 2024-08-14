@@ -2320,7 +2320,7 @@ describe('updateToggles', () => {
         expect(fetchMock).toHaveBeenCalled();
     });
 
-    it('should wait for readyness before update toggles', async () => {
+    it('should wait for client readiness before the toggles update', async () => {
         const config: IConfig = {
             url: 'http://localhost/test',
             clientKey: '12',

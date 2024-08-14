@@ -12,6 +12,7 @@ import {
     lastUpdateKey,
 } from './index';
 import { getTypeSafeRequest, getTypeSafeRequestUrl } from './test';
+import Metrics from './metrics';
 
 jest.useFakeTimers();
 
@@ -1657,6 +1658,26 @@ test('Should report metrics', async () => {
     client.stop();
 });
 
+test('should send metrics when sendMetrics called', async () => {
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+    };
+
+    jest.spyOn(Metrics.prototype, 'sendMetrics');
+
+    const client = new UnleashClient(config);
+
+    client.start();
+
+    expect(Metrics.prototype.sendMetrics).not.toHaveBeenCalled();
+
+    await client.sendMetrics();
+
+    expect(Metrics.prototype.sendMetrics).toHaveBeenCalled();
+});
+
 test('Should emit RECOVERED event when sdkStatus is error and status is less than 400', (done) => {
     const data = { status: 200 }; // replace with the actual data you want to test
     fetchMock.mockResponseOnce(JSON.stringify(data), { status: 200 });
@@ -2266,5 +2287,56 @@ describe('Experimental options togglesStorageTTL enabled', () => {
             isEnabled = client.isEnabled('simpleToggle');
             expect(isEnabled).toBe(false);
         });
+    });
+});
+
+describe('updateToggles', () => {
+    it('should not update toggles when not started', () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+        };
+        const client = new UnleashClient(config);
+
+        client.updateToggles();
+
+        expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('should update toggles when started', async () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+        };
+        const client = new UnleashClient(config);
+
+        await client.start();
+        fetchMock.mockClear();
+
+        client.updateToggles();
+
+        expect(fetchMock).toHaveBeenCalled();
+    });
+
+    it('should wait for client readiness before the toggles update', async () => {
+        const config: IConfig = {
+            url: 'http://localhost/test',
+            clientKey: '12',
+            appName: 'web',
+            refreshInterval: 0,
+        };
+        const client = new UnleashClient(config);
+
+        client.start();
+
+        client.updateToggles();
+
+        expect(fetchMock).not.toHaveBeenCalled();
+
+        client.emit(EVENTS.READY);
+
+        expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 });

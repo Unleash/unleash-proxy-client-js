@@ -322,7 +322,7 @@ export class UnleashClient extends TinyEmitter {
         return { ...variant, feature_enabled: enabled };
     }
 
-    private async updateToggles() {
+    public async updateToggles() {
         if (this.timerRef || this.fetchedFromServer) {
             await this.fetchToggles();
         } else if (this.started) {
@@ -444,6 +444,10 @@ export class UnleashClient extends TinyEmitter {
 
     public getError() {
         return this.sdkState === 'error' ? this.lastError : undefined;
+    }
+
+    public sendMetrics() {
+        return this.metrics.sendMetrics();
     }
 
     private async resolveSessionId(): Promise<string> {

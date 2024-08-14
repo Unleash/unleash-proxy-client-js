@@ -293,3 +293,9 @@ const unleash = new UnleashClient({
 **NOTES: ⚠️**
 If `bootstrapOverride` is `true` (by default), any local cached data will be overridden with the bootstrap specified.   
 If `bootstrapOverride` is `false` any local cached data will not be overridden unless the local cache is empty.
+
+## Manage your own refresh mechanism
+
+You can opt out of the Unleash feature flag auto-refresh mechanism and metrics update by settings the `refreshInterval` and/or `metricsInterval` options to `false`. 
+In this case, it becomes your responsibility to call `updateToggles` and/or `sendMetrics` methods.
+This approach is useful in environments that do not support the `setInterval` API, such as service workers.

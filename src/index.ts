@@ -458,9 +458,9 @@ export class UnleashClient extends TinyEmitter {
         let sessionId = await this.storage.get('sessionId');
         if (!sessionId) {
             sessionId = Math.floor(Math.random() * 1_000_000_000);
-            await this.storage.save('sessionId', sessionId);
+            await this.storage.save('sessionId', sessionId.toString(10));
         }
-        return sessionId;
+        return sessionId.toString(10);
     }
 
     private getHeaders() {

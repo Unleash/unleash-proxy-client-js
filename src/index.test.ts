@@ -164,9 +164,8 @@ test('Should read session id from localStorage', async () => {
         public async get(name: string) {
             if (name === 'sessionId') {
                 return sessionId;
-            } else {
-                return Promise.resolve([]);
             }
+            return Promise.resolve([]);
         }
     }
 
@@ -183,6 +182,35 @@ test('Should read session id from localStorage', async () => {
     expect(context.sessionId).toBe(sessionId);
 });
 
+test('Should send sessionId as string, even if it was saved a number', async () => {
+    const sessionId = 123;
+    fetchMock.mockReject();
+
+    class Store implements IStorageProvider {
+        public async save() {
+            return Promise.resolve();
+        }
+
+        public async get(name: string) {
+            if (name === 'sessionId') {
+                return sessionId;
+            }
+            return Promise.resolve([]);
+        }
+    }
+
+    const storageProvider = new Store();
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        storageProvider,
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+    const context = client.getContext();
+    expect(context.sessionId).toBe('123');
+});
 test('Should read toggles from localStorage', async () => {
     jest.spyOn(global.console, 'error').mockImplementation(() => jest.fn());
     const toggles = [

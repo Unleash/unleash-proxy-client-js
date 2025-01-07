@@ -1356,6 +1356,28 @@ test('Should pass custom headers', async () => {
     });
 });
 
+test('Should add X-UNLEASH headers', async () => {
+    fetchMock.mockResponses([JSON.stringify(data), { status: 200 }]);
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: 'some123key',
+        appName: 'web',
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+
+    const request = getTypeSafeRequest(fetchMock);
+
+    const uuidFormat =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    expect(request.headers).toMatchObject({
+        'x-unleash-sdk': 'unleash-js@1.0.0',
+        'x-unleash-connection-id': expect.stringMatching(uuidFormat),
+        'x-unleash-appname': 'web',
+    });
+});
+
 test('Should emit impression events on getVariant calls when impressionData is true', (done) => {
     const bootstrap = [
         {

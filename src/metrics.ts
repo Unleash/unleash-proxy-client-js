@@ -14,6 +14,8 @@ export interface MetricsOptions {
     headerName: string;
     customHeaders?: Record<string, string>;
     metricsIntervalInitial: number;
+    connectionId: string;
+    sdkVersion: string;
 }
 
 interface VariantBucket {
@@ -53,6 +55,8 @@ export default class Metrics {
     private headerName: string;
     private customHeaders: Record<string, string>;
     private metricsIntervalInitial: number;
+    private connectionId: string;
+    private sdkVersion: string;
 
     constructor({
         onError,
@@ -66,6 +70,8 @@ export default class Metrics {
         headerName,
         customHeaders = {},
         metricsIntervalInitial,
+        connectionId,
+        sdkVersion,
     }: MetricsOptions) {
         this.onError = onError;
         this.onSent = onSent || doNothing;
@@ -79,6 +85,8 @@ export default class Metrics {
         this.fetch = fetch;
         this.headerName = headerName;
         this.customHeaders = customHeaders;
+        this.connectionId = connectionId;
+        this.sdkVersion = sdkVersion;
     }
 
     public start() {
@@ -121,6 +129,9 @@ export default class Metrics {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
             'Content-Type': 'application/json',
+            'x-unleash-sdk': `unleash-js@${this.sdkVersion}`,
+            'x-unleash-connection-id': this.connectionId,
+            'x-unleash-appname': this.appName,
         };
 
         Object.entries(this.customHeaders)

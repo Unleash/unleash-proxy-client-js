@@ -265,6 +265,9 @@ export class UnleashClient extends TinyEmitter {
             bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
 
+        this.connectionId = uuidv4();
+        this.sdkVersion = sdkVersion;
+
         this.metrics = new Metrics({
             onError: this.emit.bind(this, EVENTS.ERROR),
             onSent: this.emit.bind(this, EVENTS.SENT),
@@ -277,10 +280,9 @@ export class UnleashClient extends TinyEmitter {
             headerName,
             customHeaders,
             metricsIntervalInitial,
+            connectionId: this.connectionId,
+            sdkVersion,
         });
-
-        this.connectionId = uuidv4();
-        this.sdkVersion = sdkVersion;
     }
 
     public getAllToggles(): IToggle[] {

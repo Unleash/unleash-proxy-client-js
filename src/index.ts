@@ -1,4 +1,5 @@
 import { TinyEmitter } from 'tiny-emitter';
+import { v4 as uuidv4 } from 'uuid';
 import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
 import InMemoryStorageProvider from './storage-provider-inmemory';
@@ -169,6 +170,8 @@ export class UnleashClient extends TinyEmitter {
     private lastError: any;
     private experimental: IExperimentalConfig;
     private lastRefreshTimestamp: number;
+    private connectionId: string;
+    private sdkVersion: string;
 
     constructor({
         storageProvider,
@@ -274,6 +277,9 @@ export class UnleashClient extends TinyEmitter {
             customHeaders,
             metricsIntervalInitial,
         });
+
+        this.connectionId = uuidv4();
+        this.sdkVersion = '1.0.0';
     }
 
     public getAllToggles(): IToggle[] {
@@ -468,6 +474,9 @@ export class UnleashClient extends TinyEmitter {
         const headers = {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
+            'x-unleash-sdk': `unleash-js@${this.sdkVersion}`,
+            'x-unleash-connection-id': this.connectionId,
+            'x-unleash-appname': this.context.appName,
         };
         if (isPOST) {
             headers['Content-Type'] = 'application/json';

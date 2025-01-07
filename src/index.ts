@@ -1,4 +1,5 @@
 import { TinyEmitter } from 'tiny-emitter';
+import { version as sdkVersion } from '../package.json';
 import { v4 as uuidv4 } from 'uuid';
 import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
@@ -279,7 +280,7 @@ export class UnleashClient extends TinyEmitter {
         });
 
         this.connectionId = uuidv4();
-        this.sdkVersion = '1.0.0';
+        this.sdkVersion = sdkVersion;
     }
 
     public getAllToggles(): IToggle[] {

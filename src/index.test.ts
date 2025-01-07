@@ -1,4 +1,5 @@
 import { FetchMock } from 'jest-fetch-mock';
+import { version as sdkVersion } from '../package.json';
 import 'jest-localstorage-mock';
 import * as data from './test/testdata.json';
 import IStorageProvider from './storage-provider';
@@ -1372,7 +1373,7 @@ test('Should add X-UNLEASH headers', async () => {
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
     expect(request.headers).toMatchObject({
-        'x-unleash-sdk': 'unleash-js@1.0.0',
+        'x-unleash-sdk': `unleash-js@${sdkVersion}`,
         'x-unleash-connection-id': expect.stringMatching(uuidFormat),
         'x-unleash-appname': 'web',
     });

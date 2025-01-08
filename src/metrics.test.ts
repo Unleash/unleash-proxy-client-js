@@ -22,6 +22,7 @@ test('should be disabled by flag disableMetrics', async () => {
         fetch: fetchMock,
         headerName: 'Authorization',
         metricsIntervalInitial: 0,
+        connectionId: '123',
     });
 
     metrics.count('foo', true);
@@ -42,6 +43,7 @@ test('should send metrics', async () => {
         fetch: fetchMock,
         headerName: 'Authorization',
         metricsIntervalInitial: 0,
+        connectionId: '123',
     });
 
     metrics.count('foo', true);
@@ -79,6 +81,7 @@ test('should send metrics with custom auth header', async () => {
         fetch: fetchMock,
         headerName: 'NotAuthorization',
         metricsIntervalInitial: 0,
+        connectionId: '123',
     });
 
     metrics.count('foo', true);
@@ -103,6 +106,7 @@ test('Should send initial metrics after 2 seconds', () => {
         fetch: fetchMock,
         headerName: 'Authorization',
         metricsIntervalInitial: 2,
+        connectionId: '123',
     });
 
     metrics.start();
@@ -127,6 +131,7 @@ test('Should send initial metrics after 20 seconds, when metricsIntervalInitial 
         fetch: fetchMock,
         headerName: 'Authorization',
         metricsIntervalInitial: 20,
+        connectionId: '123',
     });
 
     metrics.start();
@@ -151,6 +156,7 @@ test('Should send metrics for initial and after metrics interval', () => {
         fetch: fetchMock,
         headerName: 'Authorization',
         metricsIntervalInitial: 2,
+        connectionId: '123',
     });
 
     metrics.start();
@@ -178,6 +184,7 @@ test('Should not send initial metrics if disabled', () => {
         fetch: fetchMock,
         headerName: 'Authorization',
         metricsIntervalInitial: 0,
+        connectionId: '123',
     });
 
     metrics.start();
@@ -202,6 +209,7 @@ test('should send metrics based on timer interval', async () => {
         fetch: fetchMock,
         headerName: 'Authorization',
         metricsIntervalInitial: 2,
+        connectionId: '123',
     });
 
     metrics.start();
@@ -242,6 +250,7 @@ describe('Custom headers for metrics', () => {
             fetch: fetchMock,
             headerName: 'Authorization',
             customHeaders,
+            connectionId: '123',
             metricsIntervalInitial: 2,
         });
 

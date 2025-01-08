@@ -1,5 +1,4 @@
 import { TinyEmitter } from 'tiny-emitter';
-import { version as sdkVersion } from '../package.json';
 import { v4 as uuidv4 } from 'uuid';
 import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
@@ -11,6 +10,8 @@ import {
     notNullOrUndefined,
     urlWithContextAsQuery,
 } from './util';
+
+import packageJSON = require('../package.json');
 
 const DEFINED_FIELDS = [
     'userId',
@@ -172,7 +173,6 @@ export class UnleashClient extends TinyEmitter {
     private experimental: IExperimentalConfig;
     private lastRefreshTimestamp: number;
     private connectionId: string;
-    private sdkVersion: string;
 
     constructor({
         storageProvider,
@@ -266,7 +266,6 @@ export class UnleashClient extends TinyEmitter {
         this.bootstrapOverride = bootstrapOverride;
 
         this.connectionId = uuidv4();
-        this.sdkVersion = sdkVersion;
 
         this.metrics = new Metrics({
             onError: this.emit.bind(this, EVENTS.ERROR),
@@ -281,7 +280,6 @@ export class UnleashClient extends TinyEmitter {
             customHeaders,
             metricsIntervalInitial,
             connectionId: this.connectionId,
-            sdkVersion,
         });
     }
 
@@ -477,7 +475,7 @@ export class UnleashClient extends TinyEmitter {
         const headers = {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
-            'x-unleash-sdk': `unleash-js@${this.sdkVersion}`,
+            'x-unleash-sdk': `unleash-js@${packageJSON.version}`,
             'x-unleash-connection-id': this.connectionId,
             'x-unleash-appname': this.context.appName,
         };

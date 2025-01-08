@@ -1,6 +1,7 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 
 import { notNullOrUndefined } from './util';
+import packageJSON = require('../package.json');
 
 export interface MetricsOptions {
     onError: OnError;
@@ -15,7 +16,6 @@ export interface MetricsOptions {
     customHeaders?: Record<string, string>;
     metricsIntervalInitial: number;
     connectionId: string;
-    sdkVersion: string;
 }
 
 interface VariantBucket {
@@ -56,7 +56,6 @@ export default class Metrics {
     private customHeaders: Record<string, string>;
     private metricsIntervalInitial: number;
     private connectionId: string;
-    private sdkVersion: string;
 
     constructor({
         onError,
@@ -71,7 +70,6 @@ export default class Metrics {
         customHeaders = {},
         metricsIntervalInitial,
         connectionId,
-        sdkVersion,
     }: MetricsOptions) {
         this.onError = onError;
         this.onSent = onSent || doNothing;
@@ -86,7 +84,6 @@ export default class Metrics {
         this.headerName = headerName;
         this.customHeaders = customHeaders;
         this.connectionId = connectionId;
-        this.sdkVersion = sdkVersion;
     }
 
     public start() {
@@ -129,7 +126,7 @@ export default class Metrics {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
             'Content-Type': 'application/json',
-            'x-unleash-sdk': `unleash-js@${this.sdkVersion}`,
+            'x-unleash-sdk': `unleash-js@${packageJSON.version}`,
             'x-unleash-connection-id': this.connectionId,
             'x-unleash-appname': this.appName,
         };

@@ -1389,7 +1389,7 @@ test('Should add `x-unleash` headers', async () => {
     };
 
     const getConnectionId = (request: any) =>
-        JSON.parse(JSON.stringify(request.headers))['x-unleash-connection-id'];
+        request.headers['x-unleash-connection-id'];
 
     expect(featureRequest.headers).toMatchObject(expectedHeaders);
     expect(metricsRequest.headers).toMatchObject(expectedHeaders);

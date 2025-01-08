@@ -1,4 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJSON = require('../package.json');
 import 'jest-localstorage-mock';
 import * as data from './test/testdata.json';
 import IStorageProvider from './storage-provider';
@@ -1354,6 +1356,46 @@ test('Should pass custom headers', async () => {
         customheader1: 'header1val',
         customheader2: 'header2val',
     });
+});
+
+test('Should add `x-unleash` headers', async () => {
+    fetchMock.mockResponses(
+        [JSON.stringify(data), { status: 200 }],
+        [JSON.stringify(data), { status: 200 }]
+    );
+    const appName = 'unleash-client-test';
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: 'some123key',
+        appName,
+    };
+    const client = new UnleashClient(config);
+    await client.start();
+
+    const featureRequest = getTypeSafeRequest(fetchMock, 0);
+
+    client.isEnabled('count-metrics');
+    jest.advanceTimersByTime(2001);
+
+    const metricsRequest = getTypeSafeRequest(fetchMock, 1);
+
+    const uuidFormat =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    const expectedHeaders = {
+        'x-unleash-sdk': `unleash-js@${packageJSON.version}`,
+        'x-unleash-connection-id': expect.stringMatching(uuidFormat),
+        'x-unleash-appname': appName,
+    };
+
+    const getConnectionId = (request: any) =>
+        request.headers['x-unleash-connection-id'];
+
+    expect(featureRequest.headers).toMatchObject(expectedHeaders);
+    expect(metricsRequest.headers).toMatchObject(expectedHeaders);
+    expect(getConnectionId(featureRequest)).toEqual(
+        getConnectionId(metricsRequest)
+    );
 });
 
 test('Should emit impression events on getVariant calls when impressionData is true', (done) => {

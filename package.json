@@ -1,7 +1,7 @@
 {
   "name": "unleash-proxy-client",
   "version": "3.6.1",
-  "description": "A browser client that can be used together with the unleash-proxy.",
+  "description": "A browser client that can be used together with Unleash Edge or the Unleash Frontend API.",
   "type": "module",
   "main": "./build/index.cjs",
   "types": "./build/cjs/index.d.ts",

@@ -1,5 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
-import { version as sdkVersion } from '../package.json';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJSON = require('../package.json');
 import 'jest-localstorage-mock';
 import * as data from './test/testdata.json';
 import IStorageProvider from './storage-provider';
@@ -1382,7 +1383,7 @@ test('Should add `x-unleash` headers', async () => {
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
     const expectedHeaders = {
-        'x-unleash-sdk': `unleash-js@${sdkVersion}`,
+        'x-unleash-sdk': `unleash-js@${packageJSON.version}`,
         'x-unleash-connection-id': expect.stringMatching(uuidFormat),
         'x-unleash-appname': appName,
     };

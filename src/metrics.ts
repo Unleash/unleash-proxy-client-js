@@ -1,7 +1,8 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 
 import { notNullOrUndefined } from './util';
-import packageJSON = require('../package.json');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJSON = require('../package.json');
 
 export interface MetricsOptions {
     onError: OnError;

@@ -1357,7 +1357,7 @@ test('Should pass custom headers', async () => {
     });
 });
 
-test('Should add X-UNLEASH headers', async () => {
+test('Should add `x-unleash` headers', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }]

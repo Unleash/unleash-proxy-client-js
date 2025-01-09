@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: New version semver
+        description: New version semver (e.g. 3.7.0)
         required: true
         type: string
       tag:
@@ -21,3 +21,5 @@ jobs:
       tag: ${{ github.event.inputs.tag }}
     secrets:
       NPM_ACCESS_TOKEN: ${{ secrets.NPM_TOKEN }}
+      UNLEASH_BOT_APP_ID: ${{ secrets.UNLEASH_BOT_APP_ID }}
+      UNLEASH_BOT_PRIVATE_KEY: ${{ secrets.UNLEASH_BOT_PRIVATE_KEY }}

@@ -10,7 +10,7 @@ import {
     notNullOrUndefined,
     urlWithContextAsQuery,
 } from './util';
-import {sdkVersion} from "./version";
+import { sdkVersion } from './version';
 
 const DEFINED_FIELDS = [
     'userId',

@@ -10,6 +10,7 @@ import {
     notNullOrUndefined,
     urlWithContextAsQuery,
 } from './util';
+import {sdkVersion} from "./version";
 
 const DEFINED_FIELDS = [
     'userId',
@@ -473,7 +474,7 @@ export class UnleashClient extends TinyEmitter {
         const headers = {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
-            'x-unleash-sdk': `unleash-js@$__VERSION__`,
+            'x-unleash-sdk': sdkVersion,
             'x-unleash-connection-id': this.connectionId,
             'x-unleash-appname': this.context.appName,
         };

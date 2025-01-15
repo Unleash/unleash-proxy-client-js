@@ -1,6 +1,7 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 
 import { notNullOrUndefined } from './util';
+import {sdkVersion} from "./version";
 
 export interface MetricsOptions {
     onError: OnError;
@@ -125,7 +126,7 @@ export default class Metrics {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
             'Content-Type': 'application/json',
-            'x-unleash-sdk': `unleash-js@$__VERSION__`,
+            'x-unleash-sdk': sdkVersion,
             'x-unleash-connection-id': this.connectionId,
             'x-unleash-appname': this.appName,
         };

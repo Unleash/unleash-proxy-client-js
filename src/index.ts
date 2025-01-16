@@ -1,5 +1,4 @@
 import { TinyEmitter } from 'tiny-emitter';
-import { v4 as uuidv4 } from 'uuid';
 import Metrics from './metrics';
 import type IStorageProvider from './storage-provider';
 import InMemoryStorageProvider from './storage-provider-inmemory';
@@ -11,6 +10,7 @@ import {
     urlWithContextAsQuery,
 } from './util';
 import { sdkVersion } from './version';
+import { uuidv4 } from './uuidv4';
 
 const DEFINED_FIELDS = [
     'userId',

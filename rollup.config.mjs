@@ -3,6 +3,10 @@ import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import terser from '@rollup/plugin-terser';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
+import replace from '@rollup/plugin-replace';
+import fs from 'fs';
+
+const version = JSON.parse(fs.readFileSync('./package.json', 'UTF-8')).version;
 
 export default {
     input: './src/index.ts',
@@ -25,6 +29,10 @@ export default {
         }
     ],
     plugins: [
+        replace({
+            '__VERSION__': version,
+            preventAssignment: true
+        }),
         typescript({
             compilerOptions: {
                 lib: ['es5', 'es6', 'dom'],

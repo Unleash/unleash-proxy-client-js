@@ -10,9 +10,7 @@ import {
     notNullOrUndefined,
     urlWithContextAsQuery,
 } from './util';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const packageJSON = require('../package.json');
+import { sdkVersion } from './version';
 
 const DEFINED_FIELDS = [
     'userId',
@@ -476,7 +474,7 @@ export class UnleashClient extends TinyEmitter {
         const headers = {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
-            'x-unleash-sdk': `unleash-js@${packageJSON.version}`,
+            'x-unleash-sdk': sdkVersion,
             'x-unleash-connection-id': this.connectionId,
             'x-unleash-appname': this.context.appName,
         };

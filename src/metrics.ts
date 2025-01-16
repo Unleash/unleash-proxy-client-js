@@ -1,8 +1,7 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 
 import { notNullOrUndefined } from './util';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const packageJSON = require('../package.json');
+import { sdkVersion } from './version';
 
 export interface MetricsOptions {
     onError: OnError;
@@ -127,7 +126,7 @@ export default class Metrics {
             [this.headerName]: this.clientKey,
             Accept: 'application/json',
             'Content-Type': 'application/json',
-            'x-unleash-sdk': `unleash-js@${packageJSON.version}`,
+            'x-unleash-sdk': sdkVersion,
             'x-unleash-connection-id': this.connectionId,
             'x-unleash-appname': this.appName,
         };

@@ -3,3 +3,4 @@ node_modules/
 .vscode/
 coverage/
 .idea
+.DS_Store

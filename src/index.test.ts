@@ -1382,7 +1382,7 @@ test('Should add `x-unleash` headers', async () => {
 
     const expectedHeaders = {
         // will be replaced at build time with the actual version
-        'x-unleash-sdk': 'unleash-js@__VERSION__',
+        'x-unleash-sdk': 'unleash-client-js:__VERSION__',
         'x-unleash-connection-id': expect.stringMatching(uuidFormat),
         'x-unleash-appname': appName,
     };

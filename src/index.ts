@@ -6,11 +6,9 @@ import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
 import {
     computeContextHashValue,
-    notNullOrUndefined,
     parseHeaders,
     urlWithContextAsQuery,
 } from './util';
-import { sdkVersion } from './version';
 import { uuidv4 } from './uuidv4';
 
 const DEFINED_FIELDS = [

@@ -187,7 +187,7 @@ describe('parseHeaders', () => {
         expect(result['if-none-match']).toBe(etag);
     });
 
-    test('should handle custom headers with mixed casing and normalize them', () => {
+    test('should handle custom headers in a case-insensitive way and normalize them', () => {
         const customHeaders = {
             'custom-HEADER': 'custom-value-1',
             'Custom-Header': 'custom-value-2',

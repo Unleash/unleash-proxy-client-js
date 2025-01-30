@@ -64,7 +64,7 @@ test('Should perform an initial fetch as POST', async () => {
     expect(request.method).toBe('POST');
     expect(body.context.appName).toBe('webAsPOST');
     expect(request.headers).toMatchObject({
-        'Content-Type': 'application/json',
+        'content-type': 'application/json',
     });
 });
 
@@ -783,7 +783,7 @@ test('Should include etag in second request', async () => {
 
     expect(firstRequest.headers).toMatchObject({});
     expect(secondRequest.headers).toMatchObject({
-        'If-None-Match': etag,
+        'if-none-match': etag,
     });
 });
 
@@ -805,7 +805,7 @@ test('Should add clientKey as Authorization header', async () => {
     const request = getTypeSafeRequest(fetchMock);
 
     expect(request.headers).toMatchObject({
-        Authorization: 'some123key',
+        authorization: 'some123key',
     });
 });
 

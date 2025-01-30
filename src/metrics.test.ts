@@ -91,7 +91,7 @@ test('should send metrics with custom auth header', async () => {
 
     expect(fetchMock.mock.calls.length).toEqual(1);
     expect(requestBody.headers).toMatchObject({
-        NotAuthorization: '123',
+        'notauthorization': '123',
     });
 });
 
@@ -271,7 +271,7 @@ describe('Custom headers for metrics', () => {
 
     test('Custom headers should override preset headers', async () => {
         const customHeaders = {
-            Authorization: 'definitely-not-the-client-key',
+            authorization: 'definitely-not-the-client-key',
         };
 
         const requestBody = await runMetrics(customHeaders);
@@ -329,7 +329,7 @@ describe('Custom headers for metrics', () => {
 
         const requestBody = getTypeSafeRequest(fetchMock);
         expect(requestBody.headers).toMatchObject({
-            'custom-header': '123',
+            'custom-header': '456',
             'unleash-appname': 'override',
             'unleash-connection-id': '123',
         });

@@ -1,7 +1,6 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 
-import { notNullOrUndefined, parseHeaders } from './util';
-import { sdkVersion } from './version';
+import { parseHeaders } from './util';
 
 export interface MetricsOptions {
     onError: OnError;

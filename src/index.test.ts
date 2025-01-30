@@ -1356,7 +1356,7 @@ test('Should pass custom headers', async () => {
     });
 });
 
-test('Should add `x-unleash` headers', async () => {
+test('Should add unleash identification headers', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }]
@@ -1382,13 +1382,13 @@ test('Should add `x-unleash` headers', async () => {
 
     const expectedHeaders = {
         // will be replaced at build time with the actual version
-        'x-unleash-sdk': 'unleash-js@__VERSION__',
-        'x-unleash-connection-id': expect.stringMatching(uuidFormat),
-        'x-unleash-appname': appName,
+        'unleash-sdk': 'unleash-client-js:__VERSION__',
+        'unleash-connection-id': expect.stringMatching(uuidFormat),
+        'unleash-appname': appName,
     };
 
     const getConnectionId = (request: any) =>
-        request.headers['x-unleash-connection-id'];
+        request.headers['unleash-connection-id'];
 
     expect(featureRequest.headers).toMatchObject(expectedHeaders);
     expect(metricsRequest.headers).toMatchObject(expectedHeaders);

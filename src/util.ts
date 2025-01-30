@@ -90,7 +90,7 @@ export const parseHeaders = ({
     isPost?: boolean;
 }): Record<string, string> => {
     const headers: Record<string, string> = {
-        'accept': 'application/json',
+        accept: 'application/json',
         [headerName.toLocaleLowerCase()]: clientKey,
         'unleash-sdk': sdkVersion,
         'unleash-appname': appName,

@@ -333,5 +333,5 @@ describe('Custom headers for metrics', () => {
             'unleash-appname': 'override',
             'unleash-connection-id': '123',
         });
-    })
+    });
 });

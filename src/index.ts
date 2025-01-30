@@ -477,7 +477,7 @@ export class UnleashClient extends TinyEmitter {
             headerName: this.headerName,
             etag: this.etag,
             isPost: this.usePOSTrequests,
-        })
+        });
     }
 
     private async storeToggles(toggles: IToggle[]): Promise<void> {

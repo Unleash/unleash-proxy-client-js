@@ -1,4 +1,5 @@
 import { IContext } from '.';
+import { sdkVersion } from './version';
 
 export const notNullOrUndefined = ([, value]: [string, string]) =>
     value !== undefined && value !== null;
@@ -69,4 +70,47 @@ export const computeContextHashValue = async (obj: IContext) => {
     } catch {
         return value;
     }
+};
+
+export const parseHeaders = ({
+    clientKey,
+    appName,
+    connectionId,
+    customHeaders,
+    headerName = 'authorization',
+    etag,
+    isPost,
+}: {
+    clientKey: string;
+    connectionId: string;
+    appName: string;
+    customHeaders?: Record<string, string>;
+    headerName?: string;
+    etag?: string;
+    isPost?: boolean;
+}): Record<string, string> => {
+    const headers: Record<string, string> = {
+        'accept': 'application/json',
+        [headerName.toLocaleLowerCase()]: clientKey,
+        'unleash-sdk': sdkVersion,
+        'unleash-appname': appName,
+    };
+
+    if (isPost) {
+        headers['content-type'] = 'application/json';
+    }
+
+    if (etag) {
+        headers['if-none-match'] = etag;
+    }
+
+    Object.entries(customHeaders || {})
+        .filter(notNullOrUndefined)
+        .forEach(
+            ([name, value]) => (headers[name.toLocaleLowerCase()] = value)
+        );
+
+    headers['unleash-connection-id'] = connectionId;
+
+    return headers;
 };

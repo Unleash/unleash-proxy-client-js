@@ -650,7 +650,7 @@ test('Should abort previous request', async () => {
     client.updateContext({ userId: '456' }); // abort 2
     await client.updateContext({ userId: '789' });
 
-    expect(abortSpy).toBeCalledTimes(2);
+    expect(abortSpy).toHaveBeenCalledTimes(2);
     abortSpy.mockRestore();
 });
 
@@ -690,7 +690,7 @@ test('Should run without abort controller', async () => {
     client.updateContext({ userId: '456' });
     await client.updateContext({ userId: '789' });
 
-    expect(abortSpy).toBeCalledTimes(0);
+    expect(abortSpy).toHaveBeenCalledTimes(0);
     abortSpy.mockRestore();
 });
 
@@ -1037,7 +1037,7 @@ test('Updating context should wait on asynchronous start', async () => {
         userId: '123',
     });
 
-    expect(fetchMock).toBeCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
 });
 
 test('Should not replace sessionId when updating context', async () => {
@@ -1254,7 +1254,7 @@ test('Initializing client twice should show a console warning', async () => {
     await client.start();
     await client.start();
     // Expect console.error to be called once before start runs.
-    expect(console.error).toBeCalledTimes(2);
+    expect(console.error).toHaveBeenCalledTimes(2);
 });
 
 test('Should pass under custom header clientKey', async () => {

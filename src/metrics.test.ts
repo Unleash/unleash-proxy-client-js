@@ -91,7 +91,7 @@ test('should send metrics with custom auth header', async () => {
 
     expect(fetchMock.mock.calls.length).toEqual(1);
     expect(requestBody.headers).toMatchObject({
-        'notauthorization': '123',
+        notauthorization: '123',
     });
 });
 

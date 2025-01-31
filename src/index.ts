@@ -6,10 +6,9 @@ import LocalStorageProvider from './storage-provider-local';
 import EventsHandler from './events-handler';
 import {
     computeContextHashValue,
-    notNullOrUndefined,
+    parseHeaders,
     urlWithContextAsQuery,
 } from './util';
-import { sdkVersion } from './version';
 import { uuidv4 } from './uuidv4';
 
 const DEFINED_FIELDS = [
@@ -470,24 +469,15 @@ export class UnleashClient extends TinyEmitter {
     }
 
     private getHeaders() {
-        const isPOST = this.usePOSTrequests;
-        const headers = {
-            [this.headerName]: this.clientKey,
-            Accept: 'application/json',
-            'x-unleash-sdk': sdkVersion,
-            'x-unleash-connection-id': this.connectionId,
-            'x-unleash-appname': this.context.appName,
-        };
-        if (isPOST) {
-            headers['Content-Type'] = 'application/json';
-        }
-        if (this.etag) {
-            headers['If-None-Match'] = this.etag;
-        }
-        Object.entries(this.customHeaders)
-            .filter(notNullOrUndefined)
-            .forEach(([name, value]) => (headers[name] = value));
-        return headers;
+        return parseHeaders({
+            clientKey: this.clientKey,
+            connectionId: this.connectionId,
+            appName: this.context.appName,
+            customHeaders: this.customHeaders,
+            headerName: this.headerName,
+            etag: this.etag,
+            isPost: this.usePOSTrequests,
+        });
     }
 
     private async storeToggles(toggles: IToggle[]): Promise<void> {

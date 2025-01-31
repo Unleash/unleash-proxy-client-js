@@ -1,1 +1,1 @@
-export const sdkVersion = `unleash-js@__VERSION__`;
+export const sdkVersion = `unleash-client-js:__VERSION__`;

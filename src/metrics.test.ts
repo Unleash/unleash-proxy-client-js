@@ -91,7 +91,7 @@ test('should send metrics with custom auth header', async () => {
 
     expect(fetchMock.mock.calls.length).toEqual(1);
     expect(requestBody.headers).toMatchObject({
-        NotAuthorization: '123',
+        notauthorization: '123',
     });
 });
 
@@ -271,7 +271,7 @@ describe('Custom headers for metrics', () => {
 
     test('Custom headers should override preset headers', async () => {
         const customHeaders = {
-            Authorization: 'definitely-not-the-client-key',
+            authorization: 'definitely-not-the-client-key',
         };
 
         const requestBody = await runMetrics(customHeaders);
@@ -303,4 +303,35 @@ describe('Custom headers for metrics', () => {
             expect(requestBody.headers).not.toMatchObject(customHeaders);
         }
     );
+
+    test('Should use case-insensitive headers', () => {
+        const metrics = new Metrics({
+            onError: console.error,
+            appName: 'test',
+            metricsInterval: 5,
+            disableMetrics: false,
+            url: 'http://localhost:3000',
+            clientKey: '123',
+            fetch: fetchMock,
+            headerName: 'Authorization',
+            customHeaders: {
+                'Custom-Header': '123',
+                'custom-header': '456',
+                'unleash-APPname': 'override',
+                'unleash-connection-id': 'override',
+            },
+            connectionId: '123',
+            metricsIntervalInitial: 2,
+        });
+
+        metrics.count('foo', true);
+        metrics.sendMetrics();
+
+        const requestBody = getTypeSafeRequest(fetchMock);
+        expect(requestBody.headers).toMatchObject({
+            'custom-header': '456',
+            'unleash-appname': 'override',
+            'unleash-connection-id': '123',
+        });
+    });
 });

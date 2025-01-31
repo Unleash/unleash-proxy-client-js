@@ -1,7 +1,6 @@
 // Simplified version of: https://github.com/Unleash/unleash-client-node/blob/main/src/metrics.ts
 
-import { notNullOrUndefined } from './util';
-import { sdkVersion } from './version';
+import { parseHeaders } from './util';
 
 export interface MetricsOptions {
     onError: OnError;
@@ -122,20 +121,14 @@ export default class Metrics {
     }
 
     private getHeaders() {
-        const headers = {
-            [this.headerName]: this.clientKey,
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'x-unleash-sdk': sdkVersion,
-            'x-unleash-connection-id': this.connectionId,
-            'x-unleash-appname': this.appName,
-        };
-
-        Object.entries(this.customHeaders)
-            .filter(notNullOrUndefined)
-            .forEach(([name, value]) => (headers[name] = value));
-
-        return headers;
+        return parseHeaders({
+            clientKey: this.clientKey,
+            appName: this.appName,
+            connectionId: this.connectionId,
+            customHeaders: this.customHeaders,
+            headerName: this.headerName,
+            isPost: true,
+        });
     }
 
     public async sendMetrics(): Promise<void> {

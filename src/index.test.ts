@@ -64,7 +64,7 @@ test('Should perform an initial fetch as POST', async () => {
     expect(request.method).toBe('POST');
     expect(body.context.appName).toBe('webAsPOST');
     expect(request.headers).toMatchObject({
-        'Content-Type': 'application/json',
+        'content-type': 'application/json',
     });
 });
 
@@ -650,7 +650,7 @@ test('Should abort previous request', async () => {
     client.updateContext({ userId: '456' }); // abort 2
     await client.updateContext({ userId: '789' });
 
-    expect(abortSpy).toBeCalledTimes(2);
+    expect(abortSpy).toHaveBeenCalledTimes(2);
     abortSpy.mockRestore();
 });
 
@@ -690,7 +690,7 @@ test('Should run without abort controller', async () => {
     client.updateContext({ userId: '456' });
     await client.updateContext({ userId: '789' });
 
-    expect(abortSpy).toBeCalledTimes(0);
+    expect(abortSpy).toHaveBeenCalledTimes(0);
     abortSpy.mockRestore();
 });
 
@@ -783,7 +783,7 @@ test('Should include etag in second request', async () => {
 
     expect(firstRequest.headers).toMatchObject({});
     expect(secondRequest.headers).toMatchObject({
-        'If-None-Match': etag,
+        'if-none-match': etag,
     });
 });
 
@@ -805,7 +805,7 @@ test('Should add clientKey as Authorization header', async () => {
     const request = getTypeSafeRequest(fetchMock);
 
     expect(request.headers).toMatchObject({
-        Authorization: 'some123key',
+        authorization: 'some123key',
     });
 });
 
@@ -1037,7 +1037,7 @@ test('Updating context should wait on asynchronous start', async () => {
         userId: '123',
     });
 
-    expect(fetchMock).toBeCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
 });
 
 test('Should not replace sessionId when updating context', async () => {
@@ -1254,7 +1254,7 @@ test('Initializing client twice should show a console warning', async () => {
     await client.start();
     await client.start();
     // Expect console.error to be called once before start runs.
-    expect(console.error).toBeCalledTimes(2);
+    expect(console.error).toHaveBeenCalledTimes(2);
 });
 
 test('Should pass under custom header clientKey', async () => {
@@ -1356,7 +1356,7 @@ test('Should pass custom headers', async () => {
     });
 });
 
-test('Should add `x-unleash` headers', async () => {
+test('Should add unleash identification headers', async () => {
     fetchMock.mockResponses(
         [JSON.stringify(data), { status: 200 }],
         [JSON.stringify(data), { status: 200 }]
@@ -1382,13 +1382,13 @@ test('Should add `x-unleash` headers', async () => {
 
     const expectedHeaders = {
         // will be replaced at build time with the actual version
-        'x-unleash-sdk': 'unleash-js@__VERSION__',
-        'x-unleash-connection-id': expect.stringMatching(uuidFormat),
-        'x-unleash-appname': appName,
+        'unleash-sdk': 'unleash-client-js:__VERSION__',
+        'unleash-connection-id': expect.stringMatching(uuidFormat),
+        'unleash-appname': appName,
     };
 
     const getConnectionId = (request: any) =>
-        request.headers['x-unleash-connection-id'];
+        request.headers['unleash-connection-id'];
 
     expect(featureRequest.headers).toMatchObject(expectedHeaders);
     expect(metricsRequest.headers).toMatchObject(expectedHeaders);

@@ -348,13 +348,10 @@ it('should return correct variant if called asynchronously multiple times', asyn
     };
     const client = new UnleashClient(config);
 
-    const results: IVariant[] = [];
-    const expected: IVariant[] = [];
-
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 12; i++) {
         await true;
-        results.push(client.getVariant('foo'));
-        expected.push({
+
+        expect(client.getVariant('foo')).toEqual({
             name: 'A',
             enabled: true,
             feature_enabled: true,
@@ -364,8 +361,6 @@ it('should return correct variant if called asynchronously multiple times', asyn
             },
         });
     }
-
-    expect(results).toEqual(expected);
 });
 
 test('Should set internal toggle state when bootstrap is set, before client is started', async () => {

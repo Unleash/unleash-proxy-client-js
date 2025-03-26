@@ -395,8 +395,8 @@ export class UnleashClient extends TinyEmitter {
         const sessionId = await this.resolveSessionId();
         this.context = { sessionId, ...this.context };
 
-        this.lastRefreshTimestamp = await this.getLastRefreshTimestamp();
         const storedToggles = (await this.storage.get(storeKey)) || [];
+        this.lastRefreshTimestamp = await this.getLastRefreshTimestamp();
 
         if (
             this.bootstrap &&
@@ -412,9 +412,9 @@ export class UnleashClient extends TinyEmitter {
             this.setReady();
         } else {
             this.toggles = storedToggles;
-            this.sdkState = 'healthy';
         }
 
+        this.sdkState = 'healthy';
         this.emit(EVENTS.INIT);
     }
 

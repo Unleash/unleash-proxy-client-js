@@ -7,7 +7,6 @@ import {
     IConfig,
     IMutableContext,
     IToggle,
-    IVariant,
     InMemoryStorageProvider,
     UnleashClient,
     lastUpdateKey,

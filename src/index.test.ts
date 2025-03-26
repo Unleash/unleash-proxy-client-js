@@ -7,6 +7,7 @@ import {
     IConfig,
     IMutableContext,
     IToggle,
+    IVariant,
     InMemoryStorageProvider,
     UnleashClient,
     lastUpdateKey,
@@ -315,6 +316,56 @@ test('Should bootstrap data when bootstrap is provided', async () => {
 
     expect(client.getAllToggles()).toStrictEqual(bootstrap);
     expect(localStorage.getItem(storeKey)).toBe(JSON.stringify(bootstrap));
+});
+
+it('should return correct variant if called asynchronously multiple times', async () => {
+    const bootstrap = [
+        {
+            name: 'foo',
+            enabled: true,
+            variant: {
+                name: 'A',
+                enabled: true,
+                payload: {
+                    type: 'string',
+                    value: 'FOO',
+                },
+            },
+            impressionData: false,
+        },
+    ];
+
+    const config: IConfig = {
+        url: 'http://localhost/test',
+        clientKey: '12',
+        appName: 'web',
+        refreshInterval: 0,
+        metricsInterval: 0,
+        disableRefresh: true,
+        bootstrapOverride: true,
+        bootstrap,
+        createAbortController: () => null,
+    };
+    const client = new UnleashClient(config);
+
+    const results: IVariant[] = [];
+    const expected: IVariant[] = [];
+
+    for (let i = 0; i < 10; i++) {
+        await true;
+        results.push(client.getVariant('foo'));
+        expected.push({
+            name: 'A',
+            enabled: true,
+            feature_enabled: true,
+            payload: {
+                type: 'string',
+                value: 'FOO',
+            },
+        });
+    }
+
+    expect(results).toEqual(expected);
 });
 
 test('Should set internal toggle state when bootstrap is set, before client is started', async () => {

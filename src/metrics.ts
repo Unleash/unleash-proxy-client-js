@@ -107,7 +107,7 @@ export default class Metrics {
 
     public stop() {
         if (this.timer) {
-            clearTimeout(this.timer);
+            clearInterval(this.timer);
             delete this.timer;
         }
     }

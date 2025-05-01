@@ -545,7 +545,8 @@ export class UnleashClient extends TinyEmitter {
 
     private async fetchToggles() {
         if (this.fetch) {
-            if (this.abortController) {
+            // Check if abortController is already aborted before calling abort
+            if (this.abortController && !this.abortController.signal.aborted) {
                 this.abortController.abort();
             }
             this.abortController = this.createAbortController?.();

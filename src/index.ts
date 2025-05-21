@@ -63,6 +63,7 @@ interface IConfig extends IStaticContext {
 
 interface IExperimentalConfig {
     togglesStorageTTL?: number;
+    metricsUrl?: URL | string;
 }
 
 interface IVariant {
@@ -222,7 +223,14 @@ export class UnleashClient extends TinyEmitter {
         this.usePOSTrequests = usePOSTrequests;
         this.sdkState = 'initializing';
 
-        this.experimental = { ...experimental };
+        let metricsUrl = experimental?.metricsUrl;
+        if (metricsUrl && !(metricsUrl instanceof URL)) {
+            metricsUrl = new URL(metricsUrl);
+        }
+        this.experimental = {
+            ...experimental,
+            metricsUrl,
+        };
 
         if (
             experimental?.togglesStorageTTL &&
@@ -271,7 +279,7 @@ export class UnleashClient extends TinyEmitter {
             appName,
             metricsInterval,
             disableMetrics,
-            url: this.url,
+            url: this.experimental?.metricsUrl || this.url,
             clientKey,
             fetch,
             headerName,

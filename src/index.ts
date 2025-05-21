@@ -59,6 +59,7 @@ interface IConfig extends IStaticContext {
     impressionDataAll?: boolean;
     usePOSTrequests?: boolean;
     experimental?: IExperimentalConfig;
+    transformToggles?: (toggles: IToggle[]) => Promise<IToggle[]>;
 }
 
 interface IExperimentalConfig {
@@ -172,6 +173,7 @@ export class UnleashClient extends TinyEmitter {
     private experimental: IExperimentalConfig;
     private lastRefreshTimestamp: number;
     private connectionId: string;
+    private transformToggles?: (toggles: IToggle[]) => Promise<IToggle[]>;
 
     constructor({
         storageProvider,
@@ -194,6 +196,7 @@ export class UnleashClient extends TinyEmitter {
         impressionDataAll = false,
         usePOSTrequests = false,
         experimental,
+        transformToggles,
     }: IConfig) {
         super();
         // Validations
@@ -270,8 +273,8 @@ export class UnleashClient extends TinyEmitter {
         this.bootstrap =
             bootstrap && bootstrap.length > 0 ? bootstrap : undefined;
         this.bootstrapOverride = bootstrapOverride;
-
         this.connectionId = uuidv4();
+        this.transformToggles = transformToggles;
 
         this.metrics = new Metrics({
             onError: this.emit.bind(this, EVENTS.ERROR),
@@ -588,7 +591,10 @@ export class UnleashClient extends TinyEmitter {
                 if (response.ok) {
                     this.etag = response.headers.get('ETag') || '';
                     const data = await response.json();
-                    await this.storeToggles(data.toggles);
+                    const transformedToggles = this.transformToggles
+                        ? await this.transformToggles(data.toggles)
+                        : data.toggles;
+                    await this.storeToggles(transformedToggles);
 
                     if (this.sdkState !== 'healthy') {
                         this.sdkState = 'healthy';

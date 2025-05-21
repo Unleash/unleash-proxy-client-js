@@ -136,6 +136,7 @@ The Unleash SDK takes the following options:
 | environment | no | `default` | Sets the `environment` option of the [Unleash context](https://docs.getunleash.io/reference/unleash-context). This does **not** affect the SDK's [Unleash environment](https://docs.getunleash.io/reference/environments). |
 | usePOSTrequests | no | `false` | Configures the client to use POST requests instead of GET when requesting enabled features. This is helpful when sensitive information (like user email, when used as a user ID) is passed in the context to avoid leaking it in the URL. NOTE: Post requests are not supported by the frontend api built into Unleash. |
 | experimental | no | `{}` | Enabling optional experimentation. `togglesStorageTTL` : How long (Time To Live), in seconds, the toggles in storage are considered valid and should not be fetched on start. If set to 0 will disable expiration checking and will be considered always expired.                 |
+| transformToggles | no | `n/a` | Enabling update of the subset of the toggles. Function signature: `transformToggles?: (toggles: IToggle[]) => Promise<IToggle[]>`. Adding the possibility to fetch external data, applying async logic (e.g., user permissions, remote config), and/or dynamically deciding which toggles to keep or modify.            |
 
 ### Listen for updates via the EventEmitter
 
@@ -220,6 +221,27 @@ const unleash = new UnleashClient({
     },
 });
 ```
+
+### Update the subset of the toggles
+If you need to dynamically modify or filter the list of toggles after they are fetched from the Unleash proxy or the Unleash Edge — but before they’re applied to the client — you can use the optional `transformToggles` hook.
+This is especially useful for cases where toggle processing depends on external data, such as user roles, remote config, or custom logic that requires asynchronous operations.
+
+```js
+const client = initialize({ 
+    url: 'https://app.unleash-hosted.com/demo/proxy', 
+    clientKey: 'proxy-client-key', 
+    appName: 'my-app', 
+    transformToggles: async (toggles) => {
+        const allowedToggleNames = await fetchUserTogglePermissions();
+        return toggles.filter(toggle => allowedToggleNames.includes(toggle.name));
+    },
+});
+```
+When to use:
+-	You need to filter toggles based on async context (e.g., user permissions);
+-	You want to enrich toggle data from another service before applying;
+-	You want to limit the updates to only relevant features.
+
 ## How to use in node.js
 
 This SDK can also be used in node.js applications (from v1.4.0). Please note that you will need to provide a valid "fetch" implementation. Only ECMAScript modules is exported from this package.
